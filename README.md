@@ -41,13 +41,25 @@ Or add a DNS record to either a DNS registry or in your local `/etc/hosts`:
 <your.ingress.ip.address>   gateway-acme.spring.animalrescue.online
 ```
 
-If you'd like to use [API portal for VMware Tanzu](https://docs.pivotal.io/api-portal/1-0/installing.html) to view all the endpoints, you will need to install API portal with `api-portal-server.sourceUrls: "http://scg-operator.spring-cloud-gateway/openapi"` set in the helm values. The [gateway resource](./kubernetes-manifests/gateway.yaml) assumes API portal is using the URL `http://api-portal.spring.animalrescue.online`. To create an Ingress resource for your API portal with this URL, you may run:
+We deploy to `acme-fitness` namespace by default (kustomize will create that namespace as well). If you prefer a different namespace, you may change it in [kubernetes-manifests/kustomization.yaml](kubernetes-manifests/kustomization.yaml).  
+
+### Integrating API portal
+
+If you'd like to use [API portal for VMware Tanzu](https://docs.pivotal.io/api-portal/1-0/installing.html) to view all the endpoints, you will need to install API portal via the documentation.
+
+After the API portal is installed, you need to tell the portal about the operator:
+
+```
+   $ kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS="http://scg-operator.spring-cloud-gateway/openapi"
+
+   $ kubectl rollout restart deployment api-portal-server
+```
+
+To create an Ingress resource for your API portal with this URL, you may run:
 
 ```
 kubectl apply -f kubernetes-manifests/api-portal-ingress.yaml # Assuming API portal is installed in `api-portal` namespace.
 ```
-
-We deploy to `acme-fitness` namespace by default (kustomize will create that namespace as well). If you prefer a different namespace, you may change it in [kubernetes-manifests/kustomization.yaml](kubernetes-manifests/kustomization.yaml).
 
 ## Instructions
 
