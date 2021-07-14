@@ -88,6 +88,7 @@ Or set environment variable on a pre-installed API portal deployment:
 
 ```
 kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS="http://scg-operator.spring-cloud-gateway/openapi"
+kubectl rollout restart deployment api-portal-server
 ```
 
 If your API portal is deployed in a different cluster, then you will need to add an ingress for `scg-operator` in your SCG installation namespace to expose the it, and use that url instead. 
