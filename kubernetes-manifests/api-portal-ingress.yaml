@@ -5,7 +5,7 @@ metadata:
   namespace: api-portal
 spec:
   rules:
-  - host: api-portal.spring.animalrescue.online
+  - host: api-portal.my.domain.io
     http:
       paths:
       - pathType: Prefix

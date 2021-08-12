@@ -51,7 +51,7 @@ All resources are deployed to `acme-fitness` namespace. You may change the targe
 There is an ingress resource created for the gateway. You may add a DNS record to either a DNS registry or in your local `/etc/hosts`:
 
 ```
-<your.ingress.ip.address>   acme-fitness.spring.animalrescue.online
+<your.ingress.ip.address>   acme-fitness.my.domain.io
 ```
 
 You may also port-forward the gateway service to expose the app:
@@ -93,13 +93,17 @@ kubectl rollout restart deployment api-portal-server
 
 If your API portal is deployed in a different cluster, then you will need to add an ingress for `scg-operator` in your SCG installation namespace to expose the it, and use that url instead. 
 
-The [gateway resource](./kubernetes-manifests/gateway.yaml) assumes API portal is using the URL `http://api-portal.spring.animalrescue.online`. To create an Ingress resource for your API portal with this URL, you may run:
+The [gateway resource](./kubernetes-manifests/gateway.yaml) assumes API portal is using the URL `http://api-portal.my.domain.io`. To create an Ingress resource for your API portal with this URL, you may run:
 
 ```
 kubectl apply -f kubernetes-manifests/api-portal-ingress.yaml -n api-portal
 ```
 
 You may update the urls in the gateway resource if you want to use a different url for your API portal. 
+
+#### Enable API key 
+
+You may enable API key management on gateway when integrated with an API key enabled API portal. Check out `api-key` branch to see how to configure gateway resource and try it out.
 
 ### SSO integration
 
