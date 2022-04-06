@@ -120,6 +120,14 @@ if environ.get('USER_PORT') is not None:
 else:
     userport=8081
 
+if environ.get('USER_URL') is not None:
+    if os.environ['USER_URL'] != "":
+        user_url = os.environ['USER_URL']
+    else:
+        user_url = ""
+else:
+    user_url = ""
+
 if environ.get('AUTH_MODE') is not None:
     if os.environ['AUTH_MODE'] != "":
         authmode=int(os.environ['AUTH_MODE'])
@@ -179,8 +187,8 @@ def verify_token(token):
     global authmode
 
     headers={'content-type':'application/json'}
-    verify_token_url="http://"+userhost+":"+str(userport)+"/verify-token"
-    login_url="http://"+userhost+":"+str(userport)+"/login"
+    verify_token_url=user_url+"/verify-token"
+    login_url=user_url+"/login"
 
     app.logger.info("user service mode in verify_token is %s", authmode)
     if authmode == 2:

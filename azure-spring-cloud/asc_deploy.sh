@@ -74,7 +74,11 @@ function configure_gateway() {
     --api-title "ACME Fitness" \
     --api-version "v.01" \
     --server-url "https://$gateway_url" \
-    --allowed-origins "*"
+    --allowed-origins "*" \
+    --client-id ${CLIENT_ID} \
+    --client-secret ${CLIENT_SECRET} \
+    --scope "openid,profile" \
+    --issuer-uri ${ISSUER_URI}
 }
 
 function create_cart_service() {
@@ -145,14 +149,15 @@ function deploy_cart_service() {
   local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --app $CART_SERVICE --deployment default --connection $redis_conn_name | jq '.configurations[0].value' -r)
   az spring-cloud app deploy --name $CART_SERVICE \
     --builder $CUSTOM_BUILDER \
-    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" "USER_HOST=user-service.default.svc.cluster.local" "USER_PORT=80"\
+    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" "USER_URL=$GATEWAY_URL"\
     --source-path "$APPS_ROOT/acme-cart"
 }
 
 function deploy_whoami_service() {
   echo "Deploying whoami-service application"
   az spring-cloud app deploy --name $WHOAMI_SERVICE \
-    --source-path "$APPS_ROOT/whoami-service"
+    --source-path "$APPS_ROOT/whoami-service" \
+    --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" #TODO: is this URI necessary?
 }
 
 function deploy_order_service() {
