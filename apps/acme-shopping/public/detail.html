@@ -197,13 +197,11 @@
 
                 console.log('data for cart ', vals)
 
-                var token = getCookie();
                 var userid = getUserID();
 
                 $.ajax({
                   url: "/cart/item/add/" + userid,
                   type: "POST",
-                  headers: {'Authorization' : 'Bearer ' + token},
                   data: JSON.stringify(vals),
                   success: function(data, textStatus, jqXHR) {
 

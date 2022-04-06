@@ -1,130 +1,69 @@
 <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-          <div class="modal-header">
+    <div class="modal-content">
+        <div class="modal-header">
             <h4 class="modal-title">Customer login</h4>
             <button type="button" data-dismiss="modal" aria-hidden="true" class="close">×</button>
-          </div>
-          <div class="modal-body">
-            <div id="login-message"> </div>
-            <form action="index.html" method="post" id="login-form">
-
-              <div class="form-group">
-                <input id="username" type="text" placeholder="username" class="form-control">
-              </div>
-              <div class="form-group">
-                <input id="password" type="password" placeholder="password" class="form-control">
-              </div>
-              <p class="text-center">
-                <button id="login" class="btn btn-outline-primary" href="#"><i class="fa fa-sign-in"></i> Log in</button>
-              </p>
-            </form>
-            <!-- <p class="text-center text-muted">Not registered yet?</p>
-            <p class="text-center text-muted"><a href="register.html"><strong>Register now</strong></a>! It is easy and done in 1 minute and gives you access
-              					to special discounts and much more!
-            </p> -->
-          </div>
         </div>
-      </div>
-      <script src="js/client.js"></script>
-      <script src="js/jwt-decode.min.js"></script>
-      <script>
+        <div class="modal-body">
+            <div id="login-message"></div>
+            <p class="text-center">
+                <button id="login" class="btn btn-outline-primary"><i class="fa fa-sign-in"></i> Log in
+                </button>
+            </p>
+        </div>
+    </div>
+</div>
+<script src="js/client.js"></script>
+<script src="js/jwt-decode.min.js"></script>
+<script>
 
-        $(document).ready(function () {
-            $.ajaxSetup({
-                contentType: "application/json; charset=utf-8"
-            });
+    $(document).ready(function () {
+        $.ajaxSetup({
+            contentType: "application/json; charset=utf-8"
+        });
 
-            // Grab the data from the form when the user clicks on "login" and make a call to user service for Authentication
-            $('#login').click(function(e) {
-                  e.preventDefault()
-                  // Logs data to browser console
-                  console.log("You clicked on login")
-                  var username = $('#username').val()
-                  var password = $('#password').val()
-                  var postvals = {
-                    "username":username,
-                    "password":password
-                  }
+        $('#login').click(function () {
+            location.href = '/acme-login'
+        });
 
-                  $.ajax({
-                     url: "/login",
-                     type: "POST",
-                     async: false,
-                     data: JSON.stringify(postvals),
-                     success: function (data, textStatus, jqXHR) {
+        getUserInfo(function ({userId, userName}) {
 
-                       console.log('posted: ' + textStatus);
-                       $.cookie('logged_in', data.access_token)
-                       $.cookie('refresh_token', data.refresh_token)
-                         console.log("logged_in cookie: " + $.cookie('logged_in'));
-                         $("#login-message").html('<div class="alert alert-success">Login successful</div>');
-                         setTimeout(function(){
+            console.log("This is user id " + userId);
+            if (userName) {
+                $.cookie('user_id', userId)
+                console.log('user logged in: ', userName);
+                $("#login-modal").find('.modal-title').text('Customer Info')
+                $("#login-modal").find('.modal-body').html('Logged in as <strong>' + userName + '</strong> <p></p> ' +
+                    '<button id="logout" type="button" class="btn btn-primary">Logout</button>')
+
+                $('#logout').click(function () {
+                    $.ajax({
+                        url: "/scg-logout?redirect=/",
+                        type: 'GET',
+                        success: function (data, textStatus, jqXHR) {
+                            $.removeCookie('logged_in', { path: '/' });
+                            $.removeCookie('refresh_token', { path: '/' });
+                            $.removeCookie('SCG-SESSION', { path: '/' });
+                            $.removeCookie('user_id', { path: '/' });
+                            $.removeCookie('currency', { path: '/' });
+                            sessionStorage.clear();
                             location.reload();
-                        }, 500);
-                        sessionStorage.clear();
-                    },
-                     error: function (jqXHR, textStatus, errorThrown) {
-                        console.log('error: ' + JSON.stringify(jqXHR));
-                        console.log('error: ' + textStatus);
-                        console.log('error: ' + errorThrown);
-                        $("#login-message").html('<div class="alert alert-danger">Invalid login credentials</div>');
-                    }
-                }); // end of ajax call - /login
+                            console.log("Successfully Logged out user")
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log('error: ' + JSON.stringify(jqXHR));
+                            console.log('error: ' + textStatus);
+                            console.log('error: ' + errorThrown);
+                            $("#login-message").html('<div class="alert alert-danger">Failed to logout</div>');
+                        }
+                    });
+                });
 
-                return false;
-             });
-
-            if ($.cookie('logged_in') != null) {
-              var token = $.cookie('logged_in')
-              var userID = getUserID()
-
-              console.log("This is user id " + userID)
-
-              getUsername(userID, token, function (fullname) {
-
-                  if (fullname !== 'undefined') {
-
-                      console.log('login works' + " "  + fullname)
-                      $("#login-modal").find('.modal-title').text('Customer Info')
-                      $("#login-modal").find('.modal-body').html('Logged in as <strong>'+ fullname + '</strong> <p></p> <button id="logout" type="button" class="btn btn-primary">Logout</button>')
-
-                  }
-                  else {
-                      console.log('login didnt work')
-                  }
-
-              });
-
-            }
-            else {
-                 console.log("User not logged in")
+            } else {
+                console.log('user not logged in');
             }
 
-          // WHen the user clicks on logout, remove all the cookies and clear session data
-          $("#login-modal").on('click', '#logout', function(){
-              console.log("you clicked on logout");
-              $.ajax({
-                url: "/users/logout",
-                type: 'POST',
-                headers: {'Authorization' : 'Bearer ' + $.cookie('logged_in')},
-                success: function (data, textStatus, jqXHR) {
-                    console.log(textStatus)
-                    $.removeCookie('logged_in');
-                    $.removeCookie('refresh_token');
-                    $.removeCookie('currency');
-                    sessionStorage.clear();
-                    location.reload();
-                    console.log("Successfully Logged out user")
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                        console.log('error: ' + JSON.stringify(jqXHR));
-                        console.log('error: ' + textStatus);
-                        console.log('error: ' + errorThrown);
-                        $("#login-message").html('<div class="alert alert-danger">Failed to logout</div>');
-                  }
-              });
-
-          });
+        });
 
     });
-      </script>
+</script>

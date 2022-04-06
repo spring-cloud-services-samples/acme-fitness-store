@@ -1,28 +1,24 @@
 
 // Returns the full name for a user based on userid
-function getUsername(userid, token, displayusername) {
-  console.log('Requesting user details from backend');
+function getUserInfo(handleUserInfo) {
+    console.log('Requesting user details from backend');
 
-  $.ajax({
-    url: "/users/" + userid,
-    type: 'GET',
-    headers: {'Authorization': 'Bearer ' + token},
-    success: function (json, textStatus, jqXHR) {
-
-          if (json.status == 200) {
-
-              displayusername(json.data.firstname + " " + json.data.lastname)
-
-          } else {
-
-              console.error('Could not get user information: ');
-              return displayusername(undefined);
-          }
+    $.ajax({
+        url: "/userinfo",
+        type: 'GET',
+        success: function (json) {
+            if (json) {
+                console.debug('type of body', typeof json, json);
+                handleUserInfo(json);
+            } else {
+                console.error('Could not get user information', json);
+                return handleUserInfo({});
+            }
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.error('Could not get user information: ' + userid + ', due to: ' + textStatus + ' | ' + errorThrown);
+            console.error('Could not get user information due to: ' + textStatus + ' | ' + errorThrown);
         }
-   });
+    });
 
 }
 
@@ -32,28 +28,24 @@ function deleteItem(itemid, userid) {
     console.log('Deleting item from cart');
 
     vals = {
-      "itemid" : itemid,
-      "quantity": 0
+        "itemid" : itemid,
+        "quantity": 0
     }
 
-    var token = getCookie()
-
     $.ajax({
+        url: "/cart/item/modify/" + userid,
+        type: "POST",
+        data: JSON.stringify(vals),
+        success: function(data, textStatus, jqXHR) {
 
-      url: "/cart/item/modify/" + userid,
-      type: "POST",
-      headers: {'Authorization' : 'Bearer ' + token},
-      data: JSON.stringify(vals),
-      success: function(data, textStatus, jqXHR) {
+            console.log('Item deleted successfully ')
+            location.reload();
 
-        console.log('Item deleted successfully ')
-        location.reload();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
 
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-
-        console.log('Error while deleting item from cart ' + textStatus + ' | ' + errorThrown)
-      }
+            console.log('Error while deleting item from cart ' + textStatus + ' | ' + errorThrown)
+        }
     });
 
 }
@@ -64,29 +56,26 @@ function updateCart(itemid, quantity, userid) {
     console.log('Updating item from cart ' + itemid);
 
     vals = {
-      "itemid" : itemid,
-      "quantity": quantity
+        "itemid" : itemid,
+        "quantity": quantity
     }
-
-    var token = getCookie()
 
     $.ajax({
 
-      url: "/cart/item/modify/" + userid,
-      type: "POST",
-      headers: {'Authorization' : 'Bearer ' + token},
-      data: JSON.stringify(vals),
-      success: function(data, textStatus, jqXHR) {
+        url: "/cart/item/modify/" + userid,
+        type: "POST",
+        data: JSON.stringify(vals),
+        success: function(data, textStatus, jqXHR) {
 
-        console.log('Modified cart item ' + textStatus);
-        location.reload();
+            console.log('Modified cart item ' + textStatus);
+            location.reload();
 
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
 
-        console.log('Error modifying item quantity from cart ' + textStatus + ' | ' + errorThrown)
+            console.log('Error modifying item quantity from cart ' + textStatus + ' | ' + errorThrown)
 
-      }
+        }
     });
 
 }
@@ -95,87 +84,62 @@ function updateCart(itemid, quantity, userid) {
 // Get the total for cart
 function getCartTotal(userid) {
 
-  var cartTotal = 0
-  var token = getCookie()
-  $.ajax({
+    var cartTotal = 0
+    $.ajax({
 
-    url: "/cart/total/" + userid,
-    type: "GET",
-    headers: {'Authorization' : 'Bearer ' + token},
-    async: false,
-    success: function(body, textStatus, jqXHR) {
+        url: "/cart/total/" + userid,
+        type: "GET",
+        async: false,
+        success: function(body, textStatus, jqXHR) {
 
-      if (jqXHR.status == 200){
+            if (jqXHR.status == 200){
 
-          cartTotal = body.carttotal;
-      }
-      else {
-        console.log('Could not get total ' + textStatus);
-        cartTotal = 0;
-      }
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      console.log('Error Receiving Total ' + errorThrown);
-    }
+                cartTotal = body.carttotal;
+            }
+            else {
+                console.log('Could not get total ' + textStatus);
+                cartTotal = 0;
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('Error Receiving Total ' + errorThrown);
+        }
 
-  });
+    });
 
-return cartTotal;
+    return cartTotal;
 
 }
 
-// Returns user auth cookie
-function getCookie() {
-
-    // Check if the user is logged in
-    if($.cookie('logged_in') != null){
-
-        var token = $.cookie('logged_in')
-    }
-    else {
-      // @todo - do we need this ?
-      // Creates a user automatically if no user is logged in
-            var token = "guest"
-    }
-
-    return token
-}
-
-// Returns user ID by parsing the JWT
 function getUserID() {
-
-  var token = getCookie()
-  if (token == "guest") {
-    return 'guest'
-  }
-  var decodedJWT = jwt_decode(token);
-  return decodedJWT.sub
+    var userId = $.cookie('user_id')
+    return userId || 'guest'
 }
 
 // Returns image url
 function getImageUrl(productId, setUrl) {
 
-  var imageurl = ''
-  $.ajax({
-    url: "/products/" + productId,
-    type: 'GET',
-    async: false,
-    success: function (body, textStatus, jqXHR) {
-          console.log('Getting Product info ' + body)
-          if (jqXHR.status == 200) {
+    var imageurl = ''
+    $.ajax({
+        url: "/products/" + productId,
+        type: 'GET',
+        async: false,
+        success: function (body, textStatus, jqXHR) {
+            console.log('Getting Product info ' + body)
+            if (jqXHR.status == 200) {
 
-              imageurl = body.data.imageUrl1;
+                imageurl = body.data.imageUrl1;
 
-          } else {
+            } else {
 
-              console.error('Could not get product image: ' + textStatus);
-              imageurl = undefined;
-          }
+                console.error('Could not get product image: ' + textStatus);
+                imageurl = undefined;
+            }
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.error('Could not get product information: ' + productId + ', due to: ' + textStatus + ' | ' + errorThrown);
         }
-   });
+    });
 
-return imageurl
+    return imageurl
 }

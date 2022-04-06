@@ -241,15 +241,12 @@
             orderBlob['card'] = card;
             orderBlob['cart'] = JSON.parse(sessionStorage.cart);
 
-            // Get token
-            var token = getCookie();
 
             // Send data to order service
             $.ajax({
               url: "/order/add/" + userid,
               type: "POST",
               data: JSON.stringify(orderBlob),
-              headers : {'Authorization' : 'Bearer ' + token},
               success: function(data,textStatus, jqXHR) {
 
                 console.log('Successful call to order')
@@ -300,14 +297,12 @@
           // Check if the user is logged in
           // Returns userid if user is logged in, if not returns "guest"
 
-          var token = getCookie();
           var userid = getUserID();
 
           $.ajax({
 
             url: "/cart/items/" + userid,
             type:"GET",
-            headers: {'Authorization' : 'Bearer ' + token},
             success: function(body, textStatus, jqXHR) {
 
               if(jqXHR.status == 200) {

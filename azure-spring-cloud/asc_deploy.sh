@@ -7,17 +7,15 @@ readonly APPS_ROOT="${PROJECT_ROOT}/apps"
 
 readonly REDIS_NAME="acme-fitness-redis"
 readonly COSMOS_ACCOUNT="acme-fitness-cosmosdb"
-readonly USER_SERVICE_MONGO_CONNECTION="user_service_mongodb"
-readonly ORDER_SERVICE_MONGO_CONNECTION="user_service_mongodb"
+readonly ORDER_SERVICE_MONGO_CONNECTION="order_service_mongodb"
 readonly CATALOG_SERVICE_MONGO_CONNECTION="catalog_service_mongodb"
 readonly ACMEFIT_DB_NAME="acmefit"
 readonly ACMEFIT_POSTGRES_DB_PASSWORD=$(openssl rand -base64 32)
 readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
 readonly ACMEFIT_POSTGRES_SERVER="acmefit-db-server"
-readonly USER_DB_NAME="users"
 readonly ORDER_DB_NAME="orders"
 readonly CART_SERVICE="cart-service"
-readonly USER_SERVICE="user-service"
+readonly WHOAMI_SERVICE="whoami-service"
 readonly ORDER_SERVICE="order-service"
 readonly PAYMENT_SERVICE="payment-service"
 readonly CATALOG_SERVICE="catalog-service"
@@ -70,7 +68,7 @@ function configure_gateway() {
   az spring-cloud gateway update --assign-endpoint true
   local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
 
-  echo "Configuring Spring Cloud Gateway without SSO enabled"
+  echo "Configuring Spring Cloud Gateway"
   az spring-cloud gateway update \
     --api-description "ACME Fitness API" \
     --api-title "ACME Fitness" \
@@ -88,25 +86,10 @@ function create_cart_service() {
   read -n 1 -s -r -p "Press any key to continue."
 }
 
-function create_user_service() {
-  echo "Creating user service"
-  az spring-cloud app create --name $USER_SERVICE
-  az spring-cloud gateway route-config create --name $USER_SERVICE --app-name $USER_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/user-service.json"
-
-  az spring-cloud connection create cosmos-mongo -g $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_INSTANCE \
-    --app $USER_SERVICE \
-    --deployment default \
-    --resource-group $RESOURCE_GROUP \
-    --target-resource-group $RESOURCE_GROUP \
-    --account $COSMOS_ACCOUNT \
-    --database $ACMEFIT_DB_NAME \
-    --secret \
-    --client-type java \
-    --connection $USER_SERVICE_MONGO_CONNECTION
-
-  echo "user-service app successfully created. Please create a service connector to redis before continuing." #TODO: link to instructions
-  read -n 1 -s -r -p "Press any key to continue."
+function create_whoami_service() {
+  echo "Creating whoami service"
+  az spring-cloud app create --name $WHOAMI_SERVICE
+  az spring-cloud gateway route-config create --name $WHOAMI_SERVICE --app-name $WHOAMI_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/sso.json"
 }
 
 function create_order_service() {
@@ -166,17 +149,10 @@ function deploy_cart_service() {
     --source-path "$APPS_ROOT/acme-cart"
 }
 
-function deploy_user_service() {
-  echo "Deploying user-service application"
-  local mongo_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --connection $USER_SERVICE_MONGO_CONNECTION --app $USER_SERVICE | jq '.configurations[0].value' -r)
-
-  local redis_conn_name=$(az spring-cloud connection list --app $USER_SERVICE -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --query "[?contains(@.name, 'redis')]" | jq -r '.[0].name')
-  local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --app $USER_SERVICE --deployment default --connection $redis_conn_name | jq '.configurations[0].value' -r)
-
-  az spring-cloud app deploy --name $USER_SERVICE \
-    --builder $CUSTOM_BUILDER \
-    --env "USERS_PORT=8080" "MONGODB_CONNECTIONSTRING=$mongo_connection_url" "REDIS_CONNECTIONSTRING=$redis_conn_str" \
-    --source-path "$APPS_ROOT/acme-user"
+function deploy_whoami_service() {
+  echo "Deploying whoami-service application"
+  az spring-cloud app deploy --name $WHOAMI_SERVICE \
+    --source-path "$APPS_ROOT/whoami-service"
 }
 
 function deploy_order_service() {
@@ -219,14 +195,14 @@ function main() {
   create_dependencies
   create_builder
   configure_gateway
-  create_user_service
+  create_whoami_service
   create_cart_service
   create_order_service
   create_payment_service
   create_catalog_service
   create_frontend_app
 
-  deploy_user_service
+  deploy_whoami_service
   deploy_cart_service
   deploy_order_service
   deploy_payment_service
