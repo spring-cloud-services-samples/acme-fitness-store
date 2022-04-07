@@ -21,7 +21,7 @@ namespace acme_order.Controllers
             _orderService = orderService;
         }
 
-        [HttpPost("add/{userid:length(24)}")]
+        [HttpPost("add/{userid}")]
         [ServiceFilter(typeof(AuthorizeResource))]
         public ActionResult<OrderCreateResponse> Create(string userid, Order orderIn)
         {
@@ -34,7 +34,7 @@ namespace acme_order.Controllers
         public ActionResult<List<OrderResponse>> Get() =>
             _orderService.Get();
 
-        [HttpGet("{userId:length(24)}", Name = "GetOrderByUser")]
+        [HttpGet("{userId}", Name = "GetOrderByUser")]
         [ServiceFilter(typeof(AuthorizeResource))]
         public ActionResult<List<OrderResponse>> Get(string userId)
         {
