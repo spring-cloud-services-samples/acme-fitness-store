@@ -1,4 +1,4 @@
-package com.vmware.whoami;
+package com.vmware.identity;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

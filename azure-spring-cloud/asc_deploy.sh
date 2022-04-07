@@ -15,7 +15,7 @@ readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
 readonly ACMEFIT_POSTGRES_SERVER="acmefit-db-server"
 readonly ORDER_DB_NAME="orders"
 readonly CART_SERVICE="cart-service"
-readonly WHOAMI_SERVICE="whoami-service"
+readonly IDENTITY_SERVICE="identity-service"
 readonly ORDER_SERVICE="order-service"
 readonly PAYMENT_SERVICE="payment-service"
 readonly CATALOG_SERVICE="catalog-service"
@@ -90,10 +90,10 @@ function create_cart_service() {
   read -n 1 -s -r -p "Press any key to continue."
 }
 
-function create_whoami_service() {
-  echo "Creating whoami service"
-  az spring-cloud app create --name $WHOAMI_SERVICE
-  az spring-cloud gateway route-config create --name $WHOAMI_SERVICE --app-name $WHOAMI_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/sso.json"
+function create_identity_service() {
+  echo "Creating identity service"
+  az spring-cloud app create --name $IDENTITY_SERVICE
+  az spring-cloud gateway route-config create --name $IDENTITY_SERVICE --app-name $IDENTITY_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/identity-service.json"
 }
 
 function create_order_service() {
@@ -153,11 +153,11 @@ function deploy_cart_service() {
     --source-path "$APPS_ROOT/acme-cart"
 }
 
-function deploy_whoami_service() {
-  echo "Deploying whoami-service application"
-  az spring-cloud app deploy --name $WHOAMI_SERVICE \
-    --source-path "$APPS_ROOT/whoami-service" \
-    --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" #TODO: is this URI necessary?
+function deploy_identity_service() {
+  echo "Deploying identity-service application"
+  az spring-cloud app deploy --name $IDENTITY_SERVICE \
+    --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
+    --source-path "$APPS_ROOT/identity-service" #TODO: is this URI necessary?
 }
 
 function deploy_order_service() {
@@ -200,14 +200,14 @@ function main() {
   create_dependencies
   create_builder
   configure_gateway
-  create_whoami_service
+  create_identity_service
   create_cart_service
   create_order_service
   create_payment_service
   create_catalog_service
   create_frontend_app
 
-  deploy_whoami_service
+  deploy_identity_service
   deploy_cart_service
   deploy_order_service
   deploy_payment_service
