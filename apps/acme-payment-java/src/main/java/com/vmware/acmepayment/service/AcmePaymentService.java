@@ -1,55 +1,43 @@
 package com.vmware.acmepayment.service;
 
+import java.util.UUID;
+
 import com.vmware.acmepayment.request.PaymentRequest;
 import com.vmware.acmepayment.response.PaymentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.UUID;
-
 @Service
-public class AcmePaymentService implements IAcmePaymentService {
+public class AcmePaymentService {
 
-    Logger logger = LoggerFactory.getLogger(AcmePaymentService.class);
+	private static final Logger log = LoggerFactory.getLogger(AcmePaymentService.class);
 
-    @Override
-    public PaymentResponse processPayment(PaymentRequest paymentRequest) {
-        var success = "false";
-        var status = "400";
-        var message = "missing required data";
-        var amount = "0";
-        var transactionId = "-1";
+	public PaymentResponse processPayment(PaymentRequest paymentRequest) {
+		if (null == paymentRequest.getCard()) {
+			log.info("payment failed due to missing card info");
+			return new PaymentResponse(false, "missing card info", "0", "-1", HttpStatus.BAD_REQUEST.value());
+		}
 
-        if (paymentRequest.cardIsNull()) {
-            logger.info("payment failed due to missing card info");
-        } else {
-            LocalDate currentDate = LocalDate.now();
-            if (paymentRequest.getCard().ccvIsNullOrEmpty() || paymentRequest.getCard().numberIsNullOrEmpty() ||
-                    paymentRequest.totalIsNullOrEmpty() || paymentRequest.getCard().expYearIsNullOrEmpty() ||
-                    paymentRequest.getCard().expMonthIsNullOrEmpty()) {
-                logger.info("payment failed due to incomplete info");
-            } else if (paymentRequest.getCard().getNumber().length() % 4 != 0) {
-                logger.info("payment failed due to bad card number");
-                message = "not a valid card number";
-                transactionId = "-2";
-            } else if (Integer.parseInt(paymentRequest.getCard().getExpYear()) < currentDate.getYear() ||
-                    (Integer.parseInt(paymentRequest.getCard().getExpYear()) == currentDate.getYear() && (
-                            Integer.parseInt(paymentRequest.getCard().getExpMonth()) < currentDate.getMonthValue()))) {
-                logger.info("payment failed due to expired card");
-                message = "card is expired";
-                transactionId = "-3";
-            } else {
-                logger.info("payment processed successfully");
-                UUID uuid = UUID.randomUUID();
-                success = "true";
-                status = "200";
-                message = "transaction successful";
-                amount = paymentRequest.getTotal();
-                transactionId = uuid.toString();
-            }
-        }
-        return new PaymentResponse(success, message, amount, transactionId, status);
-    }
+		if (paymentRequest.containsMissingData()) {
+			log.info("payment failed due to incomplete info");
+			return new PaymentResponse(false, "payment data is incomplete", "0", "-1", HttpStatus.BAD_REQUEST.value());
+		}
+
+		if (paymentRequest.getCard().getNumber().length() % 4 != 0) {
+			log.info("payment failed due to bad card number");
+			return new PaymentResponse(false, "not a valid card number", "0", "-2", HttpStatus.BAD_REQUEST.value());
+		}
+
+		if (paymentRequest.getCard().isExpired()) {
+			log.info("payment failed due to expired card");
+			return new PaymentResponse(false, "card is expired", "0", "-3", HttpStatus.BAD_REQUEST.value());
+
+		}
+
+		log.info("payment processed successfully");
+		return new PaymentResponse(true, "transaction successful", paymentRequest.getTotal(), UUID.randomUUID().toString(), HttpStatus.OK.value());
+	}
 }

@@ -2,17 +2,17 @@ package com.vmware.acmepayment.response;
 
 public class PaymentResponse {
 
-    private String success;
+    private boolean success;
     private String message;
     private String amount;
     private String transactionID;
-    private String status;
+    private int status;
 
-    public String getSuccess() {
+    public boolean getSuccess() {
         return success;
     }
 
-    public PaymentResponse(String success, String message, String amount, String transactionID, String status) {
+    public PaymentResponse(boolean success, String message, String amount, String transactionID, int status) {
         this.success = success;
         this.message = message;
         this.amount = amount;
@@ -20,7 +20,7 @@ public class PaymentResponse {
         this.status = status;
     }
 
-    public void setSuccess(String success) {
+    public void setSuccess(boolean success) {
         this.success = success;
     }
 
@@ -48,11 +48,11 @@ public class PaymentResponse {
         this.transactionID = transactionID;
     }
 
-    public String getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 

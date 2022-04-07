@@ -1,5 +1,9 @@
 package com.vmware.acmepayment.model;
 
+import java.time.LocalDate;
+
+import org.springframework.util.StringUtils;
+
 public class Card {
 
     private String number;
@@ -15,20 +19,12 @@ public class Card {
         this.number = number;
     }
 
-    public Boolean numberIsNullOrEmpty(){
-        return this.number == null || this.number.isEmpty();
-    }
-
     public String getExpYear() {
         return expYear;
     }
 
     public void setExpYear(String expYear) {
         this.expYear = expYear;
-    }
-
-    public Boolean expYearIsNullOrEmpty(){
-        return this.expYear  == null || this.expYear.isEmpty();
     }
 
     public String getExpMonth() {
@@ -39,10 +35,6 @@ public class Card {
         this.expMonth = expMonth;
     }
 
-    public Boolean expMonthIsNullOrEmpty(){
-        return this.expMonth  == null || this.expMonth.isEmpty();
-    }
-
     public String getCcv() {
         return ccv;
     }
@@ -51,7 +43,13 @@ public class Card {
         this.ccv = ccv;
     }
 
-    public Boolean ccvIsNullOrEmpty(){
-        return this.ccv  == null || this.ccv.isEmpty();
+    public boolean containsMissingInfo() {
+        return !StringUtils.hasText(number) || !StringUtils.hasText(expYear) || !StringUtils.hasText(ccv) || !StringUtils.hasText(expMonth);
+    }
+
+    public boolean isExpired() {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate expDate = LocalDate.of(Integer.parseInt(expYear), Integer.parseInt(expMonth), 1);
+        return currentDate.isBefore(expDate);
     }
 }

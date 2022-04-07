@@ -2,6 +2,8 @@ package com.vmware.acmepayment.request;
 
 import com.vmware.acmepayment.model.Card;
 
+import org.springframework.util.StringUtils;
+
 public class PaymentRequest {
     private Card card;
     private String total;
@@ -14,10 +16,6 @@ public class PaymentRequest {
         this.card = card;
     }
 
-    public Boolean cardIsNull(){
-        return this.card == null;
-    }
-
     public String getTotal() {
         return total;
     }
@@ -26,8 +24,8 @@ public class PaymentRequest {
         this.total = total;
     }
 
-    public Boolean totalIsNullOrEmpty(){
-        return this.total == null || this.total.isEmpty();
+    public boolean containsMissingData(){
+        return !StringUtils.hasText(total) || card.containsMissingInfo();
     }
 
 }
