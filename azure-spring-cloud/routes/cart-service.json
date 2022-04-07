@@ -9,7 +9,9 @@
     ],
     "tags": [
       "cart"
-    ]
+    ],
+    "ssoEnabled": true,
+    "tokenRelay": true
   },
   {
     "predicates": [
@@ -21,7 +23,9 @@
     ],
     "tags": [
       "cart"
-    ]
+    ],
+    "ssoEnabled": true,
+    "tokenRelay": true
   },
   {
     "predicates": [
@@ -33,7 +37,9 @@
     ],
     "tags": [
       "cart"
-    ]
+    ],
+    "ssoEnabled": true,
+    "tokenRelay": true
   },
   {
     "predicates": [
@@ -45,7 +51,9 @@
     ],
     "tags": [
       "cart"
-    ]
+    ],
+    "ssoEnabled": true,
+    "tokenRelay": true
   },
   {
     "predicates": [
@@ -57,6 +65,8 @@
     ],
     "tags": [
       "cart"
-    ]
+    ],
+    "ssoEnabled": true,
+    "tokenRelay": true
   }
 ]

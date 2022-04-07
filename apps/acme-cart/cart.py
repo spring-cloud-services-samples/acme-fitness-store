@@ -219,10 +219,10 @@ def verify_token(token):
             verify_token_payload=json.dumps({"access_token": token})
             r=requests.post(verify_token_url, headers=headers, data=verify_token_payload)
             if r.status_code == 200:
-                app.logger.info('Authorized %s', json.loads(r.content)["message"])
+                app.logger.info('Authorized %s', str(r.content))
                 return True
             else:
-                app.logger.info('Un-authorized %s', json.loads(r.content)["message"])
+                app.logger.info('Un-authorized %s', str(r.content))
                 return False
 
     else:

@@ -147,9 +147,10 @@ function deploy_cart_service() {
   echo "Deploying cart-service application"
   local redis_conn_name=$(az spring-cloud connection list --app $CART_SERVICE -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default | jq -r '.[0].name')
   local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --app $CART_SERVICE --deployment default --connection $redis_conn_name | jq '.configurations[0].value' -r)
+  local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
   az spring-cloud app deploy --name $CART_SERVICE \
     --builder $CUSTOM_BUILDER \
-    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" "USER_URL=$GATEWAY_URL"\
+    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" "USER_URL=https://${gateway_url}"\
     --source-path "$APPS_ROOT/acme-cart"
 }
 
