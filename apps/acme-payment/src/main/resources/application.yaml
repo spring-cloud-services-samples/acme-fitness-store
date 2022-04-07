@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: "acme-payment"
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: '*'

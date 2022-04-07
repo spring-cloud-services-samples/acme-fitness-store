@@ -183,8 +183,6 @@ function deploy_payment_service() {
   echo "Deploying payment-service application"
 
   az spring-cloud app deploy --name $PAYMENT_SERVICE \
-    --builder $CUSTOM_BUILDER \
-    --env "PAYMENT_PORT=8080" "USERS_HOST=user-service.default.svc.cluster.local" "USERS_PORT=80" \
     --source-path "$APPS_ROOT/acme-payment"
 }
 
