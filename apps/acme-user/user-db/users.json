@@ -1,6 +1,0 @@
-{"_id":{"$oid":"5c3939ea1d41c892ce243827"},"firstname":"Walter","lastname":"White","email":"walter@acmefitness.com","username":"walter","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
-{"_id":{"$oid":"5c393a011d41c892ce243828"},"firstname":"Dwight","lastname":"Schrute","email":"dwight@acmefitness.com","username":"dwight","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
-{"_id":{"$oid":"5c393a111d41c892ce243829"},"firstname":"Eric","lastname":"Cartman","email":"eric@acmefitness.com","username":"eric","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
-{"_id":{"$oid":"5c393a481d41c892ce24382a"},"firstname":"Han","lastname":"Solo","email":"han@acmefitness.com","username":"han","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
-{"_id":{"$oid":"5c393aa71d41c892ce24382b"},"firstname":"Phoebe","lastname":"Buffay","email":"phoebe@acmefitness.com","username":"phoebe","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
-{"_id":{"$oid":"5c393ae71d41c892ce24382c"},"firstname":"Elaine","lastname":"Benes","email":"elaine@acmefitness.com","username":"elaine","password":"6837ea9b06409112a824d113927ad74fabc5c76e","salt":""}
