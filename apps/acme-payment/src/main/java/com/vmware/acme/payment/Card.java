@@ -48,8 +48,7 @@ public class Card {
     }
 
     public boolean isExpired() {
-        LocalDate currentDate = LocalDate.now();
         LocalDate expDate = LocalDate.of(Integer.parseInt(expYear), Integer.parseInt(expMonth), 1);
-        return currentDate.isBefore(expDate);
+        return expDate.isBefore(LocalDate.now());
     }
 }
