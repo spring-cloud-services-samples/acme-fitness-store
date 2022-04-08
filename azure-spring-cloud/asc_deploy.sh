@@ -9,6 +9,7 @@ readonly REDIS_NAME="acme-fitness-redis"
 readonly COSMOS_ACCOUNT="acme-fitness-cosmosdb"
 readonly ORDER_SERVICE_MONGO_CONNECTION="order_service_mongodb"
 readonly CATALOG_SERVICE_MONGO_CONNECTION="catalog_service_mongodb"
+readonly CART_SERVICE_REDIS_CONNECTION="cart_service_redis"
 readonly ACMEFIT_DB_NAME="acmefit"
 readonly ACMEFIT_POSTGRES_DB_PASSWORD=$(openssl rand -base64 32)
 readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
@@ -86,8 +87,16 @@ function create_cart_service() {
   az spring-cloud app create --name $CART_SERVICE
   az spring-cloud gateway route-config create --name $CART_SERVICE --app-name $CART_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/cart-service.json"
 
-  echo "cart-service app successfully created. Please create a service connector to redis before continuing." #TODO: link to instructions
-  read -n 1 -s -r -p "Press any key to continue."
+  az spring-cloud connection create redis \
+    --service $SPRING_CLOUD_INSTANCE \
+    --deployment default \
+    --resource-group $RESOURCE_GROUP \
+    --target-resource-group $RESOURCE_GROUP \
+    --server $REDIS_NAME \
+    --database 0 \
+    --app $CART_SERVICE \
+    --client-type java \
+    --connection $CART_SERVICE_REDIS_CONNECTION
 }
 
 function create_identity_service() {
@@ -145,8 +154,7 @@ function create_frontend_app() {
 
 function deploy_cart_service() {
   echo "Deploying cart-service application"
-  local redis_conn_name=$(az spring-cloud connection list --app $CART_SERVICE -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default | jq -r '.[0].name')
-  local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --app $CART_SERVICE --deployment default --connection $redis_conn_name | jq '.configurations[0].value' -r)
+  local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --app $CART_SERVICE --connection $CART_SERVICE_REDIS_CONNECTION | jq -r '.configurations[0].value')
   local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
   az spring-cloud app deploy --name $CART_SERVICE \
     --builder $CUSTOM_BUILDER \
@@ -158,7 +166,7 @@ function deploy_identity_service() {
   echo "Deploying identity-service application"
   az spring-cloud app deploy --name $IDENTITY_SERVICE \
     --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
-    --source-path "$APPS_ROOT/identity-service" #TODO: is this URI necessary?
+    --source-path "$APPS_ROOT/acme-identity" #TODO: is this URI necessary?
 }
 
 function deploy_order_service() {
