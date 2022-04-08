@@ -48,7 +48,7 @@ namespace acme_order.Auth
 
             var json = JsonConvert.SerializeObject(tokenRequest);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = $"{_acmeServiceSettings.UserServiceUrl}/verify-token";
+            var url = $"{_acmeServiceSettings.AuthUrl}/verify-token";
 
             using var client = new HttpClient();
 
