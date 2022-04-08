@@ -1,158 +1,110 @@
-# Demo of ACME Fitness Shop
+---
+page_type: sample
+languages:
+- java
+  products:
+- Azure Spring Cloud
+- Azure Database for PostgresSQL
+- Azure Cache for Redis
+- Azure Active Directory
+  description: "Deploy Microservice Apps to Azure"
+  urlFragment: ""
+---
 
-## Getting Started
+# Deploy Microservice Applications to Azure Spring Cloud
 
-These instructions will allow you to run entire ACME Fitness Shop with [Spring Cloud Gateway for kubernetes](https://docs.pivotal.io/scg-k8s/1-0/).
+Azure Spring cloud enables you to easily run Spring Boot and polyglot applications on Azure.
 
-## Overview
+This quickstart shows you how to deploy existing microservices written in Java, Python, and C# to Azure. When you're 
+finished, you can continue to manage the application via the Azure CLI or switch to using the Azure Portal.
 
-![Acmeshop Architecture](./acmeshop.png)
+* [Deploy Microservice Applications to Azure Spring Cloud](#deploy-microservice-applications-to-azure-spring-cloud)
+   * [What will you experience](#what-will-you-experience)
+   * [What you will need](#what-you-will-need)
+   * [Install the Azure CLI extension](#install-the-azure-cli-extension)
+   * [Clone the repo](#clone-the-repo)
+   * [Unit 1 - Deploy and Build Applications](#unit-1---deploy-and-build-applications)
 
-Source code of the related apps:
-- Front End: https://github.com/pivotal-cf/acme-shopping
-- User Service: https://github.com/pivotal-cf/acme-user
-- Catalog: https://github.com/pivotal-cf/acme-catalog
-- Cart: https://github.com/pivotal-cf/acme-cart
-- Order: https://github.com/pivotal-cf/acme-order
-- Payment: https://github.com/pivotal-cf/acme-payment
+## What will you experience
+You will:
+- Provision an Azure Spring Cloud service instance.
+- Configure Application Configuration Service repositories
+- Deploy applications to Azure existing Spring Boot applications and build using Tanzu Build Service
+- Configure routing to the applications using Spring Cloud Gateway
+- Open the application
+- Explore the application API with Api Portal
+- Configure Single Sign On (SSO) for the application
 
-## Try it out
+## What you will need
 
-### Deploying to k8s
+In order to deploy a Java app to cloud, you need
+an Azure subscription. If you do not already have an Azure
+subscription, you can activate your
+[MSDN subscriber benefits](https://azure.microsoft.com/pricing/member-offers/msdn-benefits-details/)
+or sign up for a
+[free Azure account]((https://azure.microsoft.com/free/)).
 
-1. [Install Spring Cloud Gateway for kubernetes](https://docs.pivotal.io/scg-k8s/1-0/installation.html) before running the following command.
+In addition, you will need the following:
 
-1. Create a secret file to specify the password for databases to use and for the deployed apps to access the databases. The `<value>` can be any value.
+| [Azure CLI version 2.17.1 or higher](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest)
+| [Git](https://git-scm.com/)
+| [`jq` utility](https://stedolan.github.io/jq/download/)
+|
 
-    ```
-    echo 'password=<value>' > kubernetes-manifests/.env.secret
-    ```
-
-1. Create a secret file for wavefront access. This is for your gateway to publish metrics and tracing data. 
-
-    ```
-    echo 'wavefront.api-token=<token>
-    wavefront.uri=<uri>' > kubernetes-manifests/.env.wavefront.secret
-    kustomize build kubernetes-manifests/ | kubectl apply -f -
-    ```
-    
-    If you don't have wavefront instance/token handy, you may disable tracing and metrics by deleting the `tracing` and `metrics` section in [gateway.yaml](./kubernetes-manifests/gateway.yaml), and removing `wavefront-secret` secret generator in [kustomization.yaml](./kubernetes-manifests/kustomization.yaml).
-
-1. Deploy all resources with Kustomize:
-   
-    ```
-    kustomize build kubernetes-manifests/ | kubectl apply -f -
-    ```
-
-All resources are deployed to `acme-fitness` namespace. You may change the target namespace in [kustomization.yaml](./kubernetes-manifests/kustomization.yaml).
-
-### Accessing the app
-
-There is an ingress resource created for the gateway. You may add a DNS record to either a DNS registry or in your local `/etc/hosts`:
-
-```
-<your.ingress.ip.address>   acme-fitness.my.domain.io
-```
-
-You may also port-forward the gateway service to expose the app:
-
-```
-kubectl port-forward service/gateway 8080:80 -n acme-fitness
+Note -  The [`jq` utility](https://stedolan.github.io/jq/download/). On Windows, download [this Windows port of JQ](https://github.com/stedolan/jq/releases) and add the following to the `~/.bashrc` file:
+```shell
+alias jq=<JQ Download location>/jq-win64.exe
 ```
 
-### Available users
+Note - The Bash shell. While Azure CLI should behave identically on all environments, shell
+semantics vary. Therefore, only bash can be used with the commands in this repo.
+To complete these repo steps on Windows, use Git Bash that accompanies the Windows distribution of
+Git. Use only Git Bash to complete this training on Windows. Do not use WSL.
 
-There are four pre-created users loaded into the database:
 
-| User   | Password   |
-|--------|------------|
-| eric   | `vmware1!` |
-| dwight | `vmware1!` |
-| han    | `vmware1!` |
-| phoebe | `vmware1!` |
+### OR Use Azure Cloud Shell
 
-* You MUST login as one of the users mentioned above to access all the pages in the application
-* The current user service will set a cookie ```logged_in``` in the browser. This cookie contains the User ID returned from the user service
-* The service uses JWT and sets 2 cookies - ```logged_in``` and ```refresh_token```
+Or, you can use the Azure Cloud Shell. Azure hosts Azure Cloud Shell, an interactive shell
+environment that you can use through your browser. You can use the Bash with Cloud Shell
+to work with Azure services. You can use the Cloud Shell pre-installed commands to run the
+code in this README without having to install anything on your local environment. To start Azure
+Cloud Shell: go to [https://shell.azure.com](https://shell.azure.com), or select the
+Launch Cloud Shell button to open Cloud Shell in your browser.
 
-### API portal integration
+To run the code in this article in Azure Cloud Shell:
 
-If you'd like to use [API portal for VMware Tanzu](https://docs.pivotal.io/api-portal/1-0/installing.html) to view all the endpoints, you will need to install API portal with helm value:
+1. Start Cloud Shell.
 
+2. Select the Copy button on a code block to copy the code.
+
+3. Paste the code into the Cloud Shell session by selecting Ctrl+Shift+V on Windows and Linux or by selecting Cmd+Shift+V on macOS.
+
+4. Select Enter to run the code.
+
+
+## Install the Azure CLI extension
+
+Install the Azure Spring Cloud extension for the Azure CLI using the following command
+
+```shell
+az extension add --name spring-cloud
 ```
-api-portal-server:
-   sourceUrls: "http://scg-operator.spring-cloud-gateway/openapi"
-``` 
+Note - `spring-cloud` CLI extension `3.0.0` or later is a pre-requisite to enable the
+latest Enterprise tier functionality to configure VMware Tanzu Components. Use the following
+command to remove previous versions and install the latest Enterprise tier extension:
 
-Or set environment variable on a pre-installed API portal deployment:
-
-```
-kubectl set env deployment.apps/api-portal-server API_PORTAL_SOURCE_URLS="http://scg-operator.spring-cloud-gateway/openapi"
-kubectl rollout restart deployment api-portal-server
-```
-
-If your API portal is deployed in a different cluster, then you will need to add an ingress for `scg-operator` in your SCG installation namespace to expose the it, and use that url instead. 
-
-The [gateway resource](./kubernetes-manifests/gateway.yaml) assumes API portal is using the URL `http://api-portal.my.domain.io`. To create an Ingress resource for your API portal with this URL, you may run:
-
-```
-kubectl apply -f kubernetes-manifests/api-portal-ingress.yaml -n api-portal
-```
-
-You may update the urls in the gateway resource if you want to use a different url for your API portal. 
-
-#### Enable API key 
-
-You may enable API key management on gateway when integrated with an API key enabled API portal. Check out `api-key` branch to see how to configure gateway resource and try it out.
-
-### SSO integration
-
-You may check out the `sso` branch to see how to replace the `acme-user` service with [SSO integration on Spring Cloud Gateway](https://docs.pivotal.io/scg-k8s/1-0/using-sso.html). 
-
-## File Structure
-
-You will notice the following directory structure
-
-```text
-├── README.md
-├── acmeshop.png
-├── aws-fargate
-│   ├── README.md
-│   ├── acme-fitness-shop.yaml
-│   └── cf-template.png
-├── docker-compose
-│   ├── README.md
-│   └── docker-compose.yml
-├── kubernetes-manifests
-│   ├── README.md
-│   ├── gateway.yaml*
-│   ├── api-portal-ingress.yaml*
-│   ├── cart-redis-total.yaml
-│   ├── cart-total.yaml
-│   ├── cart-gateway-config.yaml*
-│   ├── catalog-db-initdb-configmap.yaml
-│   ├── catalog-db-total.yaml
-│   ├── catalog-total.yaml
-│   ├── catalog-v2-total.yaml
-│   ├── catalog-gateway-config.yaml*
-│   ├── frontend-total.yaml*
-│   ├── frontend-gateway-config.yaml*
-│   ├── order-db-total.yaml
-│   ├── order-total.yaml
-│   ├── order-gateway-config.yaml*
-│   ├── payment-total.yaml
-│   ├── users-db-initdb-configmap.yaml
-│   ├── users-db-total.yaml
-│   ├── users-total.yaml*
-│   └── users-gateway-config.yaml*
-└── traffic-generator
-    ├── README.md
-    ├── locustfile.py
-    └── requirements.txt
+```shell
+az extension remove --name spring-cloud
+az extension add --name spring-cloud
 ```
 
-The files marked with `*` are updated to work with Spring Cloud Gateway and API portal.
+## Clone the repo
 
-### Additional Info
+### Create a new folder and clone the sample app repository to your Azure Cloud account
 
-The [traffic-generator](./traffic-generator) is based on **locust** and can be used to create various traffic patterns, if you need it for other demos associated with **Monitoring and Observability.**
+```shell
+mkdir source-code
+cd source-code
+git clone --branch Azure https://github.com/spring-cloud-services-samples/acme_fitness_demo
+cd acme_fitness_demo
+```
