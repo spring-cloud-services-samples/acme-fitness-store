@@ -1,5 +1,7 @@
 [
   {
+    "ssoEnabled": true,
+    "tokenRelay": true,
     "title": "Make a payment",
     "description": "Pay for an Order",
     "predicates": [

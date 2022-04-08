@@ -131,7 +131,6 @@
 
             url: "/cart/clear/" + userid,
             type: "GET",
-            headers: {'Authorization': 'Bearer ' + token},
             success: function (body, textStatus, jqXHR) {
 
                 if (jqXHR.status == 200) {
