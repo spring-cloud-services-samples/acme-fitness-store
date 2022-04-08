@@ -9,9 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AcmePaymentService {
+public class PaymentService {
 
-	private static final Logger log = LoggerFactory.getLogger(AcmePaymentService.class);
+	private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
 	public PaymentResponse processPayment(PaymentRequest paymentRequest) {
 		if (null == paymentRequest.getCard()) {
@@ -24,7 +24,7 @@ public class AcmePaymentService {
 			return new PaymentResponse(false, "payment data is incomplete", "0", "-1", HttpStatus.BAD_REQUEST.value());
 		}
 
-		if (paymentRequest.getCard().getNumber().length() % 4 != 0) {
+		if (!paymentRequest.getCard().isValidCardNumber()) {
 			log.info("payment failed due to bad card number");
 			return new PaymentResponse(false, "not a valid card number", "0", "-2", HttpStatus.BAD_REQUEST.value());
 		}

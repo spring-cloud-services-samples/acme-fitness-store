@@ -5,17 +5,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class AcmePaymentController {
+public class PaymentController {
 
-    private final AcmePaymentService acmePaymentService;
+    private final PaymentService paymentService;
 
-    public AcmePaymentController(AcmePaymentService acmePaymentService) {
-        this.acmePaymentService = acmePaymentService;
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/pay")
     public PaymentResponse processPayment(@RequestBody PaymentRequest paymentRequest) {
-        return acmePaymentService.processPayment(paymentRequest);
+        return paymentService.processPayment(paymentRequest);
     }
 
 }

@@ -11,6 +11,16 @@ public class Card {
     private String expMonth;
     private String ccv;
 
+    public Card(String number, String expYear, String expMonth, String ccv) {
+        this.number = number;
+        this.expYear = expYear;
+        this.expMonth = expMonth;
+        this.ccv = ccv;
+    }
+
+    public Card() {
+    }
+
     public String getNumber() {
         return number;
     }
@@ -50,5 +60,9 @@ public class Card {
     public boolean isExpired() {
         LocalDate expDate = LocalDate.of(Integer.parseInt(expYear), Integer.parseInt(expMonth), 1);
         return expDate.isBefore(LocalDate.now());
+    }
+
+    public boolean isValidCardNumber() {
+        return number.length() % 4 == 0;
     }
 }

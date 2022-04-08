@@ -10,6 +10,11 @@ public class PaymentRequest {
         return card;
     }
 
+    public PaymentRequest(Card card, String total) {
+        this.card = card;
+        this.total = total;
+    }
+
     public void setCard(Card card) {
         this.card = card;
     }
