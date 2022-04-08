@@ -82,6 +82,11 @@ function configure_gateway() {
     --issuer-uri ${ISSUER_URI}
 }
 
+function configure_acs() {
+  echo "Configuring Application Configuration Service to use repo: https://github.com/spring-cloud-services-samples/acme_fitness_demo"
+  az spring-cloud application-configuration-service git repo add --name animal-rescue-config --label Azure --patterns "default,catalog,identity,payment" --uri "https://github.com/spring-cloud-services-samples/acme_fitness_demo" --search-paths config
+}
+
 function create_cart_service() {
   echo "Creating cart-service app"
   az spring-cloud app create --name $CART_SERVICE

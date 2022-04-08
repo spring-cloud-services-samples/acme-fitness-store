@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: "acme-catalog"
+  mvc:
+    static-path-pattern: /static/images/**

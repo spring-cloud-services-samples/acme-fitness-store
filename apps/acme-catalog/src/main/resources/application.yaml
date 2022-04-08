@@ -1,8 +1,4 @@
 spring:
-  application:
-    name: "acme-catalog"
-  mvc:
-    static-path-pattern: /static/images/**
   datasource:
     url: jdbc:postgresql://localhost:5432/acmefit?useSSL=false&currentSchema=public
     username: "root"
@@ -11,13 +7,3 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-management:
-  endpoint:
-    health:
-      show-details: always
-
-  endpoints:
-    web:
-      exposure:
-        include: '*'

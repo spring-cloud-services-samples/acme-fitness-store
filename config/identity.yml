@@ -1,16 +1,9 @@
-management:
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-
 logging.level:
   org.springframework.data: warn
 
 spring:
+  application:
+    name: 'acme-identity'
   security:
     oauth2:
       resourceserver:
