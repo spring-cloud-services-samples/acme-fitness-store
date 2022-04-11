@@ -1,3 +1,4 @@
+using System;
 using acme_order.Auth;
 using acme_order.Configuration;
 using acme_order.Db;
@@ -31,7 +32,7 @@ namespace acme_order
 
             services.AddSingleton<IAcmeServiceSettings>(sp =>
                 sp.GetRequiredService<IOptions<AcmeServiceSettings>>().Value);
-
+            
             services.AddDbContext<OrderContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("OrderContext")), ServiceLifetime.Singleton);
 
