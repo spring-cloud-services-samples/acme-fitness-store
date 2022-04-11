@@ -6,11 +6,10 @@ readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 readonly APPS_ROOT="${PROJECT_ROOT}/apps"
 
 readonly REDIS_NAME="acme-fitness-redis"
-readonly COSMOS_ACCOUNT="acme-fitness-cosmosdb"
-readonly ORDER_SERVICE_MONGO_CONNECTION="order_service_mongodb"
-readonly CATALOG_SERVICE_MONGO_CONNECTION="catalog_service_mongodb"
+readonly ORDER_SERVICE_POSTGRES_CONNECTION="order_service_postgres"
 readonly CART_SERVICE_REDIS_CONNECTION="cart_service_redis"
-readonly ACMEFIT_DB_NAME="acmefit"
+readonly ACMEFIT_CATALOG_DB_NAME="acmefit_catalog"
+readonly ACMEFIT_ORDER_DB_NAME="acmefit_order"
 readonly ACMEFIT_POSTGRES_DB_PASSWORD=$(openssl rand -base64 32)
 readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
 readonly ACMEFIT_POSTGRES_SERVER="acmefit-db-server"
@@ -35,17 +34,7 @@ function create_dependencies() {
   echo "Creating Azure Cache for Redis Instance $REDIS_NAME in location eastus"
   az redis create --location eastus --name $REDIS_NAME --resource-group $RESOURCE_GROUP --sku Basic --vm-size c0
 
-  echo "Creating CosmosDB Account $COSMOS_ACCOUNT"
-  az cosmosdb create --name $COSMOS_ACCOUNT \
-    --resource-group $RESOURCE_GROUP \
-    --kind MongoDB --server-version "4.0" \
-    --default-consistency-level Eventual \
-    --enable-automatic-failover true \
-    --locations regionName="East US" failoverPriority=0 isZoneRedundant=False
-
-  az cosmosdb mongodb database create --account-name $COSMOS_ACCOUNT \
-    --resource-group $RESOURCE_GROUP \
-    --name $ACMEFIT_DB_NAME
+  echo "Creating Azure Database for Postgres $ACMEFIT_POSTGRES_SERVER"
 
   az postgres server create --name $ACMEFIT_POSTGRES_SERVER \
     --resource-group $RESOURCE_GROUP \
@@ -55,8 +44,14 @@ function create_dependencies() {
     --sku-name GP_Gen5_2 \
     --version 11
 
+  echo "Creating Postgres Database $ACMEFIT_CATALOG_DB_NAME"
   az postgres db create \
-    --name $ACMEFIT_DB_NAME \
+    --name $ACMEFIT_CATALOG_DB_NAME \
+    --server-name $ACMEFIT_POSTGRES_SERVER
+
+  echo "Creating Postgres Database $ACMEFIT_ORDER_DB_NAME"
+  az postgres db create \
+    --name $ACMEFIT_ORDER_DB_NAME \
     --server-name $ACMEFIT_POSTGRES_SERVER
 }
 
@@ -116,17 +111,17 @@ function create_order_service() {
   az spring-cloud app create --name $ORDER_SERVICE
   az spring-cloud gateway route-config create --name $ORDER_SERVICE --app-name $ORDER_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/order-service.json"
 
-  az spring-cloud connection create cosmos-mongo -g $RESOURCE_GROUP \
+  az spring-cloud connection create postgres \
+    --resource-group $RESOURCE_GROUP \
     --service $SPRING_CLOUD_INSTANCE \
+    --connection $ORDER_SERVICE_POSTGRES_CONNECTION \
     --app $ORDER_SERVICE \
     --deployment default \
-    --resource-group $RESOURCE_GROUP \
-    --target-resource-group $RESOURCE_GROUP \
-    --account $COSMOS_ACCOUNT \
-    --database $ACMEFIT_DB_NAME \
-    --secret \
-    --client-type java \
-    --connection $ORDER_SERVICE_MONGO_CONNECTION
+    --tg $RESOURCE_GROUP \
+    --server $ACMEFIT_POSTGRES_SERVER \
+    --database $ACMEFIT_ORDER_DB_NAME \
+    --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
+    --client-type java
 }
 
 function create_catalog_service() {
@@ -142,7 +137,7 @@ function create_catalog_service() {
     --deployment default \
     --tg $RESOURCE_GROUP \
     --server $ACMEFIT_POSTGRES_SERVER \
-    --database $ACMEFIT_DB_NAME \
+    --database $ACMEFIT_CATALOG_DB_NAME \
     --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
     --client-type springboot
 }
@@ -181,11 +176,11 @@ function deploy_identity_service() {
 function deploy_order_service() {
   echo "Deploying user-service application"
   local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
-  local mongo_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --connection $ORDER_SERVICE_MONGO_CONNECTION --app $ORDER_SERVICE | jq '.configurations[0].value' -r)
+  local postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --connection $ORDER_SERVICE_POSTGRES_CONNECTION --app $ORDER_SERVICE | jq '.configurations[0].value' -r)
 
   az spring-cloud app deploy --name $ORDER_SERVICE \
     --builder $CUSTOM_BUILDER \
-    --env "OrderDatabaseSettings__ConnectionString=$mongo_connection_url" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "AcmeServiceSettings__PaymentServiceUrl=http://payment-service.default.svc.cluster.local" \
+    --env "OrderDatabaseSettings__ConnectionString=$postgres_connection_url" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "AcmeServiceSettings__PaymentServiceUrl=http://payment-service.default.svc.cluster.local" \
     --source-path "$APPS_ROOT/acme-order"
 }
 
