@@ -12,7 +12,7 @@ namespace acme_order.Response
         public string Email { get; set; }
         public string Delivery { get; set; }
         public Card Card { get; set; }
-        public List<Cart> Cart { get; set; }
+        public ICollection<Cart> Cart { get; set; }
         public string Total { get; set; }
     }
 }

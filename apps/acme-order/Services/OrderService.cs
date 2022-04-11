@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,27 +6,22 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using acme_order.Configuration;
+using acme_order.Db;
 using acme_order.Models;
 using acme_order.Request;
 using acme_order.Response;
-using Microsoft.Net.Http.Headers;
-using MongoDB.Driver;
 using Newtonsoft.Json;
 
 namespace acme_order.Services
 {
     public class OrderService
     {
-        private readonly IMongoCollection<Order> _orders;
+        private readonly OrderContext _context;
         private static IAcmeServiceSettings _acmeServiceSettings;
-        private static MongoClient _client;
 
-
-        public OrderService(IOrderDatabaseSettings dbSettings, IAcmeServiceSettings acmeServiceSettings)
+        public OrderService(OrderContext context, IAcmeServiceSettings acmeServiceSettings)
         {
-            _client = new MongoClient(dbSettings.ConnectionString);
-            var database = _client.GetDatabase(dbSettings.DatabaseName);
-            _orders = database.GetCollection<Order>(dbSettings.OrdersCollectionName);
+            _context = context;
             _acmeServiceSettings = acmeServiceSettings;
         }
         
@@ -36,9 +29,8 @@ namespace acme_order.Services
         {
             var order = new Order
             {
-                Date = DateTime.UtcNow.ToString(CultureInfo.CurrentCulture),
                 Paid = "pending",
-                Userid = userid,
+                UserId = userid,
                 Firstname = orderIn.Firstname,
                 Lastname = orderIn.Lastname,
                 Total = orderIn.Total,
@@ -49,7 +41,7 @@ namespace acme_order.Services
                 Cart = orderIn.Cart
             };
 
-            _orders.InsertOne(order);
+            _context.Orders.Add(order);
 
             const string transactionId = "pending";
 
@@ -57,34 +49,28 @@ namespace acme_order.Services
             var payment = paymentResult.Result;
 
             var response = new OrderCreateResponse();
-            if (string.IsNullOrEmpty(order.Id)) return response;
-            var orderFound = _orders.Find(orderDb => orderDb.Id == order.Id).FirstOrDefault();
+            
+            var orderFound = _context.Orders.Single(o => o.Id == orderIn.Id);
+            
             if (string.Equals(transactionId, payment.TransactionId)) return response;
+            
             orderFound.Paid = payment.TransactionId;
-            Update(orderFound.Id, orderFound);
+            Update(orderFound);
             response.UserId = userid;
-            response.OrderId = orderFound.Id;
+            response.OrderId = orderFound.Id.ToString();
             response.Payment = payment;
 
             return response;
         }
 
-        public List<OrderResponse> Get()
-        {
-            var orderList = _orders.Find(order => true).ToList();
+        public List<OrderResponse> Get() => 
+            FromOrderToOrderResponse(_context.Orders.ToList());
 
-            return FromOrderToOrderResponse(orderList);
-        }
+        public List<OrderResponse> Get(string userId) => 
+            FromOrderToOrderResponse(_context.Orders.Where(o => o.UserId == userId).ToList());
 
-        public List<OrderResponse> Get(string userId)
-        {
-            var orderList = _orders.Find(order => order.Userid == userId).ToList();
-
-            return FromOrderToOrderResponse(orderList);
-        }
-
-        private void Update(string id, Order orderIn) =>
-            _orders.ReplaceOne(order => order.Id == id, orderIn);
+        private void Update(Order orderIn) => 
+            _context.Orders.Update(orderIn);
 
         private static async Task<Payment> MakePayment(string total, Card card, string authorization)
         {
@@ -129,7 +115,7 @@ namespace acme_order.Services
             return orderList.Select(order =>
                 new OrderResponse
                 {
-                    Userid = order.Userid,
+                    Userid = order.UserId,
                     Firstname = order.Firstname,
                     Lastname = order.Lastname,
                     Address = order.Address,

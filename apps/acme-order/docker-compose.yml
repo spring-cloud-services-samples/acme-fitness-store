@@ -1,11 +1,11 @@
 version: '3.7'
 services:
-  mongodb:
-    container_name: acme-order-mongodb
-    image: mongo:4.0
+  postgres:
+    container_name: order_service_postgres
+    image: postgres
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
-      MONGO_INITDB_DATABASE: OrdersDb
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: acmefit
     ports:
-      - "27017:27017"
+      - "5432:5432"

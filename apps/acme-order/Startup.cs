@@ -1,9 +1,11 @@
 using acme_order.Auth;
 using acme_order.Configuration;
+using acme_order.Db;
 using acme_order.Models;
 using acme_order.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,17 +26,14 @@ namespace acme_order
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<OrderDatabaseSettings>(
-                Configuration.GetSection(nameof(OrderDatabaseSettings)));
-
-            services.AddSingleton<IOrderDatabaseSettings>(sp =>
-                sp.GetRequiredService<IOptions<OrderDatabaseSettings>>().Value);
-
             services.Configure<AcmeServiceSettings>(
                 Configuration.GetSection(nameof(AcmeServiceSettings)));
 
             services.AddSingleton<IAcmeServiceSettings>(sp =>
                 sp.GetRequiredService<IOptions<AcmeServiceSettings>>().Value);
+
+            services.AddDbContext<OrderContext>(options =>
+                options.UseNpgsql(Configuration.GetConnectionString("OrderContext")), ServiceLifetime.Singleton);
 
             services.AddSingleton<OrderService>();
             services.AddControllers();
