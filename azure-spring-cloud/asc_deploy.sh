@@ -147,6 +147,7 @@ function create_payment_service() {
   echo "Creating payment service"
   az spring-cloud app create --name $PAYMENT_SERVICE
   az spring-cloud application-configuration-service bind --app $PAYMENT_SERVICE
+  az spring-cloud service-registry bind --app $PAYMENT_SERVICE
 }
 
 function create_frontend_app() {
