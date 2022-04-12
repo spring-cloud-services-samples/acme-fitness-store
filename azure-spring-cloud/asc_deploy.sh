@@ -128,6 +128,7 @@ function create_catalog_service() {
   echo "Creating catalog service"
   az spring-cloud app create --name $CATALOG_SERVICE
   az spring-cloud application-configuration-service bind --app $CATALOG_SERVICE
+  az spring-cloud service-registry bind --app $CATALOG_SERVICE
   az spring-cloud gateway route-config create --name $CATALOG_SERVICE --app-name $CATALOG_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/catalog-service.json"
 
   az spring-cloud connection create postgres \

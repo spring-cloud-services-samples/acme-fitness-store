@@ -7,3 +7,6 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+eureka:
+  client:
+    enabled: false
