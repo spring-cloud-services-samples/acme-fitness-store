@@ -1,8 +1,6 @@
-using System;
 using acme_order.Auth;
 using acme_order.Configuration;
 using acme_order.Db;
-using acme_order.Models;
 using acme_order.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Steeltoe.Connector.MongoDb;
 
 namespace acme_order
 {
@@ -36,7 +33,7 @@ namespace acme_order
             
             services.AddDbContext<OrderContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("OrderContext")), ServiceLifetime.Singleton);
-
+            
             services.AddSingleton<OrderService>();
             services.AddControllers();
             services.AddScoped<AuthorizeResource>();

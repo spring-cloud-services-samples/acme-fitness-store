@@ -184,7 +184,7 @@ function deploy_order_service() {
 
   az spring-cloud app deploy --name $ORDER_SERVICE \
     --builder $CUSTOM_BUILDER \
-    --env "ConnectionStrings__OrderContext=$postgres_connection_url" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "AcmeServiceSettings__PaymentServiceUrl=http://payment-service.default.svc.cluster.local" "ApplicationInsights__ConnectionString=$app_insights_key" \
+    --env "ConnectionStrings__OrderContext=$postgres_connection_url" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ApplicationInsights__ConnectionString=$app_insights_key" \
     --source-path "$APPS_ROOT/acme-order"
 }
 

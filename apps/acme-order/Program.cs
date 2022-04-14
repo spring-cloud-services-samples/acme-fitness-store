@@ -1,6 +1,5 @@
 using acme_order.Db;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.SpringCloud.Client;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,14 +18,13 @@ namespace acme_order
                 var db = scope.ServiceProvider.GetRequiredService<OrderContext>();
                 db.Database.Migrate();
             }
-            
+
             host.Run();
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseAzureSpringCloudService()
-                .AddAllActuators()
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
+                .AddAllActuators();
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -18,17 +19,21 @@ namespace acme_order.Services
     public class OrderService
     {
         private readonly OrderContext _context;
-        private readonly ILogger _logger;
-        private static IAcmeServiceSettings _acmeServiceSettings;
+        private readonly ILogger<OrderService> _logger;
+        private readonly HttpClient _httpClient;
         private const string PendingTransactionId = "pending";
+        private readonly string _paymentUrl;
 
-        public OrderService(OrderContext context, IAcmeServiceSettings acmeServiceSettings, ILogger<OrderService> logger)
+        public OrderService(OrderContext context, ILogger<OrderService> logger)
         {
             _context = context;
-            _acmeServiceSettings = acmeServiceSettings;
             _logger = logger;
+            _httpClient = new HttpClient();
+
+            var paymentHost = Environment.GetEnvironmentVariable("PAYMENT_SERVICE_SERVICE_HOST") ?? "payment-service";
+            _paymentUrl = $"http://{paymentHost}/pay";
         }
-        
+
         public async Task<OrderCreateResponse> Create(string userid, Order orderIn, string authorization)
         {
             var order = new Order
@@ -47,11 +52,11 @@ namespace acme_order.Services
 
             var payment = await MakePayment(orderIn.Total, order.Card, authorization);
             _logger.LogDebug("Received payment response transactionId {transactionId}", payment.TransactionId);
-            
+
             if (string.Equals(PendingTransactionId, payment.TransactionId)) return new OrderCreateResponse();
 
             order.Paid = payment.TransactionId;
-            
+
             var savedOrder = SaveOrder(order);
 
             return new OrderCreateResponse
@@ -62,10 +67,10 @@ namespace acme_order.Services
             };
         }
 
-        public List<OrderResponse> Get() => 
+        public List<OrderResponse> Get() =>
             FromOrderToOrderResponse(_context.Orders.ToList());
 
-        public List<OrderResponse> Get(string userId) => 
+        public List<OrderResponse> Get(string userId) =>
             FromOrderToOrderResponse(_context.Orders.Where(o => o.UserId == userId).ToList());
 
         private Order SaveOrder(Order order)
@@ -80,32 +85,29 @@ namespace acme_order.Services
         private async Task<Payment> MakePayment(string total, Card card, string authorization)
         {
             var paymentRequest = new PaymentRequest()
+            {
+                Card = new CardRequest()
                 {
-                    Card = new CardRequest()
-                    {
-                        Number = card.Number,
-                        ExpMonth = card.ExpMonth,
-                        ExpYear = card.ExpYear,
-                        Ccv = card.Ccv,
-                        Type = card.Type
-                    },
-                    Total = total
-                }
-                ;
+                    Number = card.Number,
+                    ExpMonth = card.ExpMonth,
+                    ExpYear = card.ExpYear,
+                    Ccv = card.Ccv,
+                    Type = card.Type
+                },
+                Total = total
+            };
 
             var json = JsonConvert.SerializeObject(paymentRequest);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
-            var url = $"{_acmeServiceSettings.PaymentServiceUrl}/pay";
-            
-            _logger.LogDebug("Making Payment Request for {total} to {url}", total, url);
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            _logger.LogDebug("Making Payment Request for {total} to {url}", total, _paymentUrl);
+            var request = new HttpRequestMessage(HttpMethod.Post, _paymentUrl);
             request.Content = data;
             request.Headers.Authorization = AuthenticationHeaderValue.Parse(authorization);
 
-            using var client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.StatusCode != HttpStatusCode.OK && response.StatusCode != HttpStatusCode.Unauthorized &&
                 response.StatusCode != HttpStatusCode.BadRequest &&
