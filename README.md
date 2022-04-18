@@ -24,16 +24,24 @@ finished, you can continue to manage the application via the Azure CLI or switch
    * [Install the Azure CLI extension](#install-the-azure-cli-extension)
    * [Clone the repo](#clone-the-repo)
    * [Unit 1 - Deploy and Build Applications](#unit-1---deploy-and-build-applications)
+   * [Unit 2 - Configure Single Sign On](#unit-2---configure-single-sign-on)
 
 ## What will you experience
 You will:
 - Provision an Azure Spring Cloud service instance.
 - Configure Application Configuration Service repositories
-- Deploy applications to Azure existing Spring Boot applications and build using Tanzu Build Service
+- Deploy polyglot applications to Azure and build using Tanzu Build Service
 - Configure routing to the applications using Spring Cloud Gateway
 - Open the application
 - Explore the application API with Api Portal
 - Configure Single Sign On (SSO) for the application
+- Monitor applications
+- Automate provisioning and deployments using GitHub Actions
+
+The following diagram shows the architecture of the ACME Fitness Store that will be used for this guide:
+
+[//]: # (TODO: Add Image)
+[//]: # ( ![An image showing the microservics involved in the ACME Fitness Store. It depicts the applications and their dependencies]&#40;./media/architecture.png&#41;)
 
 ## What you will need
 
@@ -108,3 +116,138 @@ cd source-code
 git clone --branch Azure https://github.com/spring-cloud-services-samples/acme_fitness_demo
 cd acme_fitness_demo
 ```
+
+## Unit 1 - Deploy and Build Applications
+
+### Prepare your environment for deployments
+
+Create a bash script with environment variables by making a copy of the supplied template:
+
+```shell
+cp ./azure/setup-env-variables.sh ./azure/setup-env-variables.sh
+```
+
+Open `./azure/setup-env-variables.sh` and enter the following information:
+
+```shell
+export SUBSCRIPTION=subscription-id                 # replace it with your subscription-id
+export RESOURCE_GROUP=resource-group-name           # existing resource group or one that will be created in next steps
+export SPRING_CLOUD_SERVICE=azure-spring-cloud-name # name of the service that will be created in the next steps
+export LOG_ANALYTICS_WORKSPACE=log-analytics-name   # existing workspace or one that will be created in next steps
+export REGION=region-name                           # choose a region with Enterprise tier support
+```
+
+Then, set the environment:
+```shell
+source ./azure/setup-env-variables.sh
+```
+
+### Login to Azure
+Login to the Azure CLI and choose your active subscription. Be sure to choose the active subscription that is whitelisted for Azure Spring Cloud
+
+```shell
+az login
+az account list -o table
+az account set --subscription ${SUBSCRIPTION}
+```
+
+### Create Azure Spring Cloud service instance
+Prepare a name for your Azure Spring Cloud service.  The name must be between 4 and 32 characters long and can contain only lowercase letters, numbers, and hyphens.  The first character of the service name must be a letter and the last character must be either a letter or a number.
+
+Create a resource group to contain your Azure Spring Cloud service.
+
+> Note: This step can be skipped if using an existing resource group
+
+```shell
+az group create --name ${RESOURCE_GROUP} \
+    --location ${REGION}
+```
+
+Accept the legal terms and privacy statements for the Enterprise tier.
+
+> Note: This step is necessary only if your subscription has never been used to create an Enterprise tier instance of Azure Spring Cloud.
+
+```shell
+az provider register --namespace Microsoft.SaaS
+az term accept --publisher vmware-inc --product azure-spring-cloud-vmware-tanzu-2 --plan tanzu-asc-ent-mtr
+```
+
+Create an instance of Azure Spring Cloud Enterprise.
+
+```shell
+az spring-cloud create --name ${SPRING_CLOUD_SERVICE} \
+    --resource-group ${RESOURCE_GROUP} \
+    --location ${REGION} \
+    --sku Enterprise \
+    --enable-application-configuration-service \
+    --enable-service-registry \
+    --enable-gateway \
+    --enable-api-portal
+```
+
+The service instance will take around 10-15 minutes to deploy.
+
+Set your default resource group name and cluster name using the following commands:
+
+```shell
+az configure --defaults \
+    group=${RESOURCE_GROUP} \
+    location=${REGION} \
+    spring-cloud=${SPRING_CLOUD_SERVICE}
+```
+
+### Create Azure Cache for Redis
+
+Create an instance of Azure Cache for Redis using the Azure CLI.
+
+```shell
+az redis create \
+  --name ${AZURE_CACHE_NAME} \
+  --location ${REGION} \
+  --resource-group ${RESOURCE_GROUP} \
+  --sku Basic \
+  --vm-size c0
+```
+
+### Create an Azure Database for Postgres
+
+Using the Azure CLI, create an Azure Database for MySQL Flexible Server:
+
+```shell
+az postgres flexible-server create --name ${POSTGRES_SERVER} \
+    --resource-group${RESOURCE_GROUP} \
+    --location ${REGION} \
+    --admin-user ${POSTGRES_DB_USER} \
+    --admin-password ${POSTGRES_DB_PASSWORD} \
+    --yes
+
+# Allow connections from other Azure Services
+az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
+     --name ${MYSQL_SERVER_NAME} \
+     --resource-group ${RESOURCE_GROUP} \
+     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+```
+
+Create a database for the order service:
+
+```shell
+az postgres db create \
+  --name $ORDER_SERVICE_DB \
+  --server-name $POSTGRES_SERVER
+```
+
+Create a database for the catalog service:
+
+```shell
+az postgres db create \
+  --name $CATALOG_SERVICE_DB \
+  --server-name $POSTGRES_SERVER
+```
+
+> Note: wait for all services to be ready before continuing
+
+## Unit 2 - Configure Single Sign On
+
+## Unit 3 - Monitor Applications
+
+## Unit 4 - Automate with GitHub Actions

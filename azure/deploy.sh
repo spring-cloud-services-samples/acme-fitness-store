@@ -36,13 +36,12 @@ function create_dependencies() {
 
   echo "Creating Azure Database for Postgres $ACMEFIT_POSTGRES_SERVER"
 
-  az postgres server create --name $ACMEFIT_POSTGRES_SERVER \
+  az postgres flexible-server create --name $ACMEFIT_POSTGRES_SERVER \
     --resource-group $RESOURCE_GROUP \
     --location "South Central US" \
     --admin-user $ACMEFIT_POSTGRES_DB_USER \
     --admin-password $ACMEFIT_POSTGRES_DB_PASSWORD \
-    --sku-name GP_Gen5_2 \
-    --version 11
+    --yes
 
   echo "Creating Postgres Database $ACMEFIT_CATALOG_DB_NAME"
   az postgres db create \
