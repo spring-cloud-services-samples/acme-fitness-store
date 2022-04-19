@@ -4,6 +4,7 @@ export SPRING_CLOUD_SERVICE=azure-spring-cloud-name # name of the service that w
 export LOG_ANALYTICS_WORKSPACE=log-analytics-name   # existing workspace or one that will be created in next steps
 export POSTGRES_SERVER_USER=change-name             # Postgres server username to be created in next steps
 export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password to be created in next steps
+export REGION=region-name                           # choose a region with Enterprise tier support
 
 export CART_SERVICE_APP="cart-service"
 export IDENTITY_SERVICE_APP="identity-service"

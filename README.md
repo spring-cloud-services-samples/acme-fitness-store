@@ -126,7 +126,7 @@ cd acme_fitness_demo
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./azure/setup-env-variables.sh ./azure/setup-env-variables.sh
+cp ./azure/setup-env-variables-template.sh ./azure/setup-env-variables.sh
 ```
 
 Open `./azure/setup-env-variables.sh` and enter the following information:
@@ -136,7 +136,9 @@ export SUBSCRIPTION=subscription-id                 # replace it with your subsc
 export RESOURCE_GROUP=resource-group-name           # existing resource group or one that will be created in next steps
 export SPRING_CLOUD_SERVICE=azure-spring-cloud-name # name of the service that will be created in the next steps
 export LOG_ANALYTICS_WORKSPACE=log-analytics-name   # existing workspace or one that will be created in next steps
-export REGION=region-name                           # choose a region with Enterprise tier support
+export POSTGRES_SERVER_USER=change-name             # Postgres server username to be created in next steps
+export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password to be created in next steps
+export REGION=region-name                           # choose a region with Enterprise tier support                       # choose a region with Enterprise tier support
 ```
 
 Then, set the environment:
@@ -213,36 +215,42 @@ az redis create \
 
 ### Create an Azure Database for Postgres
 
-Using the Azure CLI, create an Azure Database for MySQL Flexible Server:
+Using the Azure CLI, create an Azure Database for Postgres Flexible Server:
 
 ```shell
 az postgres flexible-server create --name ${POSTGRES_SERVER} \
-    --resource-group${RESOURCE_GROUP} \
+    --resource-group ${RESOURCE_GROUP} \
     --location ${REGION} \
-    --admin-user ${POSTGRES_DB_USER} \
-    --admin-password ${POSTGRES_DB_PASSWORD} \
+    --admin-user ${POSTGRES_SERVER_USER} \
+    --admin-password ${POSTGRES_SERVER_PASSWORD} \
     --yes
 
 # Allow connections from other Azure Services
 az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
-     --name ${MYSQL_SERVER_NAME} \
+     --name ${POSTGRES_SERVER} \
      --resource-group ${RESOURCE_GROUP} \
      --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
+     
+# Enable the uuid-ossp extension
+az postgres flexible-server parameter set \
+    --resource-group $RESOURCE_GROUP \
+    --server-name $POSTGRES_SERVER \
+    --name azure.extensions --value uuid-ossp
 ```
 
 Create a database for the order service:
 
 ```shell
-az postgres db create \
-  --name $ORDER_SERVICE_DB \
+az postgres flexible-server db create \
+  --database-name $ORDER_SERVICE_DB \
   --server-name $POSTGRES_SERVER
 ```
 
 Create a database for the catalog service:
 
 ```shell
-az postgres db create \
-  --name $CATALOG_SERVICE_DB \
+az postgres flexible-server db create \
+  --database-name $CATALOG_SERVICE_DB \
   --server-name $POSTGRES_SERVER
 ```
 
@@ -335,7 +343,7 @@ Create a custom builder in Tanzu Build Service using the Azure CLI:
 
 ```shell
 az spring-cloud build-service builder create -n $CUSTOM_BUILDER \
-    --builder-file /azure/builder.json \
+    --builder-file azure/builder.json \
     --no-wait
 ```
 
@@ -378,7 +386,7 @@ for those applications:
 
 ```shell
 # Bind order service to Postgres
-az spring-cloud connection create postgres \
+az spring-cloud connection create postgres-flexible \
     --resource-group $RESOURCE_GROUP \
     --service $SPRING_CLOUD_SERVICE \
     --connection $ORDER_SERVICE_DB_CONNECTION \
@@ -392,7 +400,7 @@ az spring-cloud connection create postgres \
     
 
 # Bind catalog service to Postgres
-az spring-cloud connection create postgres \
+az spring-cloud connection create postgres-flexible \
     --resource-group $RESOURCE_GROUP \
     --service $SPRING_CLOUD_SERVICE \
     --connection $CATALOG_SERVICE_DB_CONNECTION \
@@ -415,7 +423,7 @@ az spring-cloud connection create redis \
     --app $CART_SERVICE_APP \
     --deployment default \
     --tg $RESOURCE_GROUP \
-    --server $REDIS_NAME \
+    --server $AZURE_CACHE_NAME \
     --database 0 \
     --client-type java 
 ```
@@ -459,8 +467,6 @@ az spring-cloud gateway route-config create \
     --name $FRONTEND_APP \
     --app-name $FRONTEND_APP \
     --routes-file azure/routes/frontend.json
-    
-
 ```
 
 ### Build and Deploy Applications
@@ -483,7 +489,7 @@ export postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GR
     --service $SPRING_CLOUD_SERVICE \
     --deployment default \
     --connection $ORDER_SERVICE_DB_CONNECTION \
-    --app ORDER_SERVICE_APP | jq '.configurations[0].value' -r)
+    --app $ORDER_SERVICE_APP | jq '.configurations[0].value' -r)
 
 az spring-cloud app deploy --name $ORDER_SERVICE_APP \
     --builder $CUSTOM_BUILDER \
@@ -492,10 +498,10 @@ az spring-cloud app deploy --name $ORDER_SERVICE_APP \
 
 # Deploy the Cart Service after retrieving the cache connection info
 export redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_INSTANCE \
+    --service $SPRING_CLOUD_SERVICE \
     --deployment default \
-    --app $CART_SERVICE \
-    --connection $CART_SERVICE_REDIS_CONNECTION | jq -r '.configurations[0].value')
+    --app $CART_SERVICE_APP \
+    --connection $CART_SERVICE_CACHE_CONNECTION | jq -r '.configurations[0].value')
 
 az spring-cloud app deploy --name $CART_SERVICE_APP \
     --builder $CUSTOM_BUILDER \
@@ -519,7 +525,7 @@ open "https://$GATEWAY_URL"
 You should see the ACME Fitness Store Application:
 
 [//]: # (TODO: Add image)
-[//]: # (![An image of the ACME Fitness Store Application homepage]&#40;&#41;)
+![An image of the ACME Fitness Store Application homepage](media/homepage.png)
 
 ## Unit 2 - Configure Single Sign On
 
