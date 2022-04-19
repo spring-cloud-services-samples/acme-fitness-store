@@ -55,8 +55,8 @@ function create_dependencies() {
 }
 
 function create_builder() {
-  echo "Creating a custom builder with name $CUSTOM_BUILDER and configuration $PROJECT_ROOT/azure-spring-cloud/builder.json"
-  az spring-cloud build-service builder create -n $CUSTOM_BUILDER --builder-file "$PROJECT_ROOT/azure-spring-cloud/builder.json"
+  echo "Creating a custom builder with name $CUSTOM_BUILDER and configuration $PROJECT_ROOT/azure/builder.json"
+  az spring-cloud build-service builder create -n $CUSTOM_BUILDER --builder-file "$PROJECT_ROOT/azure/builder.json"
 }
 
 function configure_gateway() {
@@ -84,7 +84,7 @@ function configure_acs() {
 function create_cart_service() {
   echo "Creating cart-service app"
   az spring-cloud app create --name $CART_SERVICE
-  az spring-cloud gateway route-config create --name $CART_SERVICE --app-name $CART_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/cart-service.json"
+  az spring-cloud gateway route-config create --name $CART_SERVICE --app-name $CART_SERVICE --routes-file "$PROJECT_ROOT/azure/routes/cart-service.json"
 
   az spring-cloud connection create redis \
     --service $SPRING_CLOUD_INSTANCE \
@@ -102,13 +102,13 @@ function create_identity_service() {
   echo "Creating identity service"
   az spring-cloud app create --name $IDENTITY_SERVICE
   az spring-cloud application-configuration-service bind --app $IDENTITY_SERVICE
-  az spring-cloud gateway route-config create --name $IDENTITY_SERVICE --app-name $IDENTITY_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/identity-service.json"
+  az spring-cloud gateway route-config create --name $IDENTITY_SERVICE --app-name $IDENTITY_SERVICE --routes-file "$PROJECT_ROOT/azure/routes/identity-service.json"
 }
 
 function create_order_service() {
   echo "Creating order service"
   az spring-cloud app create --name $ORDER_SERVICE
-  az spring-cloud gateway route-config create --name $ORDER_SERVICE --app-name $ORDER_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/order-service.json"
+  az spring-cloud gateway route-config create --name $ORDER_SERVICE --app-name $ORDER_SERVICE --routes-file "$PROJECT_ROOT/azure/routes/order-service.json"
 
   az spring-cloud connection create postgres \
     --resource-group $RESOURCE_GROUP \
@@ -128,7 +128,7 @@ function create_catalog_service() {
   az spring-cloud app create --name $CATALOG_SERVICE
   az spring-cloud application-configuration-service bind --app $CATALOG_SERVICE
   az spring-cloud service-registry bind --app $CATALOG_SERVICE
-  az spring-cloud gateway route-config create --name $CATALOG_SERVICE --app-name $CATALOG_SERVICE --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/catalog-service.json"
+  az spring-cloud gateway route-config create --name $CATALOG_SERVICE --app-name $CATALOG_SERVICE --routes-file "$PROJECT_ROOT/azure/routes/catalog-service.json"
 
   az spring-cloud connection create postgres \
     --resource-group $RESOURCE_GROUP \
@@ -152,7 +152,7 @@ function create_payment_service() {
 function create_frontend_app() {
   echo "Creating frontend"
   az spring-cloud app create --name $FRONTEND_APP
-  az spring-cloud gateway route-config create --name $FRONTEND_APP --app-name $FRONTEND_APP --routes-file "$PROJECT_ROOT/azure-spring-cloud/routes/frontend.json"
+  az spring-cloud gateway route-config create --name $FRONTEND_APP --app-name $FRONTEND_APP --routes-file "$PROJECT_ROOT/azure/routes/frontend.json"
 }
 
 function deploy_cart_service() {

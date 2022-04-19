@@ -246,7 +246,250 @@ az postgres db create \
 
 > Note: wait for all services to be ready before continuing
 
+### Configure Log Analytics for Azure Spring Cloud
+
+Create a Log Analytics Workspace to be used for your Azure Spring Cloud service.
+
+> Note: This step can be skipped if using an existing workspace
+
+```shell
+az monitor log-analytics workspace create \
+  --workspace-name ${LOG_ANALYTICS_WORKSPACE} \
+  --location ${REGION} \
+  --resource-group ${RESOURCE_GROUP}   
+```
+
+Retrieve the resource ID for the recently create Azure Spring Cloud Service and Log Analytics Workspace:
+
+```shell
+export LOG_ANALYTICS_RESOURCE_ID=$(az monitor log-analytics workspace show \
+    --resource-group ${RESOURCE_GROUP} \
+    --workspace-name ${LOG_ANALYTICS_WORKSPACE} | jq -r '.id')
+
+export SPRING_CLOUD_RESOURCE_ID=$(az spring-cloud show \
+    --name ${SPRING_CLOUD_SERVICE} \
+    --resource-group ${RESOURCE_GROUP} | jq -r '.id')
+```
+
+Configure diagnostic settings for the Azure Spring Cloud Service:
+
+```shell
+az monitor diagnostic-settings create --name "send-logs-and-metrics-to-log-analytics" \
+    --resource ${SPRING_CLOUD_RESOURCE_ID} \
+    --workspace ${LOG_ANALYTICS_RESOURCE_ID} \
+    --logs '[
+         {
+           "category": "ApplicationConsole",
+           "enabled": true,
+           "retentionPolicy": {
+             "enabled": false,
+             "days": 0
+           }
+         },
+         {
+            "category": "SystemLogs",
+            "enabled": true,
+            "retentionPolicy": {
+              "enabled": false,
+              "days": 0
+            }
+          },
+         {
+            "category": "IngressLogs",
+            "enabled": true,
+            "retentionPolicy": {
+              "enabled": false,
+              "days": 0
+             }
+           }
+       ]' \
+       --metrics '[
+         {
+           "category": "AllMetrics",
+           "enabled": true,
+           "retentionPolicy": {
+             "enabled": false,
+             "days": 0
+           }
+         }
+       ]'
+```
+
+### Configure Application Configuration Service
+
+Create a configuration repository for Application Configuration Service using the Azure CLI:
+
+```shell
+az spring-cloud application-configuration-service git repo add --name acme-fitness-store-config \
+    --label Azure \
+    --patterns "default,catalog,identity,payment" \
+    --uri "https://github.com/spring-cloud-services-samples/acme_fitness_demo" \
+    --search-paths config
+```
+
+### Configure Tanzu Build Service
+
+Create a custom builder in Tanzu Build Service using the Azure CLI:
+
+```shell
+az spring-cloud build-service builder create -n $CUSTOM_BUILDER \
+    --builder-file /azure/builder.json \
+    --no-wait
+```
+
+### Create applications in Azure Spring Cloud
+
+Create an application for each service:
+
+```shell
+az spring-cloud app create --name $CART_SERVICE_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name $ORDER_SERVICE_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name $PAYMENT_SERVICE_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name $CATALOG_SERVICE_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name $FRONTEND_APP --instance-count 1 --memory 1Gi
+```
+
+### Bind to Application Configuration Service
+
+Several applications require configuration from Application Configuration Service, so create
+the bindings:
+
+```shell
+az spring-cloud application-configuration-service bind --app $PAYMENT_SERVICE_APP
+az spring-cloud application-configuration-service bind --app $CATALOG_SERVICE_APP
+```
+
+### Bind to Service Registry
+
+Several application require service discovery using Service Registry, so create
+the bindings:
+
+```shell
+az spring-cloud service-registry bind --app $PAYMENT_SERVICE_APP
+az spring-cloud service-registry bind --app $CATALOG_SERVICE_APP
+```
+
+### Create Service Connectors
+
+The Order Service and Catalog Service use Azure Database for Postgres, create Service Connectors 
+for those applications:
+
+```shell
+# Bind order service to Postgres
+az spring-cloud connection create postgres \
+    --resource-group $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_INSTANCE \
+    --connection $ORDER_SERVICE_POSTGRES_CONNECTION \
+    --app $ORDER_SERVICE \
+    --deployment default \
+    --tg $RESOURCE_GROUP \
+    --server $ACMEFIT_POSTGRES_SERVER \
+    --database $ACMEFIT_ORDER_DB_NAME \
+    --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
+    --client-type dotnet
+    
+
+# Bind catalog service to Postgres
+
+az spring-cloud connection create postgres \
+    --resource-group $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_INSTANCE \
+    --app $CATALOG_SERVICE \
+    --deployment default \
+    --tg $RESOURCE_GROUP \
+    --server $ACMEFIT_POSTGRES_SERVER \
+    --database $ACMEFIT_CATALOG_DB_NAME \
+    --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
+    --client-type springboot
+```
+
+### Configure Spring Cloud Gateway
+
+Assign an endpoint and update the Spring Cloud Gateway configuration with API
+information:
+
+```shell
+az spring-cloud gateway update --assign-endpoint true
+export GATEWAY_URL=$(az spring-cloud gateway show | jq -r '.properties.url')
+    
+az spring-cloud gateway update \
+    --api-description "Acme Fitness Store API" \
+    --api-title "Acme Fitness Store" \
+    --api-version "v1.0" \
+    --server-url "https://$GATEWAY_URL" \
+    --allowed-origins "*"
+```
+
+Create  routing rules for the applications:
+
+```shell
+az spring-cloud gateway route-config create \
+    --name $CART_SERVICE_APP \
+    --app-name $CART_SERVICE_APP \
+    --routes-file azure/routes/cart-service.json
+    
+az spring-cloud gateway route-config create \
+    --name $ORDER_SERVICE_APP \
+    --app-name $ORDER_SERVICE_APP \
+    --routes-file azure/routes/order-service.json
+
+az spring-cloud gateway route-config create \
+    --name $CATALOG_SERVICE_APP \
+    --app-name $CATALOG_SERVICE_APP \
+    --routes-file azure/routes/catalog-service.json
+
+az spring-cloud gateway route-config create \
+    --name $FRONTEND_APP \
+    --app-name $FRONTEND_APP \
+    --routes-file azure/routes/frontend.json
+    
+
+```
+
+### Build and Deploy Applications
+
+Deploy and build each application, specifying its required parameters
+
+```shell
+# Deploy Order Service
+az spring-cloud app deploy --name $ORDER_SERVICE_APP \
+    --config-file-patterns backend/default \
+    --source-path backend \
+    --env "SPRING_PROFILES_ACTIVE=azure"
+```
+
+
 ## Unit 2 - Configure Single Sign On
+
+
+### Create and Deploy the Identity Service Application
+
+Create the identity service application
+
+```shell
+az spring-cloud app create --name $IDENTITY_SERVICE_APP --instance-count 1 --memory 1Gi
+```
+
+Bind the identity service to Application Configuration Service
+
+```shell
+az spring-cloud application-configuration-service bind --app $IDENTITY_SERVICE_APP
+```
+
+Create routing rules for the identity service application
+
+```shell
+az spring-cloud gateway route-config create \
+    --name $IDENTITY_SERVICE_APP \
+    --app-name $IDENTITY_SERVICE_APP \
+    --routes-file azure/routes/identity-service.json
+```
+
+Bind to Service Registry:
+
+```shell
+az spring-cloud service-registry bind --app $IDENTITY_SERVICE_APP
+```
 
 ## Unit 3 - Monitor Applications
 

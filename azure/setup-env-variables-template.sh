@@ -13,3 +13,6 @@ export FRONTEND_APP="frontend"
 export CUSTOM_BUILDER="no-bindings-builder"
 
 export AZURE_CACHE_NAME="acme-store-cache"
+export POSTGRES_SERVER="acmefitdb"
+export ORDER_SERVICE_DB="acmefit_order"
+export CATALOG_SERVICE_DB="acmefit_catalog"
