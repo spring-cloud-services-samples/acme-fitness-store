@@ -2,13 +2,13 @@
 page_type: sample
 languages:
 - java
-  products:
+products:
 - Azure Spring Cloud
 - Azure Database for PostgresSQL
 - Azure Cache for Redis
 - Azure Active Directory
-  description: "Deploy Microservice Apps to Azure"
-  urlFragment: ""
+description: "Deploy Microservice Apps to Azure"
+urlFragment: ""
 ---
 
 # Deploy Microservice Applications to Azure Spring Cloud
