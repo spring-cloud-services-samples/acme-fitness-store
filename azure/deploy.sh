@@ -157,7 +157,11 @@ function create_frontend_app() {
 
 function deploy_cart_service() {
   echo "Deploying cart-service application"
-  local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --app $CART_SERVICE --connection $CART_SERVICE_REDIS_CONNECTION | jq -r '.configurations[0].value')
+  local redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_INSTANCE \
+    --deployment default \
+    --app $CART_SERVICE \
+    --connection $CART_SERVICE_REDIS_CONNECTION | jq -r '.configurations[0].value')
   local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
   local app_insights_key=$(az spring-cloud build-service builder buildpack-binding show -n default | jq -r '.properties.launchProperties.properties.connection_string')
 
@@ -172,13 +176,17 @@ function deploy_identity_service() {
   az spring-cloud app deploy --name $IDENTITY_SERVICE \
     --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
     --config-file-pattern identity \
-    --source-path "$APPS_ROOT/acme-identity" #TODO: is this URI necessary?
+    --source-path "$APPS_ROOT/acme-identity"
 }
 
 function deploy_order_service() {
   echo "Deploying user-service application"
   local gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
-  local postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP --service $SPRING_CLOUD_INSTANCE --deployment default --connection $ORDER_SERVICE_POSTGRES_CONNECTION --app $ORDER_SERVICE | jq '.configurations[0].value' -r)
+  local postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_INSTANCE \
+    --deployment default \
+    --connection $ORDER_SERVICE_POSTGRES_CONNECTION \
+    --app $ORDER_SERVICE | jq '.configurations[0].value' -r)
   local app_insights_key=$(az spring-cloud build-service builder buildpack-binding show -n default | jq -r '.properties.launchProperties.properties.connection_string')
 
   az spring-cloud app deploy --name $ORDER_SERVICE \

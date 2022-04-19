@@ -25,6 +25,8 @@ finished, you can continue to manage the application via the Azure CLI or switch
    * [Clone the repo](#clone-the-repo)
    * [Unit 1 - Deploy and Build Applications](#unit-1---deploy-and-build-applications)
    * [Unit 2 - Configure Single Sign On](#unit-2---configure-single-sign-on)
+   * [Unit 3 - Monitor Applications](#unit-3---monitor-applications)
+   * [Unit 4 - Automate with GitHub Actions](#unit-4---automate-with-github-actions)
 
 ## What will you experience
 You will:
@@ -378,29 +380,44 @@ for those applications:
 # Bind order service to Postgres
 az spring-cloud connection create postgres \
     --resource-group $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_INSTANCE \
-    --connection $ORDER_SERVICE_POSTGRES_CONNECTION \
-    --app $ORDER_SERVICE \
+    --service $SPRING_CLOUD_SERVICE \
+    --connection $ORDER_SERVICE_DB_CONNECTION \
+    --app $ORDER_SERVICE_APP \
     --deployment default \
     --tg $RESOURCE_GROUP \
-    --server $ACMEFIT_POSTGRES_SERVER \
-    --database $ACMEFIT_ORDER_DB_NAME \
-    --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
+    --server $POSTGRES_SERVER \
+    --database $ORDER_SERVICE_DB \
+    --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type dotnet
     
 
 # Bind catalog service to Postgres
-
 az spring-cloud connection create postgres \
     --resource-group $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_INSTANCE \
-    --app $CATALOG_SERVICE \
+    --service $SPRING_CLOUD_SERVICE \
+    --connection $CATALOG_SERVICE_DB_CONNECTION \
+    --app $CATALOG_SERVICE_APP \
     --deployment default \
     --tg $RESOURCE_GROUP \
-    --server $ACMEFIT_POSTGRES_SERVER \
-    --database $ACMEFIT_CATALOG_DB_NAME \
-    --secret name=${ACMEFIT_POSTGRES_DB_USER} secret=${ACMEFIT_POSTGRES_DB_PASSWORD} \
+    --server $POSTGRES_SERVER \
+    --database $CATALOG_SERVICE_DB \
+    --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type springboot
+```
+
+The Cart Service requires a connection to Azure Cache for Redis, create the Service Connector:
+
+```shell
+az spring-cloud connection create redis \
+    --resource-group $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_SERVICE \
+    --connection $CART_SERVICE_CACHE_CONNECTION \
+    --app $CART_SERVICE_APP \
+    --deployment default \
+    --tg $RESOURCE_GROUP \
+    --server $REDIS_NAME \
+    --database 0 \
+    --client-type java 
 ```
 
 ### Configure Spring Cloud Gateway
@@ -451,11 +468,44 @@ az spring-cloud gateway route-config create \
 Deploy and build each application, specifying its required parameters
 
 ```shell
-# Deploy Order Service
+# Deploy Payment Service
+az spring-cloud app deploy --name $PAYMENT_SERVICE_APP \
+    --config-file-pattern payment \
+    --source-path apps/acme-payment
+
+# Deploy Catalog Service
+az spring-cloud app deploy --name $CATALOG_SERVICE_APP \
+    --config-file-pattern catalog \
+    --source-path apps/acme-catalog
+
+# Deploy Order Service after retrieving the database connection info
+export postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_SERVICE \
+    --deployment default \
+    --connection $ORDER_SERVICE_DB_CONNECTION \
+    --app ORDER_SERVICE_APP | jq '.configurations[0].value' -r)
+
 az spring-cloud app deploy --name $ORDER_SERVICE_APP \
-    --config-file-patterns backend/default \
-    --source-path backend \
-    --env "SPRING_PROFILES_ACTIVE=azure"
+    --builder $CUSTOM_BUILDER \
+    --env "ConnectionStrings__OrderContext=$postgres_connection_url" \
+    --source-path apps/acme-order
+
+# Deploy the Cart Service after retrieving the cache connection info
+export redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP \
+    --service $SPRING_CLOUD_INSTANCE \
+    --deployment default \
+    --app $CART_SERVICE \
+    --connection $CART_SERVICE_REDIS_CONNECTION | jq -r '.configurations[0].value')
+
+az spring-cloud app deploy --name $CART_SERVICE_APP \
+    --builder $CUSTOM_BUILDER \
+    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" \
+    --source-path apps/acme-cart
+
+# Deploy Frontend App
+az spring-cloud app deploy --name $FRONTEND_APP \
+    --builder $CUSTOM_BUILDER \
+    --source-path apps/acme-shopping
 ```
 
 
@@ -489,6 +539,15 @@ Bind to Service Registry:
 
 ```shell
 az spring-cloud service-registry bind --app $IDENTITY_SERVICE_APP
+```
+
+Deploy the Identity Service:
+
+```shell
+az spring-cloud app deploy --name $IDENTITY_SERVICE_APP \
+    --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
+    --config-file-pattern identity \
+    --source-path apps/acme-identity
 ```
 
 ## Unit 3 - Monitor Applications
