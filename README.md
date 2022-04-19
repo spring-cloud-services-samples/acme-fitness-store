@@ -138,7 +138,7 @@ export SPRING_CLOUD_SERVICE=azure-spring-cloud-name # name of the service that w
 export LOG_ANALYTICS_WORKSPACE=log-analytics-name   # existing workspace or one that will be created in next steps
 export POSTGRES_SERVER_USER=change-name             # Postgres server username to be created in next steps
 export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password to be created in next steps
-export REGION=region-name                           # choose a region with Enterprise tier support                       # choose a region with Enterprise tier support
+export REGION=region-name                           # choose a region with Enterprise tier support
 ```
 
 Then, set the environment:
@@ -493,7 +493,7 @@ export postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GR
 
 az spring-cloud app deploy --name $ORDER_SERVICE_APP \
     --builder $CUSTOM_BUILDER \
-    --env "ConnectionStrings__OrderContext=$postgres_connection_url" \
+    --env "ConnectionStrings__OrderContext=$POSTGRES_CONNECTION_STR" \
     --source-path apps/acme-order
 
 # Deploy the Cart Service after retrieving the cache connection info
@@ -505,7 +505,7 @@ export redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP \
 
 az spring-cloud app deploy --name $CART_SERVICE_APP \
     --builder $CUSTOM_BUILDER \
-    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$redis_conn_str" \
+    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$REDIS_CONN_STR" \
     --source-path apps/acme-cart
 
 # Deploy Frontend App
@@ -524,11 +524,134 @@ open "https://$GATEWAY_URL"
 
 You should see the ACME Fitness Store Application:
 
-[//]: # (TODO: Add image)
 ![An image of the ACME Fitness Store Application homepage](media/homepage.png)
+
+Explore the application, but notice that not everything is functioning yet. Continue on to
+Unit 2 to configure Single Sign On to enable the rest of the functionality. 
+
+### Explore the API using API Portal
+
+Assign an endpoint to API Portal and open it in a browser:
+
+```shell
+az spring-cloud api-portal update --assign-endpoint true
+export PORTAL_URL=$(az spring-cloud api-portal show | jq -r '.properties.url')
+
+open "https://$PORTAL_URL"
+```
 
 ## Unit 2 - Configure Single Sign On
 
+The following section steps through creating a Single Sign On Provider using Azure AD. 
+To use an existing provider, skip ahead to [Using an Existing SSO Provider](#using-an-existing-sso-identity-provider)
+
+### Register Application with Azure AD
+
+Create an Application registration with Azure AD and save the output.
+
+```shell
+az ad app create --display-name acme-fitness-store > ad.json
+```
+
+Retrieve the Application ID and collect the client secret:
+
+```shell
+export APPLICATION_ID=$(cat ad.json | jq -r '.appId')
+
+az ad app credential reset --id $APPLICATION_ID --append > sso.json
+```
+
+Assign a Service Principal to the Application Registration
+
+```shell
+az ad sp create --id $APPLICATION_ID
+```
+
+More detailed instructions on Application Registrations can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
+
+### Prepare your environment for deployments
+
+Set the environment using the provided script and verify the environment variables are set:
+
+```shell
+source ./azure/setup-sso-variables-ad.sh
+
+echo $CLIENT_ID
+echo $CLIENT_SECRET
+echo $TENANT_ID
+echo $ISSUER_URI
+echo $JWK_SET_URI
+```
+
+The `ISSUER_URI` shhould take the form `https://login.microsoftonline.com/$TENANT_ID/v2.0`
+The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/$TENANT_ID/discovery/v2.0/keys`
+
+Add the necessary redirect URIs to the Azure AD Application Registration:
+
+```shell
+az ad app update --id $APPLICATION_ID \
+    --reply-urls "https://$GATEWAY_URL/login/oauth2/code/sso" "https://$PORTAL_URL/oauth2-redirect.html" "https://$PORTAL_URL/login/oauth2/code/sso"
+```
+
+Detailed information about redirect URIs can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri).
+
+### Using an Existing SSO Identity Provider
+
+> Note: Skip this section if you just created and Azure AD Application Registration
+
+To use an existing SSO Identity Provider, copy the existing template
+
+```shell
+cp ./azure/setup-sso-variables-template.sh ./azure/setup-sso-variables.sh
+```
+
+Open `./azure/setup-sso-variables.sh` and provide the required information.
+
+```shell
+export CLIENT_ID=change-me        # Your SSO Provider Client ID
+export CLIENT_SECRET=change-me    # Your SSO Provider Client Secret
+export ISSUER_URI=change-me       # Your SSO Provider Issuer URI
+export JWK_SET_URI=change-me      # Your SSO Provider Json Web Token URI
+```
+
+The `issuer-uri` configuration should follow Spring Boot convention, as described in the official Spring Boot documentation:
+The provider needs to be configured with an issuer-uri which is the URI that the it asserts as its Issuer Identifier. For example, if the issuer-uri provided is "https://example.com", then an OpenID Provider Configuration Request will be made to "https://example.com/.well-known/openid-configuration". The result is expected to be an OpenID Provider Configuration Response. 
+Note that only authorization servers supporting OpenID Connect Discovery protocol can be used
+
+The `JWK_SET_URI` typically takes the form `$ISSUER_URI/$VERSION/keys` 
+
+Set the environment:
+
+```shell
+source ./azure/setup-sso-variables.sh
+```
+
+Add the following to your SSO provider's list of approved redirect URIs:
+
+```shell
+echo "https://${GATEWAY_URL}/login/oauth2/code/sso"
+echo "https://${PORTAL_URL}/oauth2-redirect.html" 
+echo "https://${PORTAL_URL}/login/oauth2/code/sso"
+```
+
+### Configure Spring Cloud Gateway
+
+Configure Spring Cloud Gateway with SSO enabled:
+
+```shell
+export GATEWAY_URL=$(az spring-cloud gateway show | jq -r '.properties.url')
+
+az spring-cloud gateway update \
+    --api-description "ACME Fitness Store API" \
+    --api-title "ACME Fitness Store" \
+    --api-version "v1.0" \
+    --server-url "https://$GATEWAY_URL" \
+    --allowed-origins "*" \
+    --client-id $CLIENT_ID \
+    --client-secret $CLIENT_SECRET \
+    --scope $SCOPE \
+    --issuer-uri $ISSUER_URI
+```
 
 ### Create and Deploy the Identity Service Application
 
@@ -567,6 +690,57 @@ az spring-cloud app deploy --name $IDENTITY_SERVICE_APP \
     --config-file-pattern identity \
     --source-path apps/acme-identity
 ```
+
+### Update Existing Applications
+
+Update the existing applications to use authorization information from the gateway:
+
+```shell
+# Update the Cart Service
+az spring-cloud app update --name $CART_SERVICE_APP \
+    --env "AUTH_URL=https://${GATEWAY_URL}" "CART_PORT=8080" "REDIS_CONNECTIONSTRING=[$REDIS_CONN_STR]([]())"
+    
+# Update the Order Service
+az spring-cloud app  update --name $ORDER_SERVICE_APP \
+    --env "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "ConnectionStrings__OrderContext=$POSTGRES_CONNECTION_STR"
+```
+
+### Access the Application through Spring Cloud Gateway
+
+Retrieve the URL for Spring Cloud Gateway and open it in a browser:
+
+```shell
+open "https://$GATEWAY_URL"
+```
+
+You should see the ACME Fitness Store Application, and be able to log in using your
+SSO Credentials. Once logged in, the remaining functionality of the application will
+be available. This includes adding items to the cart and placing an order.
+
+### Configure SSO for API Portal
+
+Configure API Portal with SSO enabled:
+
+```shell
+export PORTAL_URL=$(az spring-cloud api-portal show | jq -r '.properties.url')
+
+az spring-cloud api-portal update \
+    --client-id $CLIENT_ID \
+    --client-secret $CLIENT_SECRET\
+    --scope "openid,profile,email" \
+    --issuer-uri $ISSUER_URI
+```
+
+### Explore the API using API Portal
+
+Open API Portal in a browser, this will redirect you to log in now:
+
+```shell
+open "https://$PORTAL_URL"
+```
+
+To access the protected APIs, click Authorize and follow the steps that match your
+SSO provider. Learn more about API Authorization with API Portal [here](https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/1.0/api-portal/GUID-api-viewer.html#api-authorization)
 
 ## Unit 3 - Monitor Applications
 

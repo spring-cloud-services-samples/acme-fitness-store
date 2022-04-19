@@ -6,3 +6,4 @@ custom-filters
 
 
 azure/setup-env-variables.sh
+azure/setup-sso-variables.sh
