@@ -508,6 +508,18 @@ az spring-cloud app deploy --name $FRONTEND_APP \
     --source-path apps/acme-shopping
 ```
 
+### Access the Application through Spring Cloud Gateway
+
+Retrieve the URL for Spring Cloud Gateway and open it in a browser:
+
+```shell
+open "https://$GATEWAY_URL"
+```
+
+You should see the ACME Fitness Store Application:
+
+[//]: # (TODO: Add image)
+[//]: # (![An image of the ACME Fitness Store Application homepage]&#40;&#41;)
 
 ## Unit 2 - Configure Single Sign On
 
