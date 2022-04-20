@@ -12,6 +12,11 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+	set('springCloudAzureVersion', "4.0.0")
+}
+
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
@@ -21,9 +26,17 @@ dependencies {
 	implementation "org.springframework.security:spring-security-oauth2-resource-server"
 	implementation "org.springframework.security:spring-security-oauth2-jose"
 
+	implementation 'com.azure.spring:spring-cloud-azure-starter-keyvault-secrets'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "com.azure.spring:spring-cloud-azure-dependencies:${springCloudAzureVersion}"
+	}
 }
 
 tasks.named('test') {

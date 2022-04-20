@@ -1,3 +1,9 @@
+spring:
+  config:
+    activate:
+      on-profile:
+        - default
+
 management:
   endpoint:
     health:

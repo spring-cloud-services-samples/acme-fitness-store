@@ -3,3 +3,24 @@ spring:
     name: "acme-catalog"
   mvc:
     static-path-pattern: /static/images/**
+  config:
+    activate:
+      on-profile: default
+---
+spring:
+  config:
+    activate:
+      on-profile: key-vault
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          enabled: true
+          property-source-enabled: true
+          property-sources:
+            - endpoint: ${KEYVAULT_URI}
+              name: 'acme-store-vault'
+  datasource:
+    url: jdbc:postgresql://${POSTGRES-SERVER-NAME}.postgres.database.azure.com:5432/${CATALOG-DATABASE-NAME}?sslmode=require
+    username: ${POSTGRES-LOGIN-NAME}
+    password: ${POSTGRES-LOGIN-PASSWORD}

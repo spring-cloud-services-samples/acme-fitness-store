@@ -4,8 +4,29 @@ logging.level:
 spring:
   application:
     name: 'acme-identity'
+  config:
+    activate:
+      on-profile:
+        - default
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost/keys
+          jwk-set-uri: ${JWK_URI}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: key-vault
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          enabled: true
+          property-source-enabled: true
+          property-sources:
+            - endpoint: ${KEYVAULT_URI}
+              name: 'acme-store-vault'
+
+JWK_URI: ${SSO-PROVIDER-JWK-URI}
