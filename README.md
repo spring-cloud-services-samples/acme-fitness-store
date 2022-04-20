@@ -334,7 +334,7 @@ Create a configuration repository for Application Configuration Service using th
 ```shell
 az spring-cloud application-configuration-service git repo add --name acme-fitness-store-config \
     --label Azure \
-    --patterns "default,catalog,identity,payment" \
+    --patterns "catalog/default,catalog/key-vault,identity/default,identity/key-vault,payment/default" \
     --uri "https://github.com/spring-cloud-services-samples/acme_fitness_demo" \
     --search-paths config
 ```
@@ -478,12 +478,12 @@ Deploy and build each application, specifying its required parameters
 ```shell
 # Deploy Payment Service
 az spring-cloud app deploy --name ${PAYMENT_SERVICE_APP} \
-    --config-file-pattern payment \
+    --config-file-pattern payment/default \
     --source-path apps/acme-payment
 
 # Deploy Catalog Service
 az spring-cloud app deploy --name ${CATALOG_SERVICE_APP} \
-    --config-file-pattern catalog \
+    --config-file-pattern catalog/default \
     --source-path apps/acme-catalog
 
 # Deploy Order Service after retrieving the database connection info
@@ -689,8 +689,8 @@ Deploy the Identity Service:
 
 ```shell
 az spring-cloud app deploy --name ${IDENTITY_SERVICE_APP} \
-    --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
-    --config-file-pattern identity \
+    --env "JWK_URI=${JWK_SET_URI}" \
+    --config-file-pattern identity/default \
     --source-path apps/acme-identity
 ```
 
@@ -747,7 +747,179 @@ SSO provider. Learn more about API Authorization with API Portal [here](https://
 
 ## Unit 3 - Securely Load Application Secrets 
 
+Use Azure Key Vault to store and load secrets to connect to Azure services.
+
+### Prepare your environment for Key Vault 
+
+Create a bash script with environment variables by making a copy of the supplied template:
+
+```shell
+cp ./azure/setup-env-variables-keyvault-template.sh ./azure/setup-env-variables-keyvault.sh
+```
+
+Open `./azure/setup-env-variables-keyvault.sh` and enter the following information:
+
+```shell
+export KEY_VAULT=change-me      # customize this
+```
+
+Set the Environment.
+
+```shell
+source ./azure/setup-env-variables-keyvault.sh
+```
+
+### Create Azure Key Vault and store secrets
+
+Create an Azure Key Vault and store connection secrets.
+
+```shell
+az keyvault create --name ${KEY_VAULT} -g ${RESOURCE_GROUP}
+export KEYVAULT_URI=$(az keyvault show --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
+```
+
+Store database connection secrets in Key Vault.
+
+```shell
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "POSTGRES-SERVER-NAME" --value ${POSTGRES_SERVER}
+    
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "ORDER-DATABASE-NAME" --value ${ORDER_SERVICE_DB}
+    
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
+    
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "POSTGRES-LOGIN-NAME" --value ${POSTGRES_SERVER_USER}
+    
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "POSTGRES-LOGIN-PASSWORD" --value ${POSTGRES_SERVER_PASSWORD}
+```        
+
+Retrieve and store redis connection secrets in Key Vault.
+
+```shell
+az redis show -n ${AZURE_CACHE_NAME} > redis.json
+export REDIS_HOST=$(cat redis.json | jq -r '.hostName')
+export REDIS_PORT=$(cat redis.json | jq -r '.sslPort')
+
+export REDIS_PRIMARY_KEY=$(az redis list-keys -n ${AZURE_CACHE_NAME} | jq -r '.primaryKey')
+
+az keyvault secret set --vault-name ${KEY_VAULT} \
+  --name "CART-REDIS-CONNECTION-STRING" --value "rediss://${REDIS_PRIMARY_KEY}@${REDIS_HOST}:${REDIS_PORT}/0"
+```
+
+Store SSO Secrets in Key Vault.
+
+```shell
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "SSO-PROVIDER-JWK-URI" --value ${JWK_SET_URI}
+```
+
+Enable System Assigned Identities for applications and export identities to environment.
+
+```shell
+az spring-cloud app identity assign --name ${CART_SERVICE_APP}
+export CART_SERVICE_APP_IDENTITY=$(az spring-cloud app show --name ${CART_SERVICE_APP} | jq -r '.identity.principalId')
+
+az spring-cloud app identity assign --name ${ORDER_SERVICE_APP}
+export ORDER_SERVICE_APP_IDENTITY=$(az spring-cloud app show --name ${ORDER_SERVICE_APP} | jq -r '.identity.principalId')
+
+az spring-cloud app identity assign --name ${CATALOG_SERVICE_APP}
+export CATALOG_SERVICE_APP_IDENTITY=$(az spring-cloud app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
+
+az spring-cloud app identity assign --name ${IDENTITY_SERVICE_APP}
+export IDENTITY_SERVICE_APP_IDENTITY=$(az spring-cloud app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
+
+az spring-cloud app identity assign --name ${FRONTEND_APP}
+export FRONTEND_APP_IDENTITY=$(az spring-cloud app show --name ${FRONTEND_APP} | jq -r '.identity.principalId')
+```
+
+Add an access policy to Azure Key Vault to allow Managed Identities to read secrets.
+
+```shell
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${CART_SERVICE_APP_IDENTITY} --secret-permissions get list
+    
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${ORDER_SERVICE_APP_IDENTITY} --secret-permissions get list
+
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${CATALOG_SERVICE_APP_IDENTITY} --secret-permissions get list
+
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${IDENTITY_SERVICE_APP_IDENTITY} --secret-permissions get list
+
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${FRONTEND_APP_IDENTITY} --secret-permissions get list
+```
+
+### Activate applications to load secrets from Azure Key Vault
+
+Delete Service Connectors and activate applications to load secrets from Azure Key Vault.
+
+```shell
+az spring-cloud connection delete \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
+    --connection ${ORDER_SERVICE_DB_CONNECTION} \
+    --app ${ORDER_SERVICE_APP} \
+    --deployment default 
+
+az spring-cloud connection delete \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
+    --connection ${CATALOG_SERVICE_DB_CONNECTION} \
+    --app ${CATALOG_SERVICE_APP} \
+    --deployment default 
+
+az spring-cloud connection delete \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
+    --connection $CART_SERVICE_CACHE_CONNECTION \
+    --app ${CART_SERVICE_APP} \
+    --deployment default 
+    
+    
+az spring-cloud app update --name ${ORDER_SERVICE_APP} \
+    --env "KEYVAULT_URI=${KEYVAULT_URI}"
+
+az spring-cloud app update --name ${CATALOG_SERVICE_APP} \
+    --config-file-pattern catalog/default,catalog/key-vault \
+    --env "KEYVAULT_URI=${KEYVAULT_URI}"
+    
+az spring-cloud app update --name ${IDENTITY_SERVICE_APP} \
+    --config-file-pattern identity/default,identity/key-vault \
+    --env "KEYVAULT_URI=${KEYVAULT_URI}"
+    
+az spring-cloud app update --name ${CART_SERVICE_APP} \
+    --env "CART_PORT=8080" "KEYVAULT_URI=${KEYVAULT_URI}"
+    
+az spring-cloud app update --name ${FRONTEND_APP} \
+    --env "KEYVAULT_URI=${KEYVAULT_URI}"
+```
+
 ## Unit 4 - Monitor Applications
+
+### Add Instrumentation Key to Key Vault
+
+Retrieve the Instrumentation Key for Application Insights and add to Key Vault
+
+```shell
+export INSTRUMENTATION_KEY=$(az spring-cloud build-service builder buildpack-binding show -n default | jq -r '.properties.launchProperties.properties.connection_string')
+
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "APP-INSIGHTS-INSTRUMENTATION-KEY" --value ${INSTRUMENTATION_KEY}
+```
+
+### Reload Applications
+
+### Generate Traffic
+
+### Start monitoring apps and dependencies - in Application Insights
+
+### Start monitoring ACME Fitness Store's logs and metrics in Azure Log Analytics
 
 ## Unit 5 - Set Request Rate Limits
 
