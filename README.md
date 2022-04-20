@@ -25,8 +25,10 @@ finished, you can continue to manage the application via the Azure CLI or switch
    * [Clone the repo](#clone-the-repo)
    * [Unit 1 - Deploy and Build Applications](#unit-1---deploy-and-build-applications)
    * [Unit 2 - Configure Single Sign On](#unit-2---configure-single-sign-on)
-   * [Unit 3 - Monitor Applications](#unit-3---monitor-applications)
-   * [Unit 4 - Automate with GitHub Actions](#unit-4---automate-with-github-actions)
+   * [Unit 3 - Securely Load Application Secrets](#unit-3---securely-load-application-secrets)
+   * [Unit 4 - Monitor Applications](#unit-4---monitor-applications)
+   * [Unit 5 - Set Request Rate Limits](#unit-5---set-request-rate-limits)
+   * [Unit 6 - Automate with GitHub Actions](#unit-6---automate-with-github-actions)
 
 ## What will you experience
 You will:
@@ -233,8 +235,8 @@ az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
      
 # Enable the uuid-ossp extension
 az postgres flexible-server parameter set \
-    --resource-group $RESOURCE_GROUP \
-    --server-name $POSTGRES_SERVER \
+    --resource-group ${RESOURCE_GROUP} \
+    --server-name ${POSTGRES_SERVER} \
     --name azure.extensions --value uuid-ossp
 ```
 
@@ -242,16 +244,16 @@ Create a database for the order service:
 
 ```shell
 az postgres flexible-server db create \
-  --database-name $ORDER_SERVICE_DB \
-  --server-name $POSTGRES_SERVER
+  --database-name ${ORDER_SERVICE_DB} \
+  --server-name ${POSTGRES_SERVER}
 ```
 
 Create a database for the catalog service:
 
 ```shell
 az postgres flexible-server db create \
-  --database-name $CATALOG_SERVICE_DB \
-  --server-name $POSTGRES_SERVER
+  --database-name ${CATALOG_SERVICE_DB} \
+  --server-name ${POSTGRES_SERVER}
 ```
 
 > Note: wait for all services to be ready before continuing
@@ -342,7 +344,7 @@ az spring-cloud application-configuration-service git repo add --name acme-fitne
 Create a custom builder in Tanzu Build Service using the Azure CLI:
 
 ```shell
-az spring-cloud build-service builder create -n $CUSTOM_BUILDER \
+az spring-cloud build-service builder create -n ${CUSTOM_BUILDER} \
     --builder-file azure/builder.json \
     --no-wait
 ```
@@ -352,11 +354,11 @@ az spring-cloud build-service builder create -n $CUSTOM_BUILDER \
 Create an application for each service:
 
 ```shell
-az spring-cloud app create --name $CART_SERVICE_APP --instance-count 1 --memory 1Gi
-az spring-cloud app create --name $ORDER_SERVICE_APP --instance-count 1 --memory 1Gi
-az spring-cloud app create --name $PAYMENT_SERVICE_APP --instance-count 1 --memory 1Gi
-az spring-cloud app create --name $CATALOG_SERVICE_APP --instance-count 1 --memory 1Gi
-az spring-cloud app create --name $FRONTEND_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${CART_SERVICE_APP} --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${ORDER_SERVICE_APP} --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${PAYMENT_SERVICE_APP} --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${CATALOG_SERVICE_APP} --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${FRONTEND_APP} --instance-count 1 --memory 1Gi
 ```
 
 ### Bind to Application Configuration Service
@@ -365,8 +367,8 @@ Several applications require configuration from Application Configuration Servic
 the bindings:
 
 ```shell
-az spring-cloud application-configuration-service bind --app $PAYMENT_SERVICE_APP
-az spring-cloud application-configuration-service bind --app $CATALOG_SERVICE_APP
+az spring-cloud application-configuration-service bind --app ${PAYMENT_SERVICE_APP}
+az spring-cloud application-configuration-service bind --app ${CATALOG_SERVICE_APP}
 ```
 
 ### Bind to Service Registry
@@ -375,8 +377,8 @@ Several application require service discovery using Service Registry, so create
 the bindings:
 
 ```shell
-az spring-cloud service-registry bind --app $PAYMENT_SERVICE_APP
-az spring-cloud service-registry bind --app $CATALOG_SERVICE_APP
+az spring-cloud service-registry bind --app ${PAYMENT_SERVICE_APP}
+az spring-cloud service-registry bind --app ${CATALOG_SERVICE_APP}
 ```
 
 ### Create Service Connectors
@@ -387,28 +389,28 @@ for those applications:
 ```shell
 # Bind order service to Postgres
 az spring-cloud connection create postgres-flexible \
-    --resource-group $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_SERVICE \
-    --connection $ORDER_SERVICE_DB_CONNECTION \
-    --app $ORDER_SERVICE_APP \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
+    --connection ${ORDER_SERVICE_DB_CONNECTION} \
+    --app ${ORDER_SERVICE_APP} \
     --deployment default \
-    --tg $RESOURCE_GROUP \
-    --server $POSTGRES_SERVER \
-    --database $ORDER_SERVICE_DB \
+    --tg ${RESOURCE_GROUP} \
+    --server ${POSTGRES_SERVER} \
+    --database ${ORDER_SERVICE_DB} \
     --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type dotnet
     
 
 # Bind catalog service to Postgres
 az spring-cloud connection create postgres-flexible \
-    --resource-group $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_SERVICE \
-    --connection $CATALOG_SERVICE_DB_CONNECTION \
-    --app $CATALOG_SERVICE_APP \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
+    --connection ${CATALOG_SERVICE_DB_CONNECTION} \
+    --app ${CATALOG_SERVICE_APP} \
     --deployment default \
-    --tg $RESOURCE_GROUP \
-    --server $POSTGRES_SERVER \
-    --database $CATALOG_SERVICE_DB \
+    --tg ${RESOURCE_GROUP} \
+    --server ${POSTGRES_SERVER} \
+    --database ${CATALOG_SERVICE_DB} \
     --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type springboot
 ```
@@ -417,13 +419,13 @@ The Cart Service requires a connection to Azure Cache for Redis, create the Serv
 
 ```shell
 az spring-cloud connection create redis \
-    --resource-group $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_SERVICE \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
     --connection $CART_SERVICE_CACHE_CONNECTION \
-    --app $CART_SERVICE_APP \
+    --app ${CART_SERVICE_APP} \
     --deployment default \
-    --tg $RESOURCE_GROUP \
-    --server $AZURE_CACHE_NAME \
+    --tg ${RESOURCE_GROUP} \
+    --server ${AZURE_CACHE_NAME} \
     --database 0 \
     --client-type java 
 ```
@@ -441,7 +443,7 @@ az spring-cloud gateway update \
     --api-description "Acme Fitness Store API" \
     --api-title "Acme Fitness Store" \
     --api-version "v1.0" \
-    --server-url "https://$GATEWAY_URL" \
+    --server-url "https://${GATEWAY_URL}" \
     --allowed-origins "*"
 ```
 
@@ -449,68 +451,68 @@ Create  routing rules for the applications:
 
 ```shell
 az spring-cloud gateway route-config create \
-    --name $CART_SERVICE_APP \
-    --app-name $CART_SERVICE_APP \
+    --name ${CART_SERVICE_APP} \
+    --app-name ${CART_SERVICE_APP} \
     --routes-file azure/routes/cart-service.json
     
 az spring-cloud gateway route-config create \
-    --name $ORDER_SERVICE_APP \
-    --app-name $ORDER_SERVICE_APP \
+    --name ${ORDER_SERVICE_APP} \
+    --app-name ${ORDER_SERVICE_APP} \
     --routes-file azure/routes/order-service.json
 
 az spring-cloud gateway route-config create \
-    --name $CATALOG_SERVICE_APP \
-    --app-name $CATALOG_SERVICE_APP \
+    --name ${CATALOG_SERVICE_APP} \
+    --app-name ${CATALOG_SERVICE_APP} \
     --routes-file azure/routes/catalog-service.json
 
 az spring-cloud gateway route-config create \
-    --name $FRONTEND_APP \
-    --app-name $FRONTEND_APP \
+    --name ${FRONTEND_APP} \
+    --app-name ${FRONTEND_APP} \
     --routes-file azure/routes/frontend.json
 ```
 
-### Build and Deploy Applications
+### Build and Deploy Polyglot Applications
 
 Deploy and build each application, specifying its required parameters
 
 ```shell
 # Deploy Payment Service
-az spring-cloud app deploy --name $PAYMENT_SERVICE_APP \
+az spring-cloud app deploy --name ${PAYMENT_SERVICE_APP} \
     --config-file-pattern payment \
     --source-path apps/acme-payment
 
 # Deploy Catalog Service
-az spring-cloud app deploy --name $CATALOG_SERVICE_APP \
+az spring-cloud app deploy --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog \
     --source-path apps/acme-catalog
 
 # Deploy Order Service after retrieving the database connection info
-export postgres_connection_url=$(az spring-cloud connection show -g $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_SERVICE \
+export postgres_connection_url=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
     --deployment default \
-    --connection $ORDER_SERVICE_DB_CONNECTION \
-    --app $ORDER_SERVICE_APP | jq '.configurations[0].value' -r)
+    --connection ${ORDER_SERVICE_DB_CONNECTION} \
+    --app ${ORDER_SERVICE_APP} | jq '.configurations[0].value' -r)
 
-az spring-cloud app deploy --name $ORDER_SERVICE_APP \
-    --builder $CUSTOM_BUILDER \
+az spring-cloud app deploy --name ${ORDER_SERVICE_APP} \
+    --builder ${CUSTOM_BUILDER} \
     --env "ConnectionStrings__OrderContext=$POSTGRES_CONNECTION_STR" \
     --source-path apps/acme-order
 
 # Deploy the Cart Service after retrieving the cache connection info
-export redis_conn_str=$(az spring-cloud connection show -g $RESOURCE_GROUP \
-    --service $SPRING_CLOUD_SERVICE \
+export redis_conn_str=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
+    --service ${SPRING_CLOUD_SERVICE} \
     --deployment default \
-    --app $CART_SERVICE_APP \
+    --app ${CART_SERVICE_APP} \
     --connection $CART_SERVICE_CACHE_CONNECTION | jq -r '.configurations[0].value')
 
-az spring-cloud app deploy --name $CART_SERVICE_APP \
-    --builder $CUSTOM_BUILDER \
-    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=$REDIS_CONN_STR" \
+az spring-cloud app deploy --name ${CART_SERVICE_APP} \
+    --builder ${CUSTOM_BUILDER} \
+    --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${REDIS_CONN_STR}" \
     --source-path apps/acme-cart
 
 # Deploy Frontend App
-az spring-cloud app deploy --name $FRONTEND_APP \
-    --builder $CUSTOM_BUILDER \
+az spring-cloud app deploy --name ${FRONTEND_APP} \
+    --builder ${CUSTOM_BUILDER} \
     --source-path apps/acme-shopping
 ```
 
@@ -519,7 +521,7 @@ az spring-cloud app deploy --name $FRONTEND_APP \
 Retrieve the URL for Spring Cloud Gateway and open it in a browser:
 
 ```shell
-open "https://$GATEWAY_URL"
+open "https://${GATEWAY_URL}"
 ```
 
 You should see the ACME Fitness Store Application:
@@ -537,7 +539,7 @@ Assign an endpoint to API Portal and open it in a browser:
 az spring-cloud api-portal update --assign-endpoint true
 export PORTAL_URL=$(az spring-cloud api-portal show | jq -r '.properties.url')
 
-open "https://$PORTAL_URL"
+open "https://${PORTAL_URL}"
 ```
 
 ## Unit 2 - Configure Single Sign On
@@ -558,13 +560,13 @@ Retrieve the Application ID and collect the client secret:
 ```shell
 export APPLICATION_ID=$(cat ad.json | jq -r '.appId')
 
-az ad app credential reset --id $APPLICATION_ID --append > sso.json
+az ad app credential reset --id ${APPLICATION_ID} --append > sso.json
 ```
 
 Assign a Service Principal to the Application Registration
 
 ```shell
-az ad sp create --id $APPLICATION_ID
+az ad sp create --id ${APPLICATION_ID}
 ```
 
 More detailed instructions on Application Registrations can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
@@ -576,28 +578,29 @@ Set the environment using the provided script and verify the environment variabl
 ```shell
 source ./azure/setup-sso-variables-ad.sh
 
-echo $CLIENT_ID
-echo $CLIENT_SECRET
-echo $TENANT_ID
-echo $ISSUER_URI
-echo $JWK_SET_URI
+echo ${CLIENT_ID}
+echo ${CLIENT_SECRET}
+echo ${TENANT_ID}
+echo ${ISSUER_URI}
+echo ${JWK_SET_URI}
 ```
 
-The `ISSUER_URI` shhould take the form `https://login.microsoftonline.com/$TENANT_ID/v2.0`
-The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/$TENANT_ID/discovery/v2.0/keys`
+The `ISSUER_URI` shhould take the form `https://login.microsoftonline.com/${ENANT_ID}/v2.0`
+The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/${ENANT_ID}/discovery/v2.0/keys`
 
 Add the necessary redirect URIs to the Azure AD Application Registration:
 
 ```shell
-az ad app update --id $APPLICATION_ID \
-    --reply-urls "https://$GATEWAY_URL/login/oauth2/code/sso" "https://$PORTAL_URL/oauth2-redirect.html" "https://$PORTAL_URL/login/oauth2/code/sso"
+az ad app update --id ${APPLICATION_ID} \
+    --reply-urls "https://${GATEWAY_URL}/login/oauth2/code/sso" "https://${PORTAL_URL}/oauth2-redirect.html" "https://${PORTAL_URL}/login/oauth2/code/sso"
 ```
 
 Detailed information about redirect URIs can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#add-a-redirect-uri).
 
 ### Using an Existing SSO Identity Provider
 
-> Note: Skip this section if you just created and Azure AD Application Registration
+> Note: Continue on to [Configure Spring Cloud Gateway with SSO](#configure-spring-cloud-gateway-with-sso) if you 
+> just created an Azure AD Application Registration
 
 To use an existing SSO Identity Provider, copy the existing template
 
@@ -618,7 +621,7 @@ The `issuer-uri` configuration should follow Spring Boot convention, as describe
 The provider needs to be configured with an issuer-uri which is the URI that the it asserts as its Issuer Identifier. For example, if the issuer-uri provided is "https://example.com", then an OpenID Provider Configuration Request will be made to "https://example.com/.well-known/openid-configuration". The result is expected to be an OpenID Provider Configuration Response. 
 Note that only authorization servers supporting OpenID Connect Discovery protocol can be used
 
-The `JWK_SET_URI` typically takes the form `$ISSUER_URI/$VERSION/keys` 
+The `JWK_SET_URI` typically takes the form `${SSUER_URI}/$VERSION/keys` 
 
 Set the environment:
 
@@ -634,7 +637,7 @@ echo "https://${PORTAL_URL}/oauth2-redirect.html"
 echo "https://${PORTAL_URL}/login/oauth2/code/sso"
 ```
 
-### Configure Spring Cloud Gateway
+### Configure Spring Cloud Gateway with SSO
 
 Configure Spring Cloud Gateway with SSO enabled:
 
@@ -645,47 +648,47 @@ az spring-cloud gateway update \
     --api-description "ACME Fitness Store API" \
     --api-title "ACME Fitness Store" \
     --api-version "v1.0" \
-    --server-url "https://$GATEWAY_URL" \
+    --server-url "https://${GATEWAY_URL}" \
     --allowed-origins "*" \
-    --client-id $CLIENT_ID \
-    --client-secret $CLIENT_SECRET \
-    --scope $SCOPE \
-    --issuer-uri $ISSUER_URI
+    --client-id ${CLIENT_ID} \
+    --client-secret ${CLIENT_SECRET} \
+    --scope ${SCOPE} \
+    --issuer-uri ${ISSUER_URI}
 ```
 
-### Create and Deploy the Identity Service Application
+### Deploy the Identity Service Application
 
 Create the identity service application
 
 ```shell
-az spring-cloud app create --name $IDENTITY_SERVICE_APP --instance-count 1 --memory 1Gi
+az spring-cloud app create --name ${IDENTITY_SERVICE_APP} --instance-count 1 --memory 1Gi
 ```
 
 Bind the identity service to Application Configuration Service
 
 ```shell
-az spring-cloud application-configuration-service bind --app $IDENTITY_SERVICE_APP
+az spring-cloud application-configuration-service bind --app ${IDENTITY_SERVICE_APP}
 ```
 
 Create routing rules for the identity service application
 
 ```shell
 az spring-cloud gateway route-config create \
-    --name $IDENTITY_SERVICE_APP \
-    --app-name $IDENTITY_SERVICE_APP \
+    --name ${IDENTITY_SERVICE_APP} \
+    --app-name ${IDENTITY_SERVICE_APP} \
     --routes-file azure/routes/identity-service.json
 ```
 
 Bind to Service Registry:
 
 ```shell
-az spring-cloud service-registry bind --app $IDENTITY_SERVICE_APP
+az spring-cloud service-registry bind --app ${IDENTITY_SERVICE_APP}
 ```
 
 Deploy the Identity Service:
 
 ```shell
-az spring-cloud app deploy --name $IDENTITY_SERVICE_APP \
+az spring-cloud app deploy --name ${IDENTITY_SERVICE_APP} \
     --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
     --config-file-pattern identity \
     --source-path apps/acme-identity
@@ -693,15 +696,15 @@ az spring-cloud app deploy --name $IDENTITY_SERVICE_APP \
 
 ### Update Existing Applications
 
-Update the existing applications to use authorization information from the gateway:
+Update the existing applications to use authorization information from Spring Cloud Gateway:
 
 ```shell
 # Update the Cart Service
-az spring-cloud app update --name $CART_SERVICE_APP \
-    --env "AUTH_URL=https://${GATEWAY_URL}" "CART_PORT=8080" "REDIS_CONNECTIONSTRING=[$REDIS_CONN_STR]([]())"
+az spring-cloud app update --name ${CART_SERVICE_APP} \
+    --env "AUTH_URL=https://${GATEWAY_URL}" "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${REDIS_CONN_STR}"
     
 # Update the Order Service
-az spring-cloud app  update --name $ORDER_SERVICE_APP \
+az spring-cloud app  update --name ${ORDER_SERVICE_APP} \
     --env "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "ConnectionStrings__OrderContext=$POSTGRES_CONNECTION_STR"
 ```
 
@@ -710,7 +713,7 @@ az spring-cloud app  update --name $ORDER_SERVICE_APP \
 Retrieve the URL for Spring Cloud Gateway and open it in a browser:
 
 ```shell
-open "https://$GATEWAY_URL"
+open "https://${GATEWAY_URL}"
 ```
 
 You should see the ACME Fitness Store Application, and be able to log in using your
@@ -725,10 +728,10 @@ Configure API Portal with SSO enabled:
 export PORTAL_URL=$(az spring-cloud api-portal show | jq -r '.properties.url')
 
 az spring-cloud api-portal update \
-    --client-id $CLIENT_ID \
-    --client-secret $CLIENT_SECRET\
+    --client-id ${CLIENT_ID} \
+    --client-secret ${CLIENT_SECRET}\
     --scope "openid,profile,email" \
-    --issuer-uri $ISSUER_URI
+    --issuer-uri ${ISSUER_URI}
 ```
 
 ### Explore the API using API Portal
@@ -736,12 +739,16 @@ az spring-cloud api-portal update \
 Open API Portal in a browser, this will redirect you to log in now:
 
 ```shell
-open "https://$PORTAL_URL"
+open "https://${PORTAL_URL}"
 ```
 
 To access the protected APIs, click Authorize and follow the steps that match your
 SSO provider. Learn more about API Authorization with API Portal [here](https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/1.0/api-portal/GUID-api-viewer.html#api-authorization)
 
-## Unit 3 - Monitor Applications
+## Unit 3 - Securely Load Application Secrets 
 
-## Unit 4 - Automate with GitHub Actions
+## Unit 4 - Monitor Applications
+
+## Unit 5 - Set Request Rate Limits
+
+## Unit 6 - Automate with GitHub Actions
