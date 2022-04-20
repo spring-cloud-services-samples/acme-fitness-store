@@ -1,30 +1,30 @@
 # Variable Definition 
 variable "project_name" {
-  type = string
-  default = "acme-fitness"
+  type        = string
+  default     = "acme-fitness"
   description = "Project Name"
 }
 
 variable "resource_group_location" {
-  type = string
-  default = "West Europe"
+  type        = string
+  default     = "West Europe"
   description = "Azure Resource Group"
 }
 
 variable "dbadmin" {
-  type = string
-  default = "posgredbadmin"
+  type        = string
+  default     = "posgredbadmin"
   description = "Admin User for PosgreSql Server"
-  sensitive = true
+  sensitive   = true
 }
 
 variable "dbpassword" {
-  type = string
+  type        = string
   description = "Password for Admin User for PosgreSql Server"
-  sensitive = true
+  sensitive   = true
 }
 
 variable "postgres_db_name" {
-  type = list
-  default = ["acmefit_catalog","acmefit_order"]
+  type    = list(any)
+  default = ["acmefit_catalog", "acmefit_order"]
 }

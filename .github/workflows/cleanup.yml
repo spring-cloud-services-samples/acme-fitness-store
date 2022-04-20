@@ -1,0 +1,51 @@
+name: Cleanup
+on:
+  workflow_dispatch:
+    inputs: { }
+
+env:
+  SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
+  RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+
+jobs:
+  destory:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure Spring Extension
+        run: az extension add --name spring-cloud
+      - name: Delete Azure Spring Apps
+        run: az spring-cloud delete --name "$SPRING_CLOUD_SERVICE" --resource-group "$RESOURCE_GROUP" || true
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Validate
+        run: terraform validate
+      - name: Terraform Plan
+        id: plan
+        continue-on-error: true
+        run: |
+          terraform plan -destroy -input=false \
+            -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "dbadmin=${{ secrets.POSTGRES_SERVER_USER }}" \
+            -var "dbpassword=${{ secrets.POSTGRES_SERVER_PASSWORD }}"
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+      - name: Terraform Apply
+        run: |
+          terraform apply -destroy -auto-approve -input=false \
+            -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "dbadmin=${{ secrets.POSTGRES_SERVER_USER }}" \
+            -var "dbpassword=${{ secrets.POSTGRES_SERVER_PASSWORD }}"n

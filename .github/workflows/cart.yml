@@ -1,0 +1,61 @@
+name: Cart
+on:
+  workflow_dispatch:
+    inputs: { }
+  push:
+    branches:
+      - Azure
+    paths:
+      - 'apps/acme-cart/**'
+env:
+  SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
+  RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  CUSTOM_BUILDER: no-bindings-builder
+  CART_SERVICE_APP: cart-service
+  CART_SERVICE_CACHE_CONNECTION: cart_service_cache
+  AZURE_CACHE_NAME: ${{ secrets.TF_PROJECT_NAME }}-redis
+  POSTGRES_SERVER: ${{ secrets.TF_PROJECT_NAME }}-db-server
+  POSTGRES_SERVER_USER: ${{ secrets.POSTGRES_SERVER_USER }}
+  POSTGRES_SERVER_PASSWORD: ${{ secrets.POSTGRES_SERVER_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/acme-cart
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+# TODO: no tests
+#      - name: Test with pytest
+#        run: |
+#          pytest
+      - name: Set up Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure Spring Extension
+        run: az extension add --name spring-cloud
+      - name: Deploy Cart
+        run: |
+          export REDIS_CONN_STR=$(az spring-cloud connection show \
+            --resource-group ${RESOURCE_GROUP} \
+            --service ${SPRING_CLOUD_SERVICE} \
+            --deployment default \
+            --app ${CART_SERVICE_APP} \
+            --connection $CART_SERVICE_CACHE_CONNECTION | jq -r '.configurations[0].value')
+
+          az spring-cloud app deploy \
+            --name ${CART_SERVICE_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --service ${SPRING_CLOUD_SERVICE} \
+            --builder ${CUSTOM_BUILDER} \
+            --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${REDIS_CONN_STR}" \
+            --source-path ./

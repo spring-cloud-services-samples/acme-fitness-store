@@ -38,4 +38,3 @@ resource "azurerm_postgresql_flexible_server_database" "postgre_db" {
   charset   = "utf8"
   count     = length(var.postgres_db_name)
 }
-

@@ -6,9 +6,16 @@ terraform {
       version = "~> 3.0"
     }
   }
+
+  cloud {
+    organization = "acme-fitness-demo"
+    workspaces {
+      name = "development"
+    }
+  }
 }
 
-provider "azurerm"{
-    features {}
+provider "azurerm" {
+  features {}
 }
 

@@ -1,0 +1,44 @@
+name: Shopping
+on:
+  workflow_dispatch:
+    inputs: { }
+  push:
+    branches:
+      - Azure
+    paths:
+      - 'apps/acme-shopping/**'
+env:
+  SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
+  RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  CUSTOM_BUILDER: no-bindings-builder
+  FRONTEND_APP: frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/acme-shopping
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+      - name: Build with Node.js
+        run: npm install
+      - run: npm run build --if-present
+#TODO: no test
+#      - run: npm test
+      - name: Set up Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure Spring Extension
+        run: az extension add --name spring-cloud
+      - name: Deploy Shopping
+        run: |
+          az spring-cloud app deploy \
+            --name ${FRONTEND_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --service ${SPRING_CLOUD_SERVICE} \
+            --builder ${CUSTOM_BUILDER} \
+            --source-path ./
