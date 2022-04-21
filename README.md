@@ -809,7 +809,7 @@ export REDIS_PORT=$(cat redis.json | jq -r '.sslPort')
 export REDIS_PRIMARY_KEY=$(az redis list-keys -n ${AZURE_CACHE_NAME} | jq -r '.primaryKey')
 
 az keyvault secret set --vault-name ${KEY_VAULT} \
-  --name "CART-REDIS-CONNECTION-STRING" --value "rediss://${REDIS_PRIMARY_KEY}@${REDIS_HOST}:${REDIS_PORT}/0"
+  --name "CART-REDIS-CONNECTION-STRING" --value "rediss://:${REDIS_PRIMARY_KEY}@${REDIS_HOST}:${REDIS_PORT}/0"
 ```
 
 Store SSO Secrets in Key Vault.
@@ -888,7 +888,7 @@ az spring-cloud connection delete \
     
     
 az spring-cloud app update --name ${ORDER_SERVICE_APP} \
-    --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}"
+    --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}"
 
 az spring-cloud app update --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog/default,catalog/key-vault \
@@ -899,7 +899,7 @@ az spring-cloud app update --name ${IDENTITY_SERVICE_APP} \
     --env "KEYVAULT_URI=${KEYVAULT_URI}"
     
 az spring-cloud app update --name ${CART_SERVICE_APP} \
-    --env "CART_PORT=8080" "KEYVAULT_URI=${KEYVAULT_URI}"
+    --env "CART_PORT=8080" "KEYVAULT_URI=${KEYVAULT_URI}" "AUTH_URL=https://${GATEWAY_URL}"
     
 az spring-cloud app update --name ${FRONTEND_APP} \
     --env "KEYVAULT_URI=${KEYVAULT_URI}"

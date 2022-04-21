@@ -33,6 +33,8 @@ dictConfig({
 
 # set variables with env variables
 from os import environ
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
 
 if environ.get('REDIS_HOST') is not None:
     if os.environ['REDIS_HOST'] != "":
@@ -91,6 +93,22 @@ if environ.get('INSTRUMENTATION_KEY') is not None:
 else:
     instrumentationKey = ''
 
+if environ.get('REDIS_CONNECTIONSTRING') is not None:
+    if os.environ['REDIS_CONNECTIONSTRING'] != "":
+        redisConnStr = str(os.environ['REDIS_CONNECTIONSTRING'])
+    else:
+        redisConnStr = ''
+else:
+    redisConnStr = ''
+
+if environ.get('KEYVAULT_URI') is not None:
+    if os.environ['KEYVAULT_URI'] != "":
+        keyvaultUri = os.environ['KEYVAULT_URI']
+        credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=keyvaultUri, credential=credential)
+        redisConnStr = client.get_secret('CART-REDIS-CONNECTION-STRING').value
+
+
 # Uncomment below to turnon statsd
 # from statsd import StatsClient
 # statsd = StatsClient(host='localhost',
@@ -147,9 +165,8 @@ import redis
 
 
 try:
-    if environ.get('REDIS_CONNECTIONSTRING') is not None:
-        if os.environ['REDIS_CONNECTIONSTRING'] != "":
-            rConn = redis.from_url(str(os.environ['REDIS_CONNECTIONSTRING']))
+    if redisConnStr != "":
+        rConn = redis.from_url(redisConnStr)
     else:
         if redispassword is not None:
             app.logger.info('initiating redis connection with password %s', redispassword)

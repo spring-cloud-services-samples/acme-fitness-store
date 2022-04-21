@@ -8,3 +8,6 @@ custom-filters
 azure/setup-env-variables.sh
 azure/setup-sso-variables.sh
 azure/setup-env-variables-keyvault.sh
+redis.json
+ad.json
+sso.json
