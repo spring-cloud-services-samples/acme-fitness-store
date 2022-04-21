@@ -781,11 +781,13 @@ export KEYVAULT_URI=$(az keyvault show --name ${KEY_VAULT} | jq -r '.properties.
 Store database connection secrets in Key Vault.
 
 ```shell
+export POSTGRES_SERVER_FULL_NAME="${POSTGRES_SERVER}.postgres.database.azure.com"
+
 az keyvault secret set --vault-name ${KEY_VAULT} \
-    --name "POSTGRES-SERVER-NAME" --value ${POSTGRES_SERVER}
-    
+    --name "POSTGRES-SERVER-NAME" --value ${POSTGRES_SERVER_FULL_NAME}
+
 az keyvault secret set --vault-name ${KEY_VAULT} \
-    --name "ORDER-DATABASE-NAME" --value ${ORDER_SERVICE_DB}
+    --name "ConnectionStrings--OrderContext" --value "Server=${POSTGRES_SERVER_FULL_NAME};Database=${ORDER_SERVICE_DB};Port=5432;Ssl Mode=Require;User Id=${POSTGRES_SERVER_USER};Password=${POSTGRES_SERVER_PASSWORD};"
     
 az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
@@ -865,25 +867,28 @@ az spring-cloud connection delete \
     --service ${SPRING_CLOUD_SERVICE} \
     --connection ${ORDER_SERVICE_DB_CONNECTION} \
     --app ${ORDER_SERVICE_APP} \
-    --deployment default 
+    --deployment default \
+    --yes 
 
 az spring-cloud connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_CLOUD_SERVICE} \
     --connection ${CATALOG_SERVICE_DB_CONNECTION} \
     --app ${CATALOG_SERVICE_APP} \
-    --deployment default 
+    --deployment default \
+    --yes 
 
 az spring-cloud connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_CLOUD_SERVICE} \
-    --connection $CART_SERVICE_CACHE_CONNECTION \
+    --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
-    --deployment default 
+    --deployment default \
+    --yes 
     
     
 az spring-cloud app update --name ${ORDER_SERVICE_APP} \
-    --env "KEYVAULT_URI=${KEYVAULT_URI}"
+    --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}"
 
 az spring-cloud app update --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog/default,catalog/key-vault \

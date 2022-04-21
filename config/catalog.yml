@@ -21,6 +21,6 @@ spring:
             - endpoint: ${KEYVAULT_URI}
               name: 'acme-store-vault'
   datasource:
-    url: jdbc:postgresql://${POSTGRES-SERVER-NAME}.postgres.database.azure.com:5432/${CATALOG-DATABASE-NAME}?sslmode=require
+    url: jdbc:postgresql://${POSTGRES-SERVER-NAME}:5432/${CATALOG-DATABASE-NAME}?sslmode=require
     username: ${POSTGRES-LOGIN-NAME}
     password: ${POSTGRES-LOGIN-PASSWORD}
