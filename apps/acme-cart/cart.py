@@ -107,6 +107,7 @@ if environ.get('KEYVAULT_URI') is not None:
         credential = DefaultAzureCredential()
         client = SecretClient(vault_url=keyvaultUri, credential=credential)
         redisConnStr = client.get_secret('CART-REDIS-CONNECTION-STRING').value
+        instrumentationKey = client.get_secret('ApplicationInsights--ConnectionString')
 
 
 # Uncomment below to turnon statsd

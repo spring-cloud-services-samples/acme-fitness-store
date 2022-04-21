@@ -886,7 +886,6 @@ az spring-cloud connection delete \
     --deployment default \
     --yes 
     
-    
 az spring-cloud app update --name ${ORDER_SERVICE_APP} \
     --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}"
 
@@ -915,7 +914,7 @@ Retrieve the Instrumentation Key for Application Insights and add to Key Vault
 export INSTRUMENTATION_KEY=$(az spring-cloud build-service builder buildpack-binding show -n default | jq -r '.properties.launchProperties.properties.connection_string')
 
 az keyvault secret set --vault-name ${KEY_VAULT} \
-    --name "APP-INSIGHTS-INSTRUMENTATION-KEY" --value ${INSTRUMENTATION_KEY}
+    --name "ApplicationInsights--ConnectionString" --value ${INSTRUMENTATION_KEY}
 ```
 
 ### Reload Applications
