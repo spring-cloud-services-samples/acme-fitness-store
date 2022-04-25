@@ -487,7 +487,7 @@ az spring-cloud app deploy --name ${CATALOG_SERVICE_APP} \
     --source-path apps/acme-catalog
 
 # Deploy Order Service after retrieving the database connection info
-export postgres_connection_url=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
+export POSTGRES_CONNECTION_STR=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
     --service ${SPRING_CLOUD_SERVICE} \
     --deployment default \
     --connection ${ORDER_SERVICE_DB_CONNECTION} \
@@ -495,11 +495,11 @@ export postgres_connection_url=$(az spring-cloud connection show -g ${RESOURCE_G
 
 az spring-cloud app deploy --name ${ORDER_SERVICE_APP} \
     --builder ${CUSTOM_BUILDER} \
-    --env "ConnectionStrings__OrderContext=$POSTGRES_CONNECTION_STR" \
+    --env "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" \
     --source-path apps/acme-order
 
 # Deploy the Cart Service after retrieving the cache connection info
-export redis_conn_str=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
+export REDIS_CONN_STR=$(az spring-cloud connection show -g ${RESOURCE_GROUP} \
     --service ${SPRING_CLOUD_SERVICE} \
     --deployment default \
     --app ${CART_SERVICE_APP} \
@@ -918,6 +918,12 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
 ```
 
 ### Reload Applications
+
+Reload applications to activate Application Insights.
+
+```shell
+
+```
 
 ### Generate Traffic
 
