@@ -31,7 +31,7 @@ env:
   POSTGRES_SERVER_PASSWORD: ${{ secrets.POSTGRES_SERVER_PASSWORD }}
 
 jobs:
-  build:
+  provision:
     runs-on: ubuntu-latest
     defaults:
       run:
