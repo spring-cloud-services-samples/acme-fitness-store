@@ -30,7 +30,7 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: check
+          arguments: build
           build-root-directory: apps/acme-payment
       - name: Set up Azure
         uses: azure/login@v1

@@ -30,8 +30,7 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
         with:
-#TODO: tests are failing
-          arguments: build -x test
+          arguments: build
           build-root-directory: apps/acme-catalog
       - name: Set up Azure
         uses: azure/login@v1
