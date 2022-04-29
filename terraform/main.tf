@@ -7,11 +7,11 @@ terraform {
     }
   }
 
-  cloud {
-    organization = "acme-fitness-demo"
-    workspaces {
-      name = "development"
-    }
+  backend "azurerm" {
+    resource_group_name  = "acs-develop"
+    storage_account_name = "pipelineterraformstate"
+    container_name       = "terrafrom-state-container"
+    key                  = "dev.terraform.tfstate"
   }
 }
 
@@ -48,6 +48,44 @@ resource "random_password" "password" {
 resource "azurerm_resource_group" "grp" {
   name     = "${var.project_name}-resources"
   location = var.resource_group_location
+}
+
+# Keyvault for Saving Secrets
+resource "azurerm_key_vault" "key_vault" {
+  name                       = "${var.project_name}-keyvault"
+  location                   = azurerm_resource_group.grp.location
+  resource_group_name        = azurerm_resource_group.grp.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Set",
+      "Get",
+      "List",
+      "Delete",
+      "Purge",
+      "Recover"
+    ]
+  }
+}
+
+# Create Secret for Admin Username
+resource "azurerm_key_vault_secret" "admin_username" {
+  name         = "admin-username"
+  value        = random_password.admin.result
+  key_vault_id = azurerm_key_vault.key_vault.id
+}
+
+# Create Secret for Admin Password
+resource "azurerm_key_vault_secret" "admin_password" {
+  name         = "admin-password"
+  value        = random_password.password.result
+  key_vault_id = azurerm_key_vault.key_vault.id
 }
 
 # Azure Cache for Redis Instance
@@ -104,42 +142,4 @@ resource "azurerm_log_analytics_workspace" "asc_workspace" {
   resource_group_name = azurerm_resource_group.grp.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-}
-
-# Keyvault for Saving Secrets
-resource "azurerm_key_vault" "key_vault" {
-  name                       = "${var.project_name}-keyvault"
-  location                   = azurerm_resource_group.grp.location
-  resource_group_name        = azurerm_resource_group.grp.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    secret_permissions = [
-      "Set",
-      "Get",
-      "List",
-      "Delete",
-      "Purge",
-      "Recover"
-    ]
-  }
-}
-
-# Create Secret for Admin Username
-resource "azurerm_key_vault_secret" "admin_username" {
-  name         = "admin-username"
-  value        = azurerm_postgresql_flexible_server.postgresql_server.administrator_login
-  key_vault_id = azurerm_key_vault.key_vault.id
-}
-
-# Create Secret for Admin Password
-resource "azurerm_key_vault_secret" "admin_password" {
-  name         = "admin-password"
-  value        = azurerm_postgresql_flexible_server.postgresql_server.administrator_password
-  key_vault_id = azurerm_key_vault.key_vault.id
 }

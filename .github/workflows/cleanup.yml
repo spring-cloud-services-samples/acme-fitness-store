@@ -11,9 +11,16 @@ jobs:
         working-directory: terraform
     steps:
       - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Set up Credentials
+        run: |
+          credentials=$(cat <<EOF
+          ${{ secrets.AZURE_CREDENTIALS }}
+          EOF
+          )
+          echo "ARM_CLIENT_ID=$(echo $credentials | jq -r '.clientId')" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=$(echo $credentials | jq -r '.clientSecret')" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=$(echo $credentials | jq -r '.subscriptionId')" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$(echo $credentials | jq -r '.tenantId')" >> $GITHUB_ENV
       - name: Terraform Init
         run: terraform init
       - name: Terraform Validate
