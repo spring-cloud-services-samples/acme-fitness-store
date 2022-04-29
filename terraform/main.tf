@@ -31,11 +31,10 @@ data "azurerm_client_config" "current" {}
 
 # Generate Admin User for Postgresql Server
 resource "random_password" "admin" {
-  length           = 8
-  special          = true
-  override_special = "_"
-  number           = false
-  upper            = false
+  length  = 16
+  special = false
+  number  = false
+  upper   = false
 }
 
 # Generate Password for Postgresql Server
@@ -123,6 +122,7 @@ resource "azurerm_key_vault" "key_vault" {
     secret_permissions = [
       "Set",
       "Get",
+      "List",
       "Delete",
       "Purge",
       "Recover"
