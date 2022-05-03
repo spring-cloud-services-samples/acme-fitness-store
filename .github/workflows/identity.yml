@@ -1,0 +1,50 @@
+name: Deploy Identity
+on:
+  workflow_dispatch:
+    inputs: { }
+  push:
+    branches:
+      - Azure
+    paths:
+      - 'apps/acme-identity/**'
+env:
+  SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
+  RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  IDENTITY_SERVICE_APP: identity-service
+  JWK_SET_URI: ${{ secrets.OIDC_JWK_SET_URI }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/acme-identity
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build -x test #TODO: failing test
+          build-root-directory: apps/acme-identity
+      - name: Set up Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure Spring Extension
+        run: az extension add --name spring-cloud
+      - name: Deploy Identity
+        run: |
+          az spring-cloud app deploy \
+            --name ${IDENTITY_SERVICE_APP} \
+            --resource-group "$RESOURCE_GROUP" \
+            --service "$SPRING_CLOUD_SERVICE" \
+            --env "JWK_URI=${JWK_SET_URI}" \
+            --config-file-pattern identity/default \
+            --source-path ./

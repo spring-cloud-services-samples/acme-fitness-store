@@ -108,14 +108,17 @@ jobs:
           PAYMENT_SERVICE_APP: ${{ env.PAYMENT_SERVICE_APP }}
           CATALOG_SERVICE_APP: ${{ env.CATALOG_SERVICE_APP }}
           FRONTEND_APP: ${{ env.FRONTEND_APP }}
+          IDENTITY_SERVICE_APP: ${{ env.IDENTITY_SERVICE_APP }}
       - name: Bind to Application Configuration Service
         run: |
           az spring-cloud application-configuration-service bind --app ${PAYMENT_SERVICE_APP}
           az spring-cloud application-configuration-service bind --app ${CATALOG_SERVICE_APP}
+          az spring-cloud application-configuration-service bind --app ${IDENTITY_SERVICE_APP}
       - name: Bind to Service Registry
         run: |
           az spring-cloud application-configuration-service bind --app ${PAYMENT_SERVICE_APP}
           az spring-cloud application-configuration-service bind --app ${CATALOG_SERVICE_APP}
+          az spring-cloud service-registry bind --app ${IDENTITY_SERVICE_APP}
       - name: Get DB Credentials
         id: db-credentials
         uses: Azure/get-keyvault-secrets@v1
@@ -149,3 +152,17 @@ jobs:
           ORDER_SERVICE_APP: ${{ env.ORDER_SERVICE_APP }}
           CATALOG_SERVICE_APP: ${{ env.CATALOG_SERVICE_APP }}
           FRONTEND_APP: ${{ env.FRONTEND_APP }}
+          IDENTITY_SERVICE_APP: ${{ env.IDENTITY_SERVICE_APP }}
+          CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID  }}
+          CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
+          SCOPE: openid,profile,email
+          ISSUER_URI: ${{ secrets.OIDC_ISSUER_URI }}
+      - name: Configure Identity Provider
+        run: ../.github/scripts/identity.sh
+        env:
+          RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+          SPRING_CLOUD_SERVICE: ${{ env.SPRING_CLOUD_SERVICE }}
+          CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID  }}
+          CLIENT_SECRET: ${{ secrets.OIDC_CLIENT_SECRET }}
+          SCOPE: openid,profile,email
+          ISSUER_URI: ${{ secrets.OIDC_ISSUER_URI }}

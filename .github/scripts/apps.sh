@@ -9,9 +9,10 @@ set -xu
 : "${PAYMENT_SERVICE_APP:?'must be set'}"
 : "${CATALOG_SERVICE_APP:?'must be set'}"
 : "${FRONTEND_APP:?'must be set'}"
+: "${IDENTITY_SERVICE_APP:?'must be set'}"
 
 main() {
-  local cart order payment catalog shopping
+  local cart order payment catalog shopping identity
 
   az configure --defaults group="$RESOURCE_GROUP" spring-cloud="$SPRING_CLOUD_SERVICE"
 
@@ -49,6 +50,14 @@ main() {
   else
     echo "Shopping Application is already created."
   fi
+
+  identity=$(az spring-cloud app show --name "$IDENTITY_SERVICE_APP")
+  if [[ -z "$identity" ]]; then
+    az spring-cloud app create --name "$IDENTITY_SERVICE_APP" --instance-count 1 --memory 1Gi
+  else
+    echo "Shopping Application is already created."
+  fi
+
 }
 
 main

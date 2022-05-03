@@ -38,17 +38,21 @@ jobs:
         run: az extension add --name spring-cloud
       - name: Deploy Order
         run: |
-          export POSTGRES_CONNECTION_STR=$(az spring-cloud connection show \
+          postgres_connection_str=$(az spring-cloud connection show \
             --resource-group ${RESOURCE_GROUP} \
             --service ${SPRING_CLOUD_SERVICE} \
             --deployment default \
             --connection ${ORDER_SERVICE_DB_CONNECTION} \
             --app ${ORDER_SERVICE_APP} | jq '.configurations[0].value' -r)
 
+          gateway_url=$(az spring-cloud gateway show \
+            --resource-group ${RESOURCE_GROUP} \
+            --service ${SPRING_CLOUD_SERVICE} | jq -r '.properties.url')
+
           az spring-cloud app deploy \
             --name ${ORDER_SERVICE_APP} \
             --resource-group "$RESOURCE_GROUP" \
             --service "$SPRING_CLOUD_SERVICE" \
             --builder ${CUSTOM_BUILDER} \
-            --env "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" \
+            --env "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__OrderContext=$postgres_connection_str" \
             --source-path ./

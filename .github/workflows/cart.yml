@@ -41,17 +41,21 @@ jobs:
         run: az extension add --name spring-cloud
       - name: Deploy Cart
         run: |
-          export REDIS_CONN_STR=$(az spring-cloud connection show \
+          redis_conn_str=$(az spring-cloud connection show \
             --resource-group ${RESOURCE_GROUP} \
             --service ${SPRING_CLOUD_SERVICE} \
             --deployment default \
             --app ${CART_SERVICE_APP} \
             --connection $CART_SERVICE_CACHE_CONNECTION | jq -r '.configurations[0].value')
 
+          gateway_url=$(az spring-cloud gateway show \
+            --resource-group ${RESOURCE_GROUP} \
+            --service ${SPRING_CLOUD_SERVICE} | jq -r '.properties.url')
+          
           az spring-cloud app deploy \
             --name ${CART_SERVICE_APP} \
             --resource-group ${RESOURCE_GROUP} \
             --service ${SPRING_CLOUD_SERVICE} \
             --builder ${CUSTOM_BUILDER} \
-            --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${REDIS_CONN_STR}" \
+            --env "AUTH_URL=https://${gateway_url}" "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${redis_conn_str}" \
             --source-path ./
