@@ -31,7 +31,8 @@ jobs:
         run: |
           terraform plan -destroy -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"
       - name: Terraform Apply
         if: steps.first-plan.outcome == 'success'
         id: first-apply
@@ -39,7 +40,8 @@ jobs:
         run: |
           terraform apply -destroy -auto-approve -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"
       - name: Terraform Plan (Second Attempt, if the first one failed)
         if: steps.first-apply.outcome != 'success'
         id: second-plan
@@ -47,7 +49,8 @@ jobs:
         run: |
           terraform plan -destroy -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"
       - name: Terraform Apply (Second Attempt, if the first one failed)
         if: steps.second-plan.outcome == 'success'
         id: second-apply
@@ -55,19 +58,20 @@ jobs:
         run: |
           terraform apply -destroy -auto-approve -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"
       - name: Terraform Plan (Third Attempt, if the first one and second one failed)
         if: steps.first-apply.outcome != 'success' && steps.second-apply.outcome != 'success'
         id: third-plan
-        continue-on-error: true
         run: |
           terraform plan -destroy -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"
       - name: Terraform Apply (Third Attempt, if the first one and second one failed)
         if: steps.third-plan.outcome == 'success'
-        continue-on-error: true
         run: |
           terraform apply -destroy -auto-approve -input=false \
             -var "project_name=${{ secrets.TF_PROJECT_NAME}}" \
-            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}"
+            -var "resource_group_location=${{ secrets.AZURE_LOCATION }}" \
+            -var "sso-jwk-uri=${{ secrets.OIDC_JWK_SET_URI }}"

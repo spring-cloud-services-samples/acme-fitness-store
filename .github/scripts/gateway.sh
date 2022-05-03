@@ -4,11 +4,11 @@ set -xu
 
 : "${RESOURCE_GROUP:?'must be set'}"
 : "${SPRING_CLOUD_SERVICE:?'must be set'}"
+: "${IDENTITY_SERVICE_APP:?'must be set'}"
 : "${CART_SERVICE_APP:?'must be set'}"
 : "${ORDER_SERVICE_APP:?'must be set'}"
 : "${CATALOG_SERVICE_APP:?'must be set'}"
 : "${FRONTEND_APP:?'must be set'}"
-: "${IDENTITY_SERVICE_APP:?'must be set'}"
 : "${CLIENT_ID:?'must be set'}"
 : "${CLIENT_SECRET:?'must be set'}"
 : "${SCOPE:?'must be set'}"
@@ -19,8 +19,6 @@ main() {
 
   az configure --defaults group="$RESOURCE_GROUP" spring-cloud="$SPRING_CLOUD_SERVICE"
 
-  az spring-cloud gateway update --assign-endpoint true
-
   gateway_url=$(az spring-cloud gateway show | jq -r '.properties.url')
 
   az spring-cloud gateway update \
@@ -29,10 +27,10 @@ main() {
     --api-version "v1.0" \
     --server-url "https://$gateway_url" \
     --allowed-origins "*" \
-    --client-id "${CLIENT_ID}" \
-    --client-secret "${CLIENT_SECRET}" \
-    --scope "${SCOPE}" \
-    --issuer-uri "${ISSUER_URI}"
+    --client-id "$CLIENT_ID" \
+    --client-secret "$CLIENT_SECRET" \
+    --scope "$SCOPE" \
+    --issuer-uri "$ISSUER_URI"
 
   cart=$(az spring-cloud gateway route-config show --name "$CART_SERVICE_APP")
   if [[ -z "$cart" ]]; then

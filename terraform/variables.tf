@@ -11,7 +11,17 @@ variable "resource_group_location" {
   description = "Azure Resource Group"
 }
 
-variable "postgres_db_name" {
-  type    = list(any)
-  default = ["acmefit_catalog", "acmefit_order"]
+variable "order_service_db_name" {
+  type    = string
+  default = "acmefit_order"
+}
+
+variable "catalog_service_db_name" {
+  type    = string
+  default = "acmefit_catalog"
+}
+
+variable "sso-jwk-uri" {
+  type        = string
+  description = "SSO Provider JWK-URI"
 }

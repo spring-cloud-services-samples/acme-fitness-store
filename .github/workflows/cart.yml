@@ -10,9 +10,9 @@ on:
 env:
   SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  KEY_VAULT: ${{ secrets.TF_PROJECT_NAME }}-keyvault
   CUSTOM_BUILDER: no-bindings-builder
   CART_SERVICE_APP: cart-service
-  CART_SERVICE_CACHE_CONNECTION: cart_service_cache
 
 jobs:
   build:
@@ -41,12 +41,9 @@ jobs:
         run: az extension add --name spring-cloud
       - name: Deploy Cart
         run: |
-          redis_conn_str=$(az spring-cloud connection show \
+          keyvault_uri=$(az keyvault show \
             --resource-group ${RESOURCE_GROUP} \
-            --service ${SPRING_CLOUD_SERVICE} \
-            --deployment default \
-            --app ${CART_SERVICE_APP} \
-            --connection $CART_SERVICE_CACHE_CONNECTION | jq -r '.configurations[0].value')
+            --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
 
           gateway_url=$(az spring-cloud gateway show \
             --resource-group ${RESOURCE_GROUP} \
@@ -57,5 +54,5 @@ jobs:
             --resource-group ${RESOURCE_GROUP} \
             --service ${SPRING_CLOUD_SERVICE} \
             --builder ${CUSTOM_BUILDER} \
-            --env "AUTH_URL=https://${gateway_url}" "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${redis_conn_str}" \
+            --env "AUTH_URL=https://${gateway_url}" "CART_PORT=8080" "KEYVAULT_URI=${keyvault_uri}" \
             --source-path ./

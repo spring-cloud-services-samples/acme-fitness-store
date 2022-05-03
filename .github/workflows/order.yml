@@ -10,9 +10,9 @@ on:
 env:
   SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  KEY_VAULT: ${{ secrets.TF_PROJECT_NAME }}-keyvault
   CUSTOM_BUILDER: no-bindings-builder
   ORDER_SERVICE_APP: order-service
-  ORDER_SERVICE_DB_CONNECTION: order_service_db
 
 jobs:
   build:
@@ -38,12 +38,9 @@ jobs:
         run: az extension add --name spring-cloud
       - name: Deploy Order
         run: |
-          postgres_connection_str=$(az spring-cloud connection show \
-            --resource-group ${RESOURCE_GROUP} \
-            --service ${SPRING_CLOUD_SERVICE} \
-            --deployment default \
-            --connection ${ORDER_SERVICE_DB_CONNECTION} \
-            --app ${ORDER_SERVICE_APP} | jq '.configurations[0].value' -r)
+          keyvault_uri=$(az keyvault show \
+           --resource-group ${RESOURCE_GROUP} \
+           --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
 
           gateway_url=$(az spring-cloud gateway show \
             --resource-group ${RESOURCE_GROUP} \
@@ -54,5 +51,5 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --service "$SPRING_CLOUD_SERVICE" \
             --builder ${CUSTOM_BUILDER} \
-            --env "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__OrderContext=$postgres_connection_str" \
+            --env "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__KeyVaultUri=$keyvault_uri" \
             --source-path ./

@@ -10,6 +10,7 @@ on:
 env:
   SPRING_CLOUD_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asc
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-resources
+  KEY_VAULT: ${{ secrets.TF_PROJECT_NAME }}-keyvault
   CUSTOM_BUILDER: no-bindings-builder
   FRONTEND_APP: frontend
 
@@ -36,9 +37,14 @@ jobs:
         run: az extension add --name spring-cloud
       - name: Deploy Shopping
         run: |
+          keyvault_uri=$(az keyvault show \
+           --resource-group ${RESOURCE_GROUP} \
+           --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
+
           az spring-cloud app deploy \
             --name ${FRONTEND_APP} \
             --resource-group ${RESOURCE_GROUP} \
             --service ${SPRING_CLOUD_SERVICE} \
             --builder ${CUSTOM_BUILDER} \
+            --env "KEYVAULT_URI=${keyvault_uri}" \
             --source-path ./

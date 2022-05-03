@@ -14,7 +14,8 @@ main() {
     --query "[?name=='acme-fitness-store-config'] | length(@)")
 
   if [[ -z "$length" || "$length" == "0" ]]; then
-    az spring-cloud application-configuration-service git repo add --name acme-fitness-store-config \
+    az spring-cloud application-configuration-service git repo add \
+      --name acme-fitness-store-config \
       --label Azure \
       --patterns "catalog/default,catalog/key-vault,identity/default,identity/key-vault,payment/default" \
       --resource-group "$RESOURCE_GROUP" \
