@@ -16,12 +16,11 @@ main() {
   if [[ -z "$length" || "$length" == "0" ]]; then
     az spring-cloud application-configuration-service git repo add \
       --name acme-fitness-store-config \
-      --label Azure \
+      --label main \
       --patterns "catalog/default,catalog/key-vault,identity/default,identity/key-vault,payment/default" \
       --resource-group "$RESOURCE_GROUP" \
       --service "$SPRING_CLOUD_SERVICE" \
-      --uri "https://github.com/spring-cloud-services-samples/acme_fitness_demo" \
-      --search-paths config
+      --uri "https://github.com/Azure-Samples/acme-store-config" 
   else
     echo "Application Configuration Service is already configured."
   fi
