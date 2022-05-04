@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -ux
+# Do not use 'set -e' because "az spring-cloud application-configuration-service git repo list" returns error when result is empty.
+set -uxo pipefail
 
 : "${RESOURCE_GROUP:?'must be set'}"
 : "${SPRING_CLOUD_SERVICE:?'must be set'}"
