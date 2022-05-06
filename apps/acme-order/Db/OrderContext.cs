@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using acme_order.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace acme_order.Db
 {
@@ -15,10 +17,6 @@ namespace acme_order.Db
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseNpgsql("Host=localhost;Database=acmefit;Username=root;Password=rootpassword");
-            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,15 +34,24 @@ namespace acme_order.Db
 
                 entity.Property(e => e.Address)
                     .HasColumnName("address")
-                    .HasColumnType("json");
+                    .HasColumnType("json")
+                    .HasConversion(
+                        v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
+                        v => JsonConvert.DeserializeObject<Address>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 
                 entity.Property(e => e.Card)
                     .HasColumnName("card")
-                    .HasColumnType("json");
+                    .HasColumnType("json")
+                    .HasConversion(
+                        v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
+                        v => JsonConvert.DeserializeObject<Card>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 
                 entity.Property(e => e.Cart)
                     .HasColumnName("cart")
-                    .HasColumnType("json");
+                    .HasColumnType("json")
+                    .HasConversion(
+                        v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
+                        v => JsonConvert.DeserializeObject<ICollection<Cart>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
 
                 entity.Property(e => e.Date)
                     .HasColumnName("date")

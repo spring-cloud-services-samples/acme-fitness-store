@@ -1,3 +1,4 @@
+using System;
 using acme_order.Auth;
 using acme_order.Configuration;
 using acme_order.Db;
@@ -30,14 +31,13 @@ namespace acme_order
 
             services.AddSingleton<IAcmeServiceSettings>(sp =>
                 sp.GetRequiredService<IOptions<AcmeServiceSettings>>().Value);
-            
-            services.AddDbContext<OrderContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("OrderContext")), ServiceLifetime.Singleton);
+
+            services.AddDbContext<OrderContext>(OptionsAction(), ServiceLifetime.Singleton);
             
             services.AddSingleton<OrderService>();
             services.AddControllers();
             services.AddScoped<AuthorizeResource>();
-            
+
             services.AddApplicationInsightsTelemetry();
             services.AddSingleton<ITelemetryInitializer, CloudRoleNameTelemetryInitializer>();
         }
@@ -53,6 +53,14 @@ namespace acme_order
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private Action<DbContextOptionsBuilder> OptionsAction()
+        {
+            var connectionString = Configuration.GetConnectionString("OrderContext");
+            return string.IsNullOrEmpty(connectionString)
+                ? (Action<DbContextOptionsBuilder>)(options => options.UseSqlite("Data Source=sqlite.order.db"))
+                : (Action<DbContextOptionsBuilder>)(options => options.UseNpgsql(connectionString));
         }
     }
 }
