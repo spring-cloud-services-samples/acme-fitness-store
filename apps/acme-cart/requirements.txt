@@ -13,6 +13,7 @@ Jinja2==2.10.3
 MarkupSafe==1.1.1
 opentracing==2.2.0
 redis==3.2.1
+redislite==6.0.674960
 requests==2.22.0
 sentry-sdk==0.13.5
 six==1.12.0

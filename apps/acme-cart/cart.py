@@ -2,15 +2,24 @@
 
 # general imports
 import json
-import os
-import time
-# Logging initialization
-from logging.config import dictConfig
-
 import opentracing
+import requests
 import sentry_sdk
+import time
 
+from logging.config import dictConfig
+from os import environ
+from flask import render_template, jsonify
+from flask import request
+from flask_httpauth import HTTPTokenAuth
+from sentry_sdk.integrations.flask import FlaskIntegration
+from flask import Flask
+from opencensus.ext.azure.trace_exporter import AzureExporter
+from opencensus.ext.flask.flask_middleware import FlaskMiddleware
+from opencensus.trace.samplers import ProbabilitySampler
 from lib.tracing import init_tracer
+from redis_conn import redis_connection
+from azure_vault import vault_secret
 
 # sentry_sdk.init("https://c0f58a327f2c4cd8b29e8cd0a606f0e9@sentry.io/1722363")
 
@@ -32,87 +41,16 @@ dictConfig({
 })
 
 # set variables with env variables
-from os import environ
-from azure.keyvault.secrets import SecretClient
-from azure.identity import DefaultAzureCredential
 
-if environ.get('REDIS_HOST') is not None:
-    if os.environ['REDIS_HOST'] != "":
-        redishost = os.environ['REDIS_HOST']
-    else:
-        redishost = 'localhost'
-else:
-    redishost = 'localhost'
+cart_port = environ['CART_PORT'] if environ.get('CART_PORT') not in (None, '') else 5000
 
-if environ.get('REDIS_PORT') is not None:
-    if os.environ['REDIS_PORT'] != "":
-        redisport = os.environ['REDIS_PORT']
-    else:
-        redisport = 6380
-else:
-    redisport = 6380
+auth_url = environ['AUTH_URL'] if environ.get('AUTH_URL') not in (None, '') else ''
 
-if environ.get('REDIS_PASSWORD') is not None:
-    if os.environ['REDIS_PASSWORD'] != "":
-        redispassword = os.environ['REDIS_PASSWORD']
-    else:
-        redispassword = None
-else:
-    redispassword = None
+auth_mode = int(environ['AUTH_MODE']) if environ.get('AUTH_MODE') not in (None, '') else 1
 
-if environ.get('CART_PORT') is not None:
-    if os.environ['CART_PORT'] != "":
-        cartport = os.environ['CART_PORT']
-    else:
-        cartport = 5000
-else:
-    cartport = 5000
-
-if environ.get('AUTH_URL') is not None:
-    if os.environ['AUTH_URL'] != "":
-        auth_url = os.environ['AUTH_URL']
-    else:
-        auth_url = ""
-else:
-    auth_url = ""
-
-if environ.get('AUTH_MODE') is not None:
-    if os.environ['AUTH_MODE'] != "":
-        authmode = int(os.environ['AUTH_MODE'])
-        print("user service is ", authmode)
-    else:
-        authmode = 1
-else:
-    authmode = 1
-
-if environ.get('INSTRUMENTATION_KEY') is not None:
-    if os.environ['INSTRUMENTATION_KEY'] != "":
-        instrumentationKey = os.environ['INSTRUMENTATION_KEY']
-    else:
-        instrumentationKey = ''
-else:
-    instrumentationKey = ''
-
-if environ.get('REDIS_CONNECTIONSTRING') is not None:
-    if os.environ['REDIS_CONNECTIONSTRING'] != "":
-        redisConnStr = str(os.environ['REDIS_CONNECTIONSTRING'])
-    else:
-        redisConnStr = ''
-else:
-    redisConnStr = ''
-
-if environ.get('KEYVAULT_URI') is not None:
-    if os.environ['KEYVAULT_URI'] != "":
-        keyvaultUri = os.environ['KEYVAULT_URI']
-        credential = DefaultAzureCredential()
-        client = SecretClient(vault_url=keyvaultUri, credential=credential)
-        secrets = client.list_properties_of_secrets()
-
-        for secret in secrets:
-            if secret.name == 'CART-REDIS-CONNECTION-STRING':
-                redisConnStr = client.get_secret('CART-REDIS-CONNECTION-STRING').value
-            if secret.name == 'ApplicationInsights--ConnectionString':
-                instrumentationKey = client.get_secret('ApplicationInsights--ConnectionString').value
+instrumentation_key = vault_secret('ApplicationInsights--ConnectionString')
+if instrumentation_key is None and environ.get('INSTRUMENTATION_KEY') not in (None, ''):
+    instrumentation_key = environ['INSTRUMENTATION_KEY']
 
 
 # Uncomment below to turnon statsd
@@ -122,19 +60,8 @@ if environ.get('KEYVAULT_URI') is not None:
 #                     prefix='fitcycle-api-server',
 #                     maxudpsize=512)
 
-# initializing requests
-import requests
 
 # initializing flask
-from flask import render_template, jsonify
-from flask import request
-from flask_httpauth import HTTPTokenAuth
-from sentry_sdk.integrations.flask import FlaskIntegration
-from flask import Flask
-from opencensus.ext.azure.trace_exporter import AzureExporter
-from opencensus.ext.flask.flask_middleware import FlaskMiddleware
-from opencensus.trace.samplers import ProbabilitySampler
-
 app = Flask(__name__)
 
 
@@ -142,10 +69,10 @@ def set_cloud_role(envelope):
     envelope.tags['ai.cloud.role'] = 'cart-service'
 
 
-if instrumentationKey != "":
+if instrumentation_key not in (None, ''):
     middleware = FlaskMiddleware(
         app,
-        exporter=AzureExporter(connection_string=instrumentationKey),
+        exporter=AzureExporter(connection_string=instrumentation_key),
         sampler=ProbabilitySampler(rate=1.0),
     )
     middleware.exporter.add_telemetry_processor(set_cloud_role)
@@ -165,27 +92,7 @@ cart_tracer = init_tracer('cart')
 # initializing redis connections on localhost and port 6379
 # If error terminates process- entire cart is shut down
 
-import redis
-
-# import redis_opentracing
-
-
-try:
-    if redisConnStr != "":
-        rConn = redis.from_url(redisConnStr)
-    else:
-        if redispassword is not None:
-            app.logger.info('initiating redis connection with password %s', redispassword)
-            rConn = redis.StrictRedis(host=redishost, port=redisport, password=redispassword, db=0, ssl=True)
-        else:
-            app.logger.info('initiating redis connection with no password %s', redispassword)
-            rConn = redis.StrictRedis(host=redishost, port=redisport, password=None, db=0)
-    app.logger.info('initiated redis connection %s', rConn)
-    rConn.ping()
-    app.logger.info('Connected to redis')
-except Exception as ex:
-    app.logger.error('Error for redis connection %s', ex)
-    exit('Failed to connect, terminating')
+rConn = redis_connection(app.logger)
 
 
 # redis_opentracing.init_tracing(cart_tracer)
@@ -209,14 +116,14 @@ class FoundIssue(Exception):
 
 @auth.verify_token
 def verify_token(token):
-    global authmode
+    global auth_mode
 
     headers = {'content-type': 'application/json'}
     verify_token_url = auth_url + "/verify-token"
     login_url = auth_url + "/login"
 
-    app.logger.info("user service mode in verify_token is %s", authmode)
-    if authmode == 2:
+    app.logger.info("user service mode in verify_token is %s", auth_mode)
+    if auth_mode == 2:
         print("using local version of user for test - getting token")
 
         data1 = json.dumps({"username": "eric", "password": "vmware1!"})
@@ -236,7 +143,7 @@ def verify_token(token):
             app.logger.info('Bad user or password %s', json.loads(r.content)["message"])
             return False
 
-    elif authmode == 1:
+    elif auth_mode == 1:
         if token == "":
             app.logger.info("No Bearer token sent")
             return False
@@ -252,8 +159,6 @@ def verify_token(token):
 
     else:
         return True
-
-    return False
 
 
 #    if token == '':
@@ -277,7 +182,7 @@ def handle_invalid_usage(error):
 
 
 # initialization of redis with fake data from the San Francisco legal offices of Shri, Dan and Bill SDB.
-def insertData():
+def insert_data():
     app.logger.info('inserting data')
 
     rConn.flushall()
@@ -298,12 +203,12 @@ def insertData():
 
 
 # Gets all items from a specific userid
-def getitems(userid, spanC):
+def get_items(userid, span_c):
     #    redis_opentracing.init_tracing(cart_tracer, trace_all_classes=False)
 
-    functionName = '/cart/getItems/function'
+    function_name = '/cart/getItems/function'
 
-    with cart_tracer.start_span(functionName, child_of=spanC) as span:
+    with cart_tracer.start_span(function_name, child_of=span_c) as span:
         app.logger.info('/cart/getItems')
 
         with cart_tracer.start_span('/redis/extract/get', child_of=span) as redis_span:
@@ -329,106 +234,105 @@ def is_number(s):
 # http call to gets all Items from a cart (userid)
 # If successful this returns the cart and items, if not successfull (the user id is non-existant) - 204 returned
 
-# @statsd.timer('getCartItems')
+# @statsd.timer('get_cart_items')
 @app.route('/cart/items/<userid>', methods=['GET'])
 @auth.login_required
-def getCartItems(userid):
+def get_cart_items(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, carrier=request.headers)
     app.logger.info('the request headers are %s', str(request.headers))
-    functionName = '/cart/items'
-    returnValue = '200'
+    function_name = '/cart/items'
+    return_value = '200'
     if span_ctx is None:
         app.logger.info('there is no context being passed for tracing or tracing if off')
     else:
         app.logger.info('there is context being passed %s', str(span_ctx))
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
 
         span.set_tag("user", userid)
         app.logger.info('getting all items on cart for user %s', userid)
-        PPTable = getitems(userid, span)
-        if PPTable:
-            packed_data = jsonify({"userid": userid, "cart": PPTable})
+        pp_table = get_items(userid, span)
+        if pp_table:
+            packed_data = jsonify({"userid": userid, "cart": pp_table})
         else:
             app.logger.info('no items in cart found for %s', userid)
-            output_message = "no cart found for " + userid
-            packed_data = jsonify({"userid": userid, "cart": PPTable})
-            returnValue = '204'
+            packed_data = jsonify({"userid": userid, "cart": pp_table})
+            return_value = '204'
 
-    return (packed_data, returnValue)
+    return packed_data, return_value
 
 
 # gets total items in users cart
 @app.route('/cart/items/total/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def cartItemsTotal(userid):
+def cart_items_total(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = '/cart/items/total'
+    function_name = '/cart/items/total'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         span.set_tag("user", userid)
         app.logger.info('getting total for %s cart', userid)
-        jsonobj = getitems(userid, span)
+        jsonobj = get_items(userid, span)
 
-        keylist = []
+        key_list = []
         for item in jsonobj:
-            keylist.append(list(item.keys())[0])
+            key_list.append(list(item.keys())[0])
 
-        keyindex = 0
+        key_index = 0
         total = 0
 
-        while keyindex < len(jsonobj):
-            quantity = jsonobj[keyindex]['quantity']
+        while key_index < len(jsonobj):
+            quantity = jsonobj[key_index]['quantity']
             if is_number(quantity):
                 total = total + float(quantity)
             else:
                 total = total + 0
-            keyindex += 1
+            key_index += 1
 
         app.logger.info("The total number of items is %s", str(total))
-        totaljson = {"userid": userid, "cartitemtotal": total}
+        total_json = {"userid": userid, "cartitemtotal": total}
 
-    return jsonify(totaljson)
+    return jsonify(total_json)
 
 
 # http call to get all carts and their values
-# @statsd.timer('getAllCarts')
+# @statsd.timer('get_all_carts')
 @app.route('/cart/all', methods=['GET'])
 @auth.login_required
-def getAllCarts():
+def get_all_carts():
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = 'cart/all'
+    function_name = 'cart/all'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         app.logger.info('getting carts')
 
         carts = []
         cart = {}
 
         for x in rConn.keys():
-            cleankey = x.decode('utf-8')
-            cart['id'] = cleankey
-            cart['cart'] = json.loads(rConn.get(cleankey).decode('utf-8'))
+            clean_key = x.decode('utf-8')
+            cart['id'] = clean_key
+            cart['cart'] = json.loads(rConn.get(clean_key).decode('utf-8'))
             carts.append(cart)
             cart = {}
 
     return jsonify({'all carts': carts})
 
 
-# http call to add an item - if user id non-existant - this will add the user into the database or it will concatenate the item to the existing carts
-# example curl call to test: curl --header "Content-Type: application/json" --request POST --data '{"mytext":"xyz", "idname":"1234"}' http://34.215.155.50:5000/additem/bill
-# If add is positive returns the userid
-# @statsd.timer('addItem')
+# http call to add an item - if user id non-existent - this will add the user into the database or it will
+# concatenate the item to the existing carts example curl call to test: curl --header "Content-Type:
+# application/json" --request POST --data '{"mytext":"xyz", "idname":"1234"}' http://34.215.155.50:5000/additem/bill
+# If add is positive returns the userid @statsd.timer('add_item')
 @app.route('/cart/item/add/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def addItem(userid):
+def add_item(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = '/cart/items/add'
+    function_name = '/cart/items/add'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
 
         span.set_tag("userid", userid)
 
@@ -436,15 +340,15 @@ def addItem(userid):
 
         app.logger.info('the content to add is %s', content)
 
-        jsonobj = getitems(userid, span)
+        jsonobj = get_items(userid, span)
 
-        if (jsonobj):
+        if jsonobj:
 
-            keyindex = 0
-            while keyindex < len(jsonobj):
-                if (jsonobj[keyindex]['itemid'] == content['itemid']):
-                    jsonobj[keyindex]['quantity'] = int(jsonobj[keyindex]['quantity']) + int(content['quantity'])
-                    keyindex = len(jsonobj) + 1
+            key_index = 0
+            while key_index < len(jsonobj):
+                if jsonobj[key_index]['itemid'] == content['itemid']:
+                    jsonobj[key_index]['quantity'] = int(jsonobj[key_index]['quantity']) + int(content['quantity'])
+                    key_index = len(jsonobj) + 1
                     payload = json.dumps(jsonobj)
                     try:
                         app.logger.info('inserting cart for %s with following contents %s', userid, json.dumps(content))
@@ -452,9 +356,9 @@ def addItem(userid):
                     except Exception as e:
                         app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
                 else:
-                    keyindex += 1
+                    key_index += 1
 
-            if keyindex <= len(jsonobj):
+            if key_index <= len(jsonobj):
                 jsonobj.append(content)
                 payload = json.dumps(jsonobj)
                 try:
@@ -464,8 +368,7 @@ def addItem(userid):
                     app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
 
         else:
-            payload = []
-            payload.append(content)
+            payload = [content]
             app.logger.info("added to payload for new insert %s", json.dumps(payload))
             try:
                 rConn.set(userid, json.dumps(payload))
@@ -500,19 +403,19 @@ def addItem(userid):
 
 @app.route('/cart/modify/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def replaceCart(userid):
+def replace_cart(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = '/cart/modify'
+    function_name = '/cart/modify'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         span.set_tag("userid", userid)
 
         content = request.json
 
         app.logger.info('the content to modify is %s', content)
 
-        jsonobj = getitems(userid, span)
+        jsonobj = get_items(userid, span)
 
         payload = []
         for item in content['cart']:
@@ -531,33 +434,33 @@ def replaceCart(userid):
 # minimum content must be {"itemid":"shjhjssr", "quantity":"x"}
 @app.route('/cart/item/modify/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def deleteItem(userid):
+def delete_item(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = '/cart/items/modify'
+    function_name = '/cart/items/modify'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         span.set_tag("userid", userid)
 
         content = request.json
 
         app.logger.info('the item to delete is %s', content)
 
-        jsonobj = getitems(userid, span)
-        if (jsonobj):
-            keyindex = 0
-            while keyindex < len(jsonobj):
-                if (jsonobj[keyindex]['itemid'] == content['itemid']) and (content['quantity'] == 0):
-                    del jsonobj[keyindex]
+        jsonobj = get_items(userid, span)
+        if jsonobj:
+            key_index = 0
+            while key_index < len(jsonobj):
+                if (jsonobj[key_index]['itemid'] == content['itemid']) and (content['quantity'] == 0):
+                    del jsonobj[key_index]
                     payload = json.dumps(jsonobj)
                     try:
                         app.logger.info('removing item for %s with following contents %s', userid, json.dumps(content))
                         rConn.set(userid, payload)
                     except Exception as e:
                         app.logger.error('Could not remove data %s into redis, error is %s', json.dumps(content), e)
-                    keyindex = len(jsonobj)
-                elif (jsonobj[keyindex]['itemid'] == content['itemid']):
-                    jsonobj[keyindex]['quantity'] = content['quantity']
+                    key_index = len(jsonobj)
+                elif jsonobj[key_index]['itemid'] == content['itemid']:
+                    jsonobj[key_index]['quantity'] = content['quantity']
                     payload = json.dumps(jsonobj)
                     try:
                         app.logger.info('modifying cart for %s with following contents %s', userid, json.dumps(content))
@@ -565,9 +468,9 @@ def deleteItem(userid):
                         app.logger.info('finished setting %s with following contents %s', userid, json.dumps(content))
                     except Exception as e:
                         app.logger.error('Could not modify cart %s into redis, error is %s', json.dumps(content), e)
-                    keyindex = len(jsonobj)
+                    key_index = len(jsonobj)
                 else:
-                    keyindex += 1
+                    key_index += 1
         else:
             app.logger.info('no items in cart found for %s', userid)
             output_message = "no cart found for " + userid
@@ -579,12 +482,12 @@ def deleteItem(userid):
 # clear cart
 @app.route('/cart/clear/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def clearCart(userid):
+def clear_cart(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = '/cart/clear'
+    function_name = '/cart/clear'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         span.set_tag("userid", userid)
 
         try:
@@ -595,7 +498,7 @@ def clearCart(userid):
             raise FoundIssue(str(e), status_code=500)
     #        return('',500)
 
-    return ('', 200)
+    return '', 200
 
 
 # placeholder for call to order
@@ -607,41 +510,41 @@ def order(userid):
 # get total amount in users cart
 @app.route('/cart/total/<userid>', methods=['GET', 'POST'])
 @auth.login_required
-def cartTotal(userid):
+def cart_total(userid):
     span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
 
-    functionName = 'carttotal'
+    function_name = 'carttotal'
 
-    with cart_tracer.start_span(functionName, child_of=span_ctx) as span:
+    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
         span.set_tag("userid", userid)
 
         app.logger.info('getting total for %s cart', userid)
 
-        jsonobj = getitems(userid, span)
+        jsonobj = get_items(userid, span)
 
-        keylist = []
+        key_list = []
         for item in jsonobj:
-            keylist.append(list(item.keys())[0])
+            key_list.append(list(item.keys())[0])
 
-        keyindex = 0
+        key_index = 0
         total = 0
 
-        while keyindex < len(jsonobj):
-            quantity = jsonobj[keyindex]['quantity']
-            price = jsonobj[keyindex]['price']
-            #        quantity=jsonobj[keyindex][keylist[keyindex]]['quantity']
-            #        price=jsonobj[keyindex][keylist[keyindex]]['price']
+        while key_index < len(jsonobj):
+            quantity = jsonobj[key_index]['quantity']
+            price = jsonobj[key_index]['price']
+            #        quantity=jsonobj[key_index][key_list[key_index]]['quantity']
+            #        price=jsonobj[key_index][key_list[key_index]]['price']
             if is_number(quantity) and is_number(price):
                 total = total + (float(quantity) * float(price))
             else:
                 total = total + 0
-            keyindex += 1
+            key_index += 1
 
         app.logger.info("The total calculated is %s", str(total))
 
-        totaljson = {"userid": userid, "carttotal": total}
+        total_json = {"userid": userid, "carttotal": total}
 
-    return jsonify(totaljson)
+    return jsonify(total_json)
 
 
 # baseline route to check is server is live ;-)
@@ -656,8 +559,8 @@ def get_env():
 
 
 if __name__ == '__main__':
-    insertData()  # initialize the database with some baseline
-    app.run(host='0.0.0.0', port=cartport)
+    insert_data()  # initialize the database with some baseline
+    app.run(host='0.0.0.0', port=cart_port)
     time.sleep(2)
     cart_tracer.close()
 #    redis_tracer.close()
