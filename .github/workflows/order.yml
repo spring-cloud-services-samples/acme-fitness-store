@@ -51,5 +51,5 @@ jobs:
             --resource-group "$RESOURCE_GROUP" \
             --service "$SPRING_CLOUD_SERVICE" \
             --builder ${CUSTOM_BUILDER} \
-            --env "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__KeyVaultUri=$keyvault_uri" \
+            --env "DatabaseProvider=Postgres" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__KeyVaultUri=$keyvault_uri" \
             --source-path ./

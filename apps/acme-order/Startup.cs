@@ -1,4 +1,3 @@
-using System;
 using acme_order.Auth;
 using acme_order.Configuration;
 using acme_order.Db;
@@ -6,7 +5,6 @@ using acme_order.Services;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,8 +30,17 @@ namespace acme_order
             services.AddSingleton<IAcmeServiceSettings>(sp =>
                 sp.GetRequiredService<IOptions<AcmeServiceSettings>>().Value);
 
-            services.AddDbContext<OrderContext>(OptionsAction(), ServiceLifetime.Singleton);
-            
+            switch (Configuration["DatabaseProvider"])
+            {
+                case "Sqlite":
+                    services.AddDbContext<OrderContext, SqliteOrderContext>(ServiceLifetime.Singleton);
+                    break;
+
+                case "Postgres":
+                    services.AddDbContext<OrderContext, PostgresOrderContext>(ServiceLifetime.Singleton);
+                    break;
+            }
+
             services.AddSingleton<OrderService>();
             services.AddControllers();
             services.AddScoped<AuthorizeResource>();
@@ -53,14 +60,6 @@ namespace acme_order
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
-
-        private Action<DbContextOptionsBuilder> OptionsAction()
-        {
-            var connectionString = Configuration.GetConnectionString("OrderContext");
-            return string.IsNullOrEmpty(connectionString)
-                ? (Action<DbContextOptionsBuilder>)(options => options.UseSqlite("Data Source=sqlite.order.db"))
-                : (Action<DbContextOptionsBuilder>)(options => options.UseNpgsql(connectionString));
         }
     }
 }

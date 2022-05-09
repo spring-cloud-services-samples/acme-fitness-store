@@ -492,7 +492,7 @@ export POSTGRES_CONNECTION_STR=$(az spring-cloud connection show -g ${RESOURCE_G
 
 az spring-cloud app deploy --name ${ORDER_SERVICE_APP} \
     --builder ${CUSTOM_BUILDER} \
-    --env "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" \
+    --env "DatabaseProvider=Postgres" "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" \
     --source-path apps/acme-order
 
 # Deploy the Cart Service after retrieving the cache connection info

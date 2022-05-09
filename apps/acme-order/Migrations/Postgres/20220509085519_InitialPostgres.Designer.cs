@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using acme_order.Db;
 using acme_order.Models;
 
-namespace acmeorder.Migrations
+namespace acmeorder.Migrations.Postgres
 {
-    [DbContext(typeof(OrderContext))]
-    [Migration("20220411205517_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(PostgresOrderContext))]
+    [Migration("20220509085519_InitialPostgres")]
+    partial class InitialPostgres
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace acmeorder.Migrations
             modelBuilder
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                .HasAnnotation("ProductVersion", "3.1.0")
+                .HasAnnotation("ProductVersion", "3.1.24")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("acme_order.Models.Order", b =>
@@ -40,7 +40,7 @@ namespace acmeorder.Migrations
                         .HasColumnName("card")
                         .HasColumnType("json");
 
-                    b.Property<List<Cart>>("Cart")
+                    b.Property<ICollection<Cart>>("Cart")
                         .HasColumnName("cart")
                         .HasColumnType("json");
 
@@ -48,7 +48,7 @@ namespace acmeorder.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("date")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2022, 4, 11, 20, 55, 17, 183, DateTimeKind.Utc).AddTicks(7920));
+                        .HasDefaultValue(new DateTime(2022, 5, 9, 8, 55, 19, 197, DateTimeKind.Utc).AddTicks(5020));
 
                     b.Property<string>("Delivery")
                         .HasColumnName("delivery")
