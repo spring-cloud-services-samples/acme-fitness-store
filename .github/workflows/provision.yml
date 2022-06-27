@@ -31,20 +31,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Credentials and Terraform Backend
-        run: |
-          credentials=$(cat <<EOF
-          ${{ secrets.AZURE_CREDENTIALS }}
-          EOF
-          )
-          echo "ARM_CLIENT_ID=$(echo $credentials | jq -r '.clientId')" >> $GITHUB_ENV
-          echo "ARM_CLIENT_SECRET=$(echo $credentials | jq -r '.clientSecret')" >> $GITHUB_ENV
-          echo "ARM_SUBSCRIPTION_ID=$(echo $credentials | jq -r '.subscriptionId')" >> $GITHUB_ENV
-          echo "ARM_TENANT_ID=$(echo $credentials | jq -r '.tenantId')" >> $GITHUB_ENV
-
-          # Prepare Backend Config
-          cat <<EOF > azurerm.tfbackend
-          ${{ secrets.TF_BACKEND_CONFIG }}
-          EOF
+        run: ../.github/scripts/prepare-configs.sh
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+          BACKEND_CONFIG: ${{ secrets.TF_BACKEND_CONFIG }}
       - name: Terraform Format
         run: terraform fmt -check
       - name: Terraform Init
