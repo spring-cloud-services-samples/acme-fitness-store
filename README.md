@@ -939,9 +939,6 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "ConnectionStrings--OrderContext" --value "Server=${POSTGRES_SERVER_FULL_NAME};Database=${ORDER_SERVICE_DB};Port=5432;Ssl Mode=Require;User Id=${POSTGRES_SERVER_USER};Password=${POSTGRES_SERVER_PASSWORD};"
     
 az keyvault secret set --vault-name ${KEY_VAULT} \
-    --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
-    
-az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-LOGIN-NAME" --value ${POSTGRES_SERVER_USER}
     
 az keyvault secret set --vault-name ${KEY_VAULT} \
@@ -979,9 +976,6 @@ export CART_SERVICE_APP_IDENTITY=$(az spring app show --name ${CART_SERVICE_APP}
 az spring app identity assign --name ${ORDER_SERVICE_APP}
 export ORDER_SERVICE_APP_IDENTITY=$(az spring app show --name ${ORDER_SERVICE_APP} | jq -r '.identity.principalId')
 
-az spring app identity assign --name ${CATALOG_SERVICE_APP}
-export CATALOG_SERVICE_APP_IDENTITY=$(az spring app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
-
 az spring app identity assign --name ${IDENTITY_SERVICE_APP}
 export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} | jq -r '.identity.principalId')
 ```
@@ -994,9 +988,6 @@ az keyvault set-policy --name ${KEY_VAULT} \
     
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${ORDER_SERVICE_APP_IDENTITY} --secret-permissions get list
-
-az keyvault set-policy --name ${KEY_VAULT} \
-    --object-id ${CATALOG_SERVICE_APP_IDENTITY} --secret-permissions get list
 
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${IDENTITY_SERVICE_APP_IDENTITY} --secret-permissions get list
@@ -1020,14 +1011,6 @@ az spring connection delete \
 az spring connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
-    --connection ${CATALOG_SERVICE_DB_CONNECTION} \
-    --app ${CATALOG_SERVICE_APP} \
-    --deployment default \
-    --yes 
-
-az spring connection delete \
-    --resource-group ${RESOURCE_GROUP} \
-    --service ${SPRING_APPS_SERVICE} \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
@@ -1035,11 +1018,7 @@ az spring connection delete \
     
 az spring app update --name ${ORDER_SERVICE_APP} \
     --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "DatabaseProvider=Postgres"
-
-az spring app update --name ${CATALOG_SERVICE_APP} \
-    --config-file-pattern catalog/default,catalog/key-vault \
-    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
-    
+   
 az spring app update --name ${IDENTITY_SERVICE_APP} \
     --config-file-pattern identity/default,identity/key-vault \
     --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"

@@ -6,7 +6,12 @@ terraform {
       version = "~> 3.0"
     }
   }
-  backend "azurerm" {}
+  backend "azurerm" {
+    resource_group_name  = "terraform-rg"
+    storage_account_name = "terraform2209"
+    container_name       = "terraform-state-container"
+    key                  = "dev.terraform.tfstate"
+  }
 }
 
 provider "azurerm" {
@@ -67,25 +72,22 @@ resource "azurerm_monitor_diagnostic_setting" "asa_diagnostic" {
   target_resource_id         = azurerm_spring_cloud_service.asa_service.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.asa_workspace.id
 
-  log {
+  enabled_log {
     category = "ApplicationConsole"
-    enabled  = true
     retention_policy {
       enabled = false
       days    = 0
     }
   }
-  log {
+  enabled_log {
     category = "SystemLogs"
-    enabled  = true
     retention_policy {
       enabled = false
       days    = 0
     }
   }
-  log {
+  enabled_log {
     category = "IngressLogs"
-    enabled  = true
     retention_policy {
       enabled = false
       days    = 0
@@ -178,6 +180,9 @@ resource "azurerm_spring_cloud_app" "asa_app_service" {
   service_name        = azurerm_spring_cloud_service.asa_service.name
   is_public           = true
 
+  identity {
+    type = "SystemAssigned"
+  }
   count = length(var.asa_apps)
   depends_on = [azurerm_monitor_diagnostic_setting.asa_diagnostic, azurerm_spring_cloud_configuration_service.asa_config_svc,
   azurerm_spring_cloud_builder.asa_builder, azurerm_spring_cloud_gateway.asa_gateway, azurerm_spring_cloud_api_portal.asa_api]
@@ -195,6 +200,10 @@ resource "azurerm_spring_cloud_app" "asa_app_service_bind" {
   resource_group_name = azurerm_resource_group.grp.name
   service_name        = azurerm_spring_cloud_service.asa_service.name
   is_public           = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   addon_json = jsonencode({
     applicationConfigurationService = {
@@ -233,6 +242,29 @@ resource "azurerm_spring_cloud_active_deployment" "asa_app_deployment_activation
   count = sum([length(var.asa_apps), length(var.asa_apps_bind)])
 }
 
+# Postgres Flexible Server Connector for Order Service
+resource "azurerm_spring_cloud_connection" "asa_app_order_connection" {
+  name               = "order_service_db"
+  spring_cloud_id    = azurerm_spring_cloud_build_deployment.asa_app_deployment[0].id
+  target_resource_id = azurerm_postgresql_flexible_server_database.postgres_order_service_db.id
+  client_type        = "dotnet"
+  authentication {
+    type   = "secret"
+    name   = random_password.admin.result
+    secret = random_password.password.result
+  }
+}
+
+# Postgres Flexible Server Connector for Catalog Service
+resource "azurerm_spring_cloud_connection" "asa_app_catalog_connection" {
+  name               = "catalog_service_db"
+  spring_cloud_id    = azurerm_spring_cloud_build_deployment.asa_app_deployment[3].id
+  target_resource_id = azurerm_postgresql_flexible_server_database.postgres_catalog_service_db.id
+  client_type        = "springBoot"
+  authentication {
+    type = "systemAssignedIdentity"
+  }
+}
 
 # Create Routing for Catalog Service
 resource "azurerm_spring_cloud_gateway_route_config" "asa_app_catalog_routing" {

@@ -24,7 +24,7 @@ resource "azurerm_redis_cache" "redis" {
   sku_name            = "Basic"
 }
 
-# Create Secret for Postgresql Flexible Server
+# Create Secret for Redis Server
 resource "azurerm_key_vault_secret" "cart_redis_connection_secret" {
   name         = "CART-REDIS-CONNECTION-STRING"
   value        = "rediss://:${azurerm_redis_cache.redis.primary_access_key}@${azurerm_redis_cache.redis.hostname}:${azurerm_redis_cache.redis.ssl_port}/0"
@@ -60,7 +60,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "postgresql_server_c
 }
 
 # Acme Fitness Order Postgresql DB
-resource "azurerm_postgresql_flexible_server_database" "postgre_order_service_db" {
+resource "azurerm_postgresql_flexible_server_database" "postgres_order_service_db" {
   name      = var.order_service_db_name
   server_id = azurerm_postgresql_flexible_server.postgresql_server.id
   collation = "en_US.utf8"
@@ -68,7 +68,7 @@ resource "azurerm_postgresql_flexible_server_database" "postgre_order_service_db
 }
 
 # Acme Fitness Catalog Postgresql DB
-resource "azurerm_postgresql_flexible_server_database" "postgre_catalog_service_db" {
+resource "azurerm_postgresql_flexible_server_database" "postgres_catalog_service_db" {
   name      = var.catalog_service_db_name
   server_id = azurerm_postgresql_flexible_server.postgresql_server.id
   collation = "en_US.utf8"
