@@ -4,7 +4,7 @@ languages:
 - java
 products:
 - Azure Spring Apps
-- Azure Database for PostgreSQL
+- Azure Database for PostgresSQL
 - Azure Cache for Redis
 - Azure Active Directory
 description: "Deploy Microservice Apps to Azure"
@@ -15,7 +15,7 @@ urlFragment: "acme-fitness-store"
 
 Azure Spring Apps enables you to easily run Spring Boot and polyglot applications on Azure.
 
-This quickstart shows you how to deploy existing applications written in Java, Python, and C# to Azure. When you're 
+This quickstart shows you how to deploy existing applications written in Java, Python, and C# to Azure. When you're
 finished, you can continue to manage the application via the Azure CLI or switch to using the Azure Portal.
 
 * [Deploy Applications to Azure Spring Apps](#deploy-spring-boot-apps-to-azure)
@@ -115,6 +115,10 @@ Install the Azure Spring Apps extension for the Azure CLI using the following co
 az extension add --name spring
 ```
 
+Note - `spring-cloud` CLI extension `3.0.0` or later is a pre-requisite to enable the
+latest Enterprise tier functionality to configure VMware Tanzu Components. Use the following
+command to remove previous versions and install the latest Enterprise tier extension:
+
 If the extension is already installed, update it with the following command
 
 ```shell
@@ -127,9 +131,10 @@ Azure Spring Apps extension:
 
 ```shell
 az extension remove --name spring-cloud
-az extension remove --name spring
 az extension add --name spring
 ```
+
+If `spring-cloud`'s version still < `3.0.0` after above commands, you can try to [re-install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
 ## Clone the repo
 
@@ -301,9 +306,9 @@ az monitor diagnostic-settings create --name "send-logs-and-metrics-to-log-analy
 ```
 
 > Note: For Git Bash users, this command may fail when resource IDs are misinterpreted as file paths because they begin with `/`. 
-> 
+
 > If the above command fails, try setting MSYS_NO_PATHCONV using:
-> 
+
 > `export MSYS_NO_PATHCONV=1`
 
 ### Configure Application Configuration Service
@@ -767,8 +772,14 @@ az postgres flexible-server create --name ${POSTGRES_SERVER} \
     --tier Burstable \
     --sku-name Standard_B1ms \
     --version 14 \
-    --storage-size 32
+    --storage-size 32 \
     --yes
+
+# Allow connections from other Azure Services
+az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
+     --name ${POSTGRES_SERVER} \
+     --resource-group ${RESOURCE_GROUP} \
+     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
      
 # Enable the uuid-ossp extension
 az postgres flexible-server parameter set \
@@ -814,10 +825,8 @@ az spring connection create postgres-flexible \
     --database ${ORDER_SERVICE_DB} \
     --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type dotnet
-```
+    
 
-Catalog service uses Azure AD authentication to connect to Postgres, so it is not required to include the password
-```shell
 # Bind catalog service to Postgres
 az spring connection create postgres-flexible \
     --resource-group ${RESOURCE_GROUP} \
@@ -828,10 +837,10 @@ az spring connection create postgres-flexible \
     --tg ${RESOURCE_GROUP} \
     --server ${POSTGRES_SERVER} \
     --database ${CATALOG_SERVICE_DB} \
+    --secret name=${POSTGRES_SERVER_USER} secret=${POSTGRES_SERVER_PASSWORD} \
     --client-type springboot \
     --system-identity
 ```
-
 After executing above command, the Azure Spring App application enables System assigned managed identity, Postgres database user will be created and assigned to the managed identity and permissions will be granted to the user.
 
 The Cart Service requires a connection to Azure Cache for Redis, create the Service Connector:
@@ -848,6 +857,10 @@ az spring connection create redis \
     --database 0 \
     --client-type python 
 ```
+
+> Note: Currently, the Azure Spring Apps CLI extension only allows for client types of java, springboot, or dotnet.
+> The cart service uses a client connection type of java because the connection strings are the same for python and java.
+> This will be changed when additional options become available in the CLI.
 
 ### Update Applications
 
@@ -948,6 +961,9 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "ConnectionStrings--OrderContext" --value "Server=${POSTGRES_SERVER_FULL_NAME};Database=${ORDER_SERVICE_DB};Port=5432;Ssl Mode=Require;User Id=${POSTGRES_SERVER_USER};Password=${POSTGRES_SERVER_PASSWORD};"
     
 az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
+    
+az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-LOGIN-NAME" --value ${POSTGRES_SERVER_USER}
     
 az keyvault secret set --vault-name ${KEY_VAULT} \
@@ -985,6 +1001,9 @@ export CART_SERVICE_APP_IDENTITY=$(az spring app show --name ${CART_SERVICE_APP}
 az spring app identity assign --name ${ORDER_SERVICE_APP}
 export ORDER_SERVICE_APP_IDENTITY=$(az spring app show --name ${ORDER_SERVICE_APP} | jq -r '.identity.principalId')
 
+az spring app identity assign --name ${CATALOG_SERVICE_APP}
+export CATALOG_SERVICE_APP_IDENTITY=$(az spring app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
+
 az spring app identity assign --name ${IDENTITY_SERVICE_APP}
 export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} | jq -r '.identity.principalId')
 ```
@@ -997,6 +1016,9 @@ az keyvault set-policy --name ${KEY_VAULT} \
     
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${ORDER_SERVICE_APP_IDENTITY} --secret-permissions get list
+
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${CATALOG_SERVICE_APP_IDENTITY} --secret-permissions get list
 
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${IDENTITY_SERVICE_APP_IDENTITY} --secret-permissions get list
@@ -1020,6 +1042,14 @@ az spring connection delete \
 az spring connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
+    --connection ${CATALOG_SERVICE_DB_CONNECTION} \
+    --app ${CATALOG_SERVICE_APP} \
+    --deployment default \
+    --yes 
+
+az spring connection delete \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_APPS_SERVICE} \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
@@ -1027,7 +1057,11 @@ az spring connection delete \
     
 az spring app update --name ${ORDER_SERVICE_APP} \
     --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "DatabaseProvider=Postgres"
-   
+
+az spring app update --name ${CATALOG_SERVICE_APP} \
+    --config-file-pattern catalog/default,catalog/key-vault \
+    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
+    
 az spring app update --name ${IDENTITY_SERVICE_APP} \
     --config-file-pattern identity/default,identity/key-vault \
     --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
@@ -1305,6 +1339,7 @@ echo "https://${GATEWAY_URL}/products"
 
 Make several requests to the URL for `/products` within a five second period to see requests fail with a status `429 Too Many Requests`.
 
+
 ### Monitor your applications using Application Live View
 
 [Application Live View for VMware Tanzu](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-app-live-view-about-app-live-view.html) is a lightweight insights and troubleshooting tool that helps app developers and app operators look inside running apps.
@@ -1318,11 +1353,9 @@ az spring dev-tool update \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
     --assign-endpoint
-
 export SPRING_DEV_TOOL=$(az spring dev-tool show \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} | jq -r '.properties.url')
-
 open "https://${SPRING_DEV_TOOL}/app-live-view"
 ```
 If using Azure Cloud Shell or Windows, open the output from the following command in a browser:
