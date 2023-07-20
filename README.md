@@ -114,6 +114,9 @@ Install the Azure Spring Apps extension for the Azure CLI using the following co
 ```shell
 az extension add --name spring
 ```
+Note - `spring-cloud` CLI extension `3.0.0` or later is a pre-requisite to enable the
+latest Enterprise tier functionality to configure VMware Tanzu Components. Use the following
+command to remove previous versions and install the latest Enterprise tier extension:
 
 If the extension is already installed, update it with the following command
 
@@ -130,6 +133,7 @@ az extension remove --name spring-cloud
 az extension remove --name spring
 az extension add --name spring
 ```
+If `spring-cloud`'s version still < `3.0.0` after above commands, you can try to [re-install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
 ## Clone the repo
 
@@ -767,8 +771,14 @@ az postgres flexible-server create --name ${POSTGRES_SERVER} \
     --tier Burstable \
     --sku-name Standard_B1ms \
     --version 14 \
-    --storage-size 32
+    --storage-size 32 \
     --yes
+
+# Allow connections from other Azure Services
+az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
+     --name ${POSTGRES_SERVER} \
+     --resource-group ${RESOURCE_GROUP} \
+     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
      
 # Enable the uuid-ossp extension
 az postgres flexible-server parameter set \
@@ -848,6 +858,9 @@ az spring connection create redis \
     --database 0 \
     --client-type python 
 ```
+> Note: Currently, the Azure Spring Apps CLI extension only allows for client types of java, springboot, or dotnet.
+> The cart service uses a client connection type of java because the connection strings are the same for python and java.
+> This will be changed when additional options become available in the CLI.
 
 ### Update Applications
 
@@ -946,7 +959,10 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
 
 az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "ConnectionStrings--OrderContext" --value "Server=${POSTGRES_SERVER_FULL_NAME};Database=${ORDER_SERVICE_DB};Port=5432;Ssl Mode=Require;User Id=${POSTGRES_SERVER_USER};Password=${POSTGRES_SERVER_PASSWORD};"
-    
+
+az keyvault secret set --vault-name ${KEY_VAULT} \
+    --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
+ 
 az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-LOGIN-NAME" --value ${POSTGRES_SERVER_USER}
     
@@ -985,6 +1001,9 @@ export CART_SERVICE_APP_IDENTITY=$(az spring app show --name ${CART_SERVICE_APP}
 az spring app identity assign --name ${ORDER_SERVICE_APP}
 export ORDER_SERVICE_APP_IDENTITY=$(az spring app show --name ${ORDER_SERVICE_APP} | jq -r '.identity.principalId')
 
+az spring app identity assign --name ${CATALOG_SERVICE_APP}
+export CATALOG_SERVICE_APP_IDENTITY=$(az spring app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
+
 az spring app identity assign --name ${IDENTITY_SERVICE_APP}
 export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} | jq -r '.identity.principalId')
 ```
@@ -997,6 +1016,9 @@ az keyvault set-policy --name ${KEY_VAULT} \
     
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${ORDER_SERVICE_APP_IDENTITY} --secret-permissions get list
+
+az keyvault set-policy --name ${KEY_VAULT} \
+    --object-id ${CATALOG_SERVICE_APP_IDENTITY} --secret-permissions get list
 
 az keyvault set-policy --name ${KEY_VAULT} \
     --object-id ${IDENTITY_SERVICE_APP_IDENTITY} --secret-permissions get list
@@ -1020,6 +1042,14 @@ az spring connection delete \
 az spring connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
+    --connection ${CATALOG_SERVICE_DB_CONNECTION} \
+    --app ${CATALOG_SERVICE_APP} \
+    --deployment default \
+    --yes 
+
+az spring connection delete \
+    --resource-group ${RESOURCE_GROUP} \
+    --service ${SPRING_APPS_SERVICE} \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
@@ -1027,7 +1057,11 @@ az spring connection delete \
     
 az spring app update --name ${ORDER_SERVICE_APP} \
     --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "DatabaseProvider=Postgres"
-   
+
+az spring app update --name ${CATALOG_SERVICE_APP} \
+    --config-file-pattern catalog/default,catalog/key-vault \
+    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
+  
 az spring app update --name ${IDENTITY_SERVICE_APP} \
     --config-file-pattern identity/default,identity/key-vault \
     --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
