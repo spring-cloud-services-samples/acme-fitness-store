@@ -458,7 +458,7 @@ echo "https://${GATEWAY_URL}"
 
 You should see the ACME Fitness Store Application:
 
-![An image of the ACME Fitness Store Application homepage](media/homepage.png)
+![An image of the ACME Fitness Store Application homepage](./media/homepage.png)
 
 Explore the application, but notice that not everything is functioning yet. Continue on to
 Unit 2 to configure Single Sign On to enable the rest of the functionality.
