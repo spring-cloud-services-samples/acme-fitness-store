@@ -3,11 +3,8 @@ page_type: sample
 languages:
 - java
 products:
-- Azure Spring Apps
-- Azure Database for PostgreSQL
-- Azure Cache for Redis
-- Azure Active Directory
-description: "Deploy Microservice Apps to Azure"
+- Tanzu Application Platform
+description: "Deploy Microservice Apps to Tanzu Application Platform"
 urlFragment: "acme-fitness-store"
 ---
 
