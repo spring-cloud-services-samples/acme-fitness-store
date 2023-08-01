@@ -47,7 +47,7 @@ You will:
 
 The following diagram shows the architecture of the ACME Fitness Store that will be used for this guide:
 
-![An image showing the services involved in the ACME Fitness Store. It depicts the applications and their dependencies](media/architecture.jpg)
+![An image showing the services involved in the ACME Fitness Store. It depicts the applications and their dependencies](./media/architecture.jpg)
 
 This application is composed of several services:
 
