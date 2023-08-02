@@ -329,6 +329,9 @@ az spring build-service builder create -n ${CUSTOM_BUILDER} \
     --no-wait
 ```
 
+## Unit 1 - Build and Deploy Application
+
+
 ### Create applications in Azure Spring Apps
 
 Create an application for each service:
