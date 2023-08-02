@@ -1,7 +1,7 @@
 {
   "stack": {
-    "id": "io.buildpacks.stacks.bionic",
-    "version": "full"
+    "id": "io.buildpacks.stacks.jammy",
+    "version": "base"
   },
   "buildpackGroups": [
     {
