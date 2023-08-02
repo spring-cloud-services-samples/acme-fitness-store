@@ -5,10 +5,10 @@ __pycache__
 custom-filters
 
 
-azure/setup-env-variables.sh
-azure/setup-db-env-variables.sh
-azure/setup-sso-variables.sh
-azure/setup-env-variables-keyvault.sh
+azure-spring-apps-enterprise/scripts/setup-env-variables.sh
+azure-spring-apps-enterprise/scripts/setup-db-env-variables.sh
+azure-spring-apps-enterprise/scripts/setup-sso-variables.sh
+azure-spring-apps-enterprise/scripts/setup-env-variables-keyvault.sh
 redis.json
 ad.json
 sso.json
