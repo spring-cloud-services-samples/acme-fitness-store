@@ -331,6 +331,10 @@ az spring build-service builder create -n ${CUSTOM_BUILDER} \
 
 ## Unit 1 - Deploy and Build Applications
 
+Prerequisites:
+
+* Completion of [Unit 0 - Prepare Environment](#unit-0---prepare-environment)
+
 
 ### Create applications in Azure Spring Apps
 
