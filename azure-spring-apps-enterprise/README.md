@@ -176,6 +176,10 @@ Then, set the environment:
 ```shell
 source ./scripts/setup-env-variables.sh
 ```
+and then set the subscription (the script above does this for you as well)
+```shell
+az account set --subscription ${SUBSCRIPTION}
+```
 
 ### Create Azure Spring Apps service instance
 
