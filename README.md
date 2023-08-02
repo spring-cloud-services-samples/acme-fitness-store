@@ -17,7 +17,7 @@ Azure Spring Apps Enterprise enables you to easily run Spring Boot and polyglot 
 
 [acme-fitness-example](./azure-spring-apps-enterprise/README.md)
 
-# Build & Deploy Apps to Tanzu Application Platform (TAP)
+# Deploy Apps to Tanzu Application Platform (TAP)
 
 Tanzu Application Platform enables you to easily build & run polyglot applications on CNCF Compliant Kubernetes clusters.
 
