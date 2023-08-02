@@ -12,7 +12,7 @@ finished, you can continue to manage the application via the Azure CLI or switch
   * [What you will need](#what-you-will-need)
   * [Install the Azure CLI extension](#install-the-azure-cli-extension)
   * [Clone the repo](#clone-the-repo)
-  * [Unit 0 - Deploy and Build Applications](#unit-0---prepare-environment)
+  * [Unit 0 - Prepare Environment](#unit-0---prepare-environment)
   * [Unit 1 - Deploy and Build Applications](#unit-1---deploy-and-build-applications)
   * [Unit 2 - Configure Single Sign On](#unit-2---configure-single-sign-on)
   * [Unit 3 - Integrate with Azure Database for PostgreSQL and Azure Cache for Redis](#unit-3---integrate-with-azure-database-for-postgresql-and-azure-cache-for-redis)
