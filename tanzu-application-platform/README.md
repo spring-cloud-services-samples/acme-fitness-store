@@ -1,12 +1,12 @@
 ---
-page_type: sample
-languages:
-- java
-products:
-- Tanzu Application Platform
-description: "Deploy Microservice Apps to Tanzu Application Platform"
-urlFragment: "acme-fitness-store"
----
+#page_type: sample
+#languages:
+#- java
+#products:
+#- Tanzu Application Platform
+#description: "Deploy Microservice Apps to Tanzu Application Platform"
+#urlFragment: "acme-fitness-store"
+#---
 
 # Build & Deploy Applications on Tanzu Application Platform (TAP).
 
