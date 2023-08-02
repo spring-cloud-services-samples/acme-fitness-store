@@ -65,7 +65,7 @@ or sign up for a
 
 In addition, you will need the following:
 
-| [Azure CLI version 2.47.0 or higher](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest)
+| [Azure CLI version 2.50.0 or higher](https://docs.microsoft.com/cli/azure/install-azure-cli?view=azure-cli-latest)
 | [Git](https://git-scm.com/)
 | [`jq` utility](https://stedolan.github.io/jq/download/)
 |
@@ -103,7 +103,7 @@ Install the Azure Spring Apps extension for the Azure CLI using the following co
 ```shell
 az extension add --name spring
 ```
-Note - `spring-cloud` CLI extension `3.0.0` or later is a pre-requisite to enable the
+Note - `spring` CLI extension `1.14.0` or later is a pre-requisite to enable the
 latest Enterprise tier functionality to configure VMware Tanzu Components. Use the following
 command to remove previous versions and install the latest Enterprise tier extension:
 
@@ -122,7 +122,7 @@ az extension remove --name spring-cloud
 az extension remove --name spring
 az extension add --name spring
 ```
-If `spring-cloud`'s version still < `3.0.0` after above commands, you can try to [re-install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+If `spring`'s version still < `1.14.0` after above commands, you can try to [re-install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
 ## Clone the repo
 
