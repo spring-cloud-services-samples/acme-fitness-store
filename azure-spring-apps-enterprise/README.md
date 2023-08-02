@@ -132,23 +132,37 @@ If `spring`'s version still < `1.14.0` after above commands, you can try to [re-
 mkdir source-code
 cd source-code
 git clone https://github.com/Azure-Samples/acme-fitness-store
-cd acme-fitness-store
+cd acme-fitness-store/azure-spring-apps-enterprise
+
 ```
 
-## Unit 1 - Deploy and Build Applications
+## Unit 0 - Prepare Environment
+
+
+### Login to Azure
+
+Login to the Azure CLI and choose your active subscription. 
+
+```shell
+az login
+```
+```shell
+az account list -o table
+```
+from this table, please make note of the SubscriptionId you would like to use
 
 ### Prepare your environment for deployments
 
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./azure/setup-env-variables-template.sh ./azure/setup-env-variables.sh
+cp ./scripts/setup-env-variables-template.sh ./scripts/setup-env-variables.sh
 ```
 
-Open `./azure/setup-env-variables.sh` and enter the following information:
+Open `./scripts/setup-env-variables.sh` and enter the following information:
 
 ```shell
-export SUBSCRIPTION=subscription-id                 # replace it with your subscription-id
+export SUBSCRIPTION=subscription-id                 # replace it with your subscription-id from above
 export RESOURCE_GROUP=resource-group-name           # existing resource group or one that will be created in next steps
 export SPRING_APPS_SERVICE=azure-spring-apps-name   # name of the service that will be created in the next steps
 export LOG_ANALYTICS_WORKSPACE=log-analytics-name   # existing workspace or one that will be created in next steps
@@ -160,17 +174,7 @@ The REGION value should be one of available regions for Azure Spring Apps (e.g. 
 Then, set the environment:
 
 ```shell
-source ./azure/setup-env-variables.sh
-```
-
-### Login to Azure
-
-Login to the Azure CLI and choose your active subscription. 
-
-```shell
-az login
-az account list -o table
-az account set --subscription ${SUBSCRIPTION}
+source ./scripts/setup-env-variables.sh
 ```
 
 ### Create Azure Spring Apps service instance
