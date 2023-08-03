@@ -53,3 +53,6 @@ workshops/azure-spring-apps-enterprise/scripts/setup-keyvault-env-variables.sh
 scripts/setup-db-env-variables.sh
 
 hello-world/
+
+# vsCode
+.vscode
