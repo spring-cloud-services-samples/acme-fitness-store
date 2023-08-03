@@ -364,9 +364,22 @@ az spring app create --name ${CART_SERVICE_APP} --instance-count 1 --memory 1Gi 
 az spring app create --name ${ORDER_SERVICE_APP} --instance-count 1 --memory 1Gi &
 az spring app create --name ${PAYMENT_SERVICE_APP} --instance-count 1 --memory 1Gi &
 az spring app create --name ${CATALOG_SERVICE_APP} --instance-count 1 --memory 1Gi &
-az spring app create --name ${FRONTEND_APP} --instance-count 1 --memory 1Gi &
-wait
+
 ```
+
+Then, create an app for the Front End: 
+
+```shell
+az spring app create --name ${FRONTEND_APP} --instance-count 1 --memory 1Gi
+
+```
+
+At this time, wait until control is passed back to your console before proceeding.
+
+Please check the Portal to make sure ALL services (4 Services & Frontend App) are created.  Should look something like:
+
+![An image of the ACME Fitness Store Applications List](./media/AppServicesCreated.jpg)
+
 
 ### Bind to Application Configuration Service
 
