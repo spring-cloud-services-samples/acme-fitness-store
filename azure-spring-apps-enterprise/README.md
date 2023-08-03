@@ -154,13 +154,20 @@ from this table, please make note of the SubscriptionId you would like to use
 
 ### Prepare your environment for deployments
 
+
+Make sure you are operating from the ./scripts folder.
+
+```shell
+cp ./scripts
+```
+
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./scripts/setup-env-variables-template.sh ./scripts/setup-env-variables.sh
+cp ./setup-env-variables-template.sh ./setup-env-variables.sh
 ```
 
-Open `./scripts/setup-env-variables.sh` and enter the following information:
+Open `./setup-env-variables.sh` and enter the following information:
 
 ```shell
 export SUBSCRIPTION=subscription-id                 # replace it with your subscription-id from above
@@ -175,7 +182,7 @@ The REGION value should be one of available regions for Azure Spring Apps (e.g. 
 Then, set the environment:
 
 ```shell
-source ./scripts/setup-env-variables.sh
+source ./setup-env-variables.sh
 ```
 and then set the subscription (the script above does this for you as well)
 ```shell
@@ -321,11 +328,23 @@ az spring application-configuration-service git repo add --name acme-fitness-sto
 
 ### Configure Tanzu Build Service
 
+
+Make sure you are in the ./scripts folder
+
+```shell
+pwd
+```
+Should show something like:
+
+```
+./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
+```
+
 Create a custom builder in Tanzu Build Service using the Azure CLI:
 
 ```shell
 az spring build-service builder create -n ${CUSTOM_BUILDER} \
-    --builder-file azure/builder.json \
+    --builder-file ../resources/json/tbs/builder.json \
     --no-wait
 ```
 
