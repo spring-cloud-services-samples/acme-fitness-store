@@ -582,7 +582,6 @@ Echo the values for later editing:
 ```shell
 echo ${CLIENT_ID}
 echo ${CLIENT_SECRET}
-echo ${TENANT_ID}
 echo ${ISSUER_URI}
 echo ${JWK_SET_URI}
 ```
