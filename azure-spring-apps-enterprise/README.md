@@ -568,7 +568,7 @@ More detailed instructions on Application Registrations can be found [here](http
 Set the environment using the provided script and verify the environment variables are set:
 
 ```shell
-source ./azure/setup-sso-variables-ad.sh
+source ./setup-sso-variables-ad.sh
 
 echo ${CLIENT_ID}
 echo ${CLIENT_SECRET}
