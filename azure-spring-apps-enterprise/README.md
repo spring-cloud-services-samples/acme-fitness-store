@@ -639,10 +639,10 @@ nano `setup-sso-variables.sh`
 Add the required values.
 
 ```shell
-export CLIENT_ID=change-me        # Your SSO Provider Client ID
-export CLIENT_SECRET=change-me    # Your SSO Provider Client Secret
-export ISSUER_URI=change-me       # Your SSO Provider Issuer URI
-export JWK_SET_URI=change-me      # Your SSO Provider Json Web Token URI
+export CLIENT_ID="change-me"        # Your SSO Provider Client ID
+export CLIENT_SECRET="change-me"    # Your SSO Provider Client Secret
+export ISSUER_URI="change-me"       # Your SSO Provider Issuer URI
+export JWK_SET_URI="change-me"      # Your SSO Provider Json Web Token URI
 ```
 
 The `issuer-uri` configuration should follow Spring Boot convention, as described in the official Spring Boot documentation:
@@ -650,8 +650,6 @@ The provider needs to be configured with an issuer-uri which is the URI that the
 Note that only authorization servers supporting OpenID Connect Discovery protocol can be used
 
 The `JWK_SET_URI` typically takes the form `${ISSUER_URI}/$VERSION/keys`
-
-
 
 Set your copy as "executable".
 
