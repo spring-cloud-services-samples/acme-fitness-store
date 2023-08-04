@@ -425,22 +425,22 @@ Create  routing rules for the applications:
 az spring gateway route-config create \
     --name ${CART_SERVICE_APP} \
     --app-name ${CART_SERVICE_APP} \
-    --routes-file azure/routes/cart-service.json
+    --routes-file ../resources/json/routes/cart-service.json
     
 az spring gateway route-config create \
     --name ${ORDER_SERVICE_APP} \
     --app-name ${ORDER_SERVICE_APP} \
-    --routes-file azure/routes/order-service.json
+    --routes-file ../resources/json/routes//order-service.json
 
 az spring gateway route-config create \
     --name ${CATALOG_SERVICE_APP} \
     --app-name ${CATALOG_SERVICE_APP} \
-    --routes-file azure/routes/catalog-service.json
+    --routes-file ../resources/json/routes/catalog-service.json
 
 az spring gateway route-config create \
     --name ${FRONTEND_APP} \
     --app-name ${FRONTEND_APP} \
-    --routes-file azure/routes/frontend.json
+    --routes-file ../resources/json/routes//frontend.json
 ```
 
 ### Build and Deploy Polyglot Applications
