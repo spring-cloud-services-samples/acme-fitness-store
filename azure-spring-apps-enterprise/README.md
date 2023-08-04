@@ -544,15 +544,15 @@ export AD_DISPLAY_NAME=change-me    # unique application display name
 Create an Application registration with Azure AD and save the output.
 
 ```shell
-az ad app create --display-name ${AD_DISPLAY_NAME} > ad.json
+az ad app create --display-name ${AD_DISPLAY_NAME} > ../resources/json/ad.json
 ```
 
 Retrieve the Application ID and collect the client secret:
 
 ```shell
-export APPLICATION_ID=$(cat ad.json | jq -r '.appId')
+export APPLICATION_ID=$(cat ../resources/json/ad.json | jq -r '.appId')
 
-az ad app credential reset --id ${APPLICATION_ID} --append > sso.json
+az ad app credential reset --id ${APPLICATION_ID} --append > ../resources/json/sso.json
 ```
 
 Assign a Service Principal to the Application Registration
