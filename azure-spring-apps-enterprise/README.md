@@ -158,16 +158,21 @@ from this table, please make note of the SubscriptionId you would like to use
 Make sure you are operating from the ./scripts folder.
 
 ```shell
-cp ./scripts
+cd scripts
 ```
 
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./setup-env-variables-template.sh ./setup-env-variables.sh
+cp setup-env-variables-template.sh setup-env-variables.sh
 ```
 
-Open `./setup-env-variables.sh` and enter the following information:
+Using an editor of your choice, edit the file, (for the purposes of example we will use the nano editor), and add the following values.
+
+```shell
+nano `setup-env-variables.sh` 
+```
+Enter the following information:
 
 ```shell
 export SUBSCRIPTION=subscription-id                 # replace it with your subscription-id from above
@@ -596,11 +601,27 @@ Detailed information about redirect URIs can be found [here](https://docs.micros
 
 To use an existing SSO Identity Provider, copy the existing template
 
+Again, make sure you are operating from the ./scripts folder.
+
 ```shell
-cp ./azure/setup-sso-variables-template.sh ./azure/setup-sso-variables.sh
+pwd
+```
+Should return something like:
+
+```shell
+...../source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
+```
+Next, make a copy of setup-sso-variables-template.sh for your custom values.
+
+```shell
+cp setup-sso-variables-template.sh setup-sso-variables.sh
 ```
 
-Open `./azure/setup-sso-variables.sh` and provide the required information.
+Edit the copy.
+```
+nano `setup-sso-variables.sh` 
+```
+Add the required values.
 
 ```shell
 export CLIENT_ID=change-me        # Your SSO Provider Client ID
