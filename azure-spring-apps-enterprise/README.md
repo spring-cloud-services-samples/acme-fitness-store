@@ -618,7 +618,7 @@ The `JWK_SET_URI` typically takes the form `${ISSUER_URI}/$VERSION/keys`
 Set the environment:
 
 ```shell
-source ./azure/setup-sso-variables.sh
+source ./setup-sso-variables.sh
 ```
 
 Add the following to your SSO provider's list of approved redirect URIs:
