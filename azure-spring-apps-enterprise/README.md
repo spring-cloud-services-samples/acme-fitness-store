@@ -578,13 +578,17 @@ Source this file:
 source ./setup-sso-variables-ad.sh
 ```
 
-Echo the values for later editing:
+Echo the following values:
 ```shell
 echo ${CLIENT_ID}
 echo ${CLIENT_SECRET}
 echo ${ISSUER_URI}
 echo ${JWK_SET_URI}
+echo ${GATEWAY_URL}
+echo ${PORTAL_URL}
 ```
+
+Verify:
 
 The `ISSUER_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/v2.0`
 The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/discovery/v2.0/keys`
@@ -621,7 +625,14 @@ Next, make a copy of setup-sso-variables-template.sh for your custom values.
 cp setup-sso-variables-template.sh setup-sso-variables.sh
 ```
 
-Edit the copy.
+Echo the following values:
+```shell
+echo ${CLIENT_ID}
+echo ${CLIENT_SECRET}
+echo ${ISSUER_URI}
+echo ${JWK_SET_URI}
+```
+Edit the copy:
 ```
 nano `setup-sso-variables.sh` 
 ```
