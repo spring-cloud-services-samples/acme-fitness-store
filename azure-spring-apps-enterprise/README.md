@@ -636,10 +636,18 @@ Note that only authorization servers supporting OpenID Connect Discovery protoco
 
 The `JWK_SET_URI` typically takes the form `${ISSUER_URI}/$VERSION/keys`
 
+
+
+Set your copy as "executable".
+
+```shell
+chmod +x setup-sso-variables.sh
+```
+
 Set the environment:
 
 ```shell
-source ./setup-sso-variables.sh
+source setup-sso-variables.sh
 ```
 
 Add the following to your SSO provider's list of approved redirect URIs:
