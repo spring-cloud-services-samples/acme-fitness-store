@@ -560,7 +560,7 @@ export APPLICATION_ID=$(cat ../resources/json/ad.json | jq -r '.appId')
 az ad app credential reset --id ${APPLICATION_ID} --append > ../resources/json/sso.json
 ```
 
-Assign a Service Principal to the Application Registration
+Assign a Service Principal to the Application Registration:
 
 ```shell
 az ad sp create --id ${APPLICATION_ID}
@@ -572,9 +572,14 @@ More detailed instructions on Application Registrations can be found [here](http
 
 Set the environment using the provided script and verify the environment variables are set:
 
+Source this file:
+
 ```shell
 source ./setup-sso-variables-ad.sh
+```
 
+Echo the values for later editing:
+```shell
 echo ${CLIENT_ID}
 echo ${CLIENT_SECRET}
 echo ${TENANT_ID}
