@@ -451,30 +451,30 @@ Deploy and build each application, specifying its required parameters
 # Deploy Payment Service
 az spring app deploy --name ${PAYMENT_SERVICE_APP} \
     --config-file-pattern payment/default \
-    --source-path apps/acme-payment \
+    --source-path ../apps/acme-payment \
     --build-env BP_JVM_VERSION=17
 
 # Deploy Catalog Service
 az spring app deploy --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog/default \
-    --source-path apps/acme-catalog \
+    --source-path ../apps/acme-catalog \
     --build-env BP_JVM_VERSION=17
 
 # Deploy Order Service
 az spring app deploy --name ${ORDER_SERVICE_APP} \
     --builder ${CUSTOM_BUILDER} \
-    --source-path apps/acme-order 
+    --source-path ../apps/acme-order 
 
 # Deploy Cart Service 
 az spring app deploy --name ${CART_SERVICE_APP} \
     --builder ${CUSTOM_BUILDER} \
     --env "CART_PORT=8080" \
-    --source-path apps/acme-cart 
+    --source-path ../apps/acme-cart 
 
 # Deploy Frontend App
 az spring app deploy --name ${FRONTEND_APP} \
     --builder ${CUSTOM_BUILDER} \
-    --source-path apps/acme-shopping 
+    --source-path ../apps/acme-shopping 
 ```
 
 > Note: Deploying all applications will take 5-10 minutes
