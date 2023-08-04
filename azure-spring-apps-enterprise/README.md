@@ -430,7 +430,7 @@ az spring gateway route-config create \
 az spring gateway route-config create \
     --name ${ORDER_SERVICE_APP} \
     --app-name ${ORDER_SERVICE_APP} \
-    --routes-file ../resources/json/routes//order-service.json
+    --routes-file ../resources/json/routes/order-service.json
 
 az spring gateway route-config create \
     --name ${CATALOG_SERVICE_APP} \
@@ -440,7 +440,7 @@ az spring gateway route-config create \
 az spring gateway route-config create \
     --name ${FRONTEND_APP} \
     --app-name ${FRONTEND_APP} \
-    --routes-file ../resources/json/routes//frontend.json
+    --routes-file ../resources/json/routes/frontend.json
 ```
 
 ### Build and Deploy Polyglot Applications
