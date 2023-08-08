@@ -1010,13 +1010,15 @@ az spring app restart --name ${CATALOG_SERVICE_APP}
 #### Retrieve the PostgreSQL connection string and update the Catalog Service:
 
 ```shell
-POSTGRES_CONNECTION_STR=$(az spring connection show \
+export POSTGRES_CONNECTION_STR=$(az spring connection show \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
     --deployment default \
     --connection ${ORDER_SERVICE_DB_CONNECTION} \
     --app ${ORDER_SERVICE_APP} | jq '.configurations[0].value' -r)
+```
 
+```shell
 az spring app update \
     --name order-service \
     --env "DatabaseProvider=Postgres" "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}"
