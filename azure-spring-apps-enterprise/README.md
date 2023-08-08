@@ -1025,14 +1025,17 @@ az spring app update \
 ```
 
 #### Retrieve the Redis connection string and update the Cart Service:
+
 ```shell
-REDIS_CONN_STR=$(az spring connection show \
+export REDIS_CONN_STR=$(az spring connection show \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
     --deployment default \
     --app ${CART_SERVICE_APP} \
     --connection ${CART_SERVICE_CACHE_CONNECTION} | jq -r '.configurations[0].value')
+```
 
+```shell
 az spring app update \
     --name cart-service \
     --env "CART_PORT=8080" "REDIS_CONNECTIONSTRING=${REDIS_CONN_STR}" "AUTH_URL=https://${GATEWAY_URL}"
