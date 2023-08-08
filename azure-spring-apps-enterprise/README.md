@@ -686,7 +686,7 @@ az spring gateway update \
 
 ### Deploy the Identity Service Application
 
-Create the identity service application
+Setup, Configure, and Deploy the identity service application
 
 ```shell
 az spring app create --name ${IDENTITY_SERVICE_APP} --instance-count 1 --memory 1Gi
