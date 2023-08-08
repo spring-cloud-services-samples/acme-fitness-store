@@ -853,7 +853,7 @@ export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password t
 Make executable:
 
 ```shell
-chmod ./setup-db-env-variables.sh +x
+chmod +x ./setup-db-env-variables.sh
 ```
 
 Then, set the environment:
