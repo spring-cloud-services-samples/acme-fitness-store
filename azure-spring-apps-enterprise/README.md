@@ -973,6 +973,11 @@ az spring connection create postgres-flexible \
     --system-identity
 ```
 
+Note: When the above command is run on iOS, it will require:
+postgresql and a PostGres installed extension 'serviceconnector-passwordless' 
+to be present.  If you do not have these installed, they will be installed as a result
+of this command.
+
 After executing above command, the Azure Spring App application enables System assigned managed identity, Postgres database user will be created and assigned to the managed identity and permissions will be granted to the user.
 
 The Cart Service requires a connection to Azure Cache for Redis, create the Service Connector:
@@ -981,7 +986,7 @@ The Cart Service requires a connection to Azure Cache for Redis, create the Serv
 az spring connection create redis \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
-    --connection $CART_SERVICE_CACHE_CONNECTION \
+    --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
     --tg ${RESOURCE_GROUP} \
