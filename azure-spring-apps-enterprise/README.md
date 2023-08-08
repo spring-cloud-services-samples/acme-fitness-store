@@ -161,6 +161,19 @@ Make sure you are operating from the ./scripts folder.
 cd scripts
 ```
 
+Then:
+
+```shell
+pwd
+```
+Should show something like:
+
+```
+./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
+```
+
+
+
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
@@ -334,7 +347,7 @@ az spring application-configuration-service git repo add --name acme-fitness-sto
 ### Configure Tanzu Build Service
 
 
-Make sure you are in the ./scripts folder
+Make sure you are operating from the ./scripts folder
 
 ```shell
 pwd
@@ -788,6 +801,7 @@ echo "https://${PORTAL_URL}"
 To access the protected APIs, click Authorize and follow the steps that match your
 SSO provider. Learn more about API Authorization with API Portal [here](https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/1.0/api-portal/GUID-api-viewer.html#api-authorization)
 
+
 ## Unit 3 - Integrate with Azure Database for PostgreSQL and Azure Cache for Redis
 
 By default, several services use in-memory data storage. This unit will create persistent stores outside the applications and connect applications to those stores.
@@ -798,14 +812,34 @@ Prerequisites:
 
 ### Prepare your environment
 
+Make sure you are operating from the ./scripts folder.
+
+```shell
+cd scripts
+```
+
+Then:
+
+```shell
+pwd
+```
+Should show something like:
+
+```
+./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
+```
+
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./azure/setup-db-env-variables-template.sh ./azure/setup-db-env-variables.sh
+cp ./setup-db-env-variables-template.sh ./setup-db-env-variables.sh
 ```
 
-Open `./azure/setup-db-env-variables.sh` and enter the following information:
+```shell
+nano `./setup-db-env-variables.sh` 
+```
 
+Then enter the following information:
 ```shell
 export AZURE_CACHE_NAME=change-me                   # Unique name for Azure Cache for Redis Instance
 export POSTGRES_SERVER=change-me                    # Unique name for Azure Database for PostgreSQL Flexible Server
