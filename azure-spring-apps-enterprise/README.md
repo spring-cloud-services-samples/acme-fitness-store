@@ -864,6 +864,8 @@ source ./setup-db-env-variables.sh
 
 ### Create Azure Cache for Redis
 
+> Note: The redis cache will take around 15-20 minutes to deploy.
+
 Create an instance of Azure Cache for Redis using the Azure CLI.
 
 ```shell
@@ -875,11 +877,11 @@ az redis create \
   --vm-size c0
 ```
 
-> Note: The redis cache will take around 15-20 minutes to deploy.
+### Create An Azure Postgres Database Server
 
-### Create an Azure Database for Postgres
+> Note: The PostgreSQL Flexible Server will take 5-10 minutes to deploy
 
-Using the Azure CLI, create an Azure Database for PostgreSQL Flexible Server:
+### Using the Azure CLI, create an Azure Database for PostgreSQL Flexible Server:
 
 ```shell
 az postgres flexible-server create --name ${POSTGRES_SERVER} \
@@ -893,23 +895,29 @@ az postgres flexible-server create --name ${POSTGRES_SERVER} \
     --version 14 \
     --storage-size 32 \
     --yes
+```
+### Allow connections from other Azure Services
 
-# Allow connections from other Azure Services
+Set Firewall rules:
+
+```shell
 az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
      --name ${POSTGRES_SERVER} \
      --resource-group ${RESOURCE_GROUP} \
      --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
-     
-# Enable the uuid-ossp extension
+```
+
+### Enable the uuid-ossp extension
+
+```shell
 az postgres flexible-server parameter set \
     --resource-group ${RESOURCE_GROUP} \
     --server-name ${POSTGRES_SERVER} \
     --name azure.extensions --value uuid-ossp
 ```
 
-> Note: The PostgreSQL Flexible Server will take 5-10 minutes to deploy
 
-Create a database for the order service:
+### Create a database for the order service:
 
 ```shell
 az postgres flexible-server db create \
@@ -917,7 +925,7 @@ az postgres flexible-server db create \
   --server-name ${POSTGRES_SERVER}
 ```
 
-Create a database for the catalog service:
+### Create a database for the catalog service:
 
 ```shell
 az postgres flexible-server db create \
