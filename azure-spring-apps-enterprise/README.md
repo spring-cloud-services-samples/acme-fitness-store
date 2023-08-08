@@ -719,7 +719,7 @@ Deploy the Identity Service:
 az spring app deploy --name ${IDENTITY_SERVICE_APP} \
     --env "JWK_URI=${JWK_SET_URI}" \
     --config-file-pattern identity/default \
-    --source-path apps/acme-identity \
+    --source-path ../apps/acme-identity \
     --build-env BP_JVM_VERSION=17
 ```
 
