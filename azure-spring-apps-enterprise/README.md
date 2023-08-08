@@ -849,10 +849,17 @@ export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password t
 
 > Note: AZURE_CACHE_NAME and POSTGRES_SERVER must be unique names to avoid DNS conflicts
 
+
+Make executable:
+
+```shell
+chmod ./setup-db-env-variables.sh +x
+```
+
 Then, set the environment:
 
 ```shell
-source ./azure/setup-db-env-variables.sh
+source .setup-db-env-variables.sh
 ```
 
 ### Create Azure Cache for Redis
