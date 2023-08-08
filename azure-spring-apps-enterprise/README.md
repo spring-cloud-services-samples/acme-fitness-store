@@ -859,7 +859,7 @@ chmod +x ./setup-db-env-variables.sh
 Then, set the environment:
 
 ```shell
-source .setup-db-env-variables.sh
+source ./setup-db-env-variables.sh
 ```
 
 ### Create Azure Cache for Redis
