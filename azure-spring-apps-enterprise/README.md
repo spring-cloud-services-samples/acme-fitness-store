@@ -710,7 +710,7 @@ Create routing rules for the identity service application
 az spring gateway route-config create \
     --name ${IDENTITY_SERVICE_APP} \
     --app-name ${IDENTITY_SERVICE_APP} \
-    --routes-file azure/routes/identity-service.json
+    --routes-file ../resources/json/ad.json
 ```
 
 Deploy the Identity Service:
