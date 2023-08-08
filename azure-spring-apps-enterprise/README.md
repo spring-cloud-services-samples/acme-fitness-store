@@ -939,8 +939,8 @@ az postgres flexible-server db create \
 
 The Order Service and Catalog Service use Azure Database for Postgres create Service Connectors for those applications:
 
+Bind order service to Postgres
 ```shell
-# Bind order service to Postgres
 az spring connection create postgres-flexible \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
@@ -955,8 +955,10 @@ az spring connection create postgres-flexible \
 ```
 
 Catalog service uses Azure AD authentication to connect to Postgres, so it is not required to include the password
-```shell
+
 # Bind catalog service to Postgres
+
+```shell
 az spring connection create postgres-flexible \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
