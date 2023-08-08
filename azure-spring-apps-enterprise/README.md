@@ -1007,7 +1007,8 @@ Restart the Catalog Service for the Service Connector to take effect:
 az spring app restart --name ${CATALOG_SERVICE_APP}
 ```
 
-Retrieve the PostgreSQL connection string and update the Catalog Service:
+#### Retrieve the PostgreSQL connection string and update the Catalog Service:
+
 ```shell
 POSTGRES_CONNECTION_STR=$(az spring connection show \
     --resource-group ${RESOURCE_GROUP} \
@@ -1021,7 +1022,7 @@ az spring app update \
     --env "DatabaseProvider=Postgres" "ConnectionStrings__OrderContext=${POSTGRES_CONNECTION_STR}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}"
 ```
 
-Retrieve the Redis connection string and update the Cart Service:
+#### Retrieve the Redis connection string and update the Cart Service:
 ```shell
 REDIS_CONN_STR=$(az spring connection show \
     --resource-group ${RESOURCE_GROUP} \
