@@ -8,3 +8,9 @@ export ORDER_SERVICE_DB='acmefit_order'
 export ORDER_SERVICE_DB_CONNECTION='order_service_db'
 export CATALOG_SERVICE_DB='acmefit_catalog'
 export CATALOG_SERVICE_DB_CONNECTION='catalog_service_db'
+
+echo $AZURE_CACHE_NAME
+echo $POSTGRES_SERVER
+echo $POSTGRES_SERVER_USER
+echo $POSTGRES_SERVER_PASSWORD
+
