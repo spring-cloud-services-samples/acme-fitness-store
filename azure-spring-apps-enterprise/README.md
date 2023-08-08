@@ -177,7 +177,7 @@ Should show something like:
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp setup-env-variables-template.sh setup-env-variables.sh
+cp ./setup-env-variables-template.sh ./setup-env-variables.sh
 ```
 
 Using an editor of your choice, edit the file, (for the purposes of example we will use the nano editor), and add the following values.
@@ -635,7 +635,7 @@ Should return something like:
 Next, make a copy of setup-sso-variables-template.sh for your custom values.
 
 ```shell
-cp setup-sso-variables-template.sh setup-sso-variables.sh
+cp ./setup-sso-variables-template.sh ./setup-sso-variables.sh
 ```
 
 Echo the following values:
