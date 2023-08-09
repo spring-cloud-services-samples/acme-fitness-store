@@ -205,7 +205,7 @@ Then set the subscription (the script above does this for you as well)
 az account set --subscription ${SUBSCRIPTION}
 ```
 
-> Note: Though-out this exercise, there are multiple times where you will create a script from a template, fill in your values, then 'source' that script.  If you have to step way or your session disconnects/expires before you complete the workshop, you will need to re-run these scripts (ie 're-source') after you 'az login' again, so that you can set the environment variables again.   There is a 'cumulative' script that you can run that run the common setup scripts (4), as long as you follow our naming below:
+> Note: Though-out this exercise, there are multiple times where you will create a script from a template, fill in your values, then 'source' that script.  If you have to step way or your session disconnects/expires before you complete the workshop, you will need to re-run these scripts (ie 're-source') after you 'az login' again, so that you can set the environment variables again.   There is a (One) 'cumulative' script that you can run, which will then call other setup scripts(4), as long as you follow our naming below:
 ```
 ./setup-env-variables.sh
 ./setup-sso-variables-ad.sh
