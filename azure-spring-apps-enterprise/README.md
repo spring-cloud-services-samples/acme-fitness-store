@@ -1031,8 +1031,8 @@ export REDIS_CONN_STR=$(az spring connection show \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
     --deployment default \
-    --app ${CART_SERVICE_APP} \
-    --connection ${CART_SERVICE_CACHE_CONNECTION} | jq -r '.configurations[0].value')
+    --connection ${CART_SERVICE_CACHE_CONNECTION} \
+    --app ${CART_SERVICE_APP} | jq -r '.configurations[0].value')
 ```
 
 ```shell
