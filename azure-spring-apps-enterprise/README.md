@@ -448,7 +448,7 @@ az spring gateway update \
     --no-wait
 ```
 
-Create  routing rules for the applications:
+#### Create  routing rules for the applications:
 
 ```shell
 az spring gateway route-config create \
@@ -570,13 +570,13 @@ Choose a unique display name for your Application Registration.
 export AD_DISPLAY_NAME=change-me    # unique application display name
 ```
 
-Create an Application registration with Azure AD and save the output.
+#### Create an Application registration with Azure AD and save the output.
 
 ```shell
 az ad app create --display-name ${AD_DISPLAY_NAME} > ../resources/json/ad.json
 ```
 
-Retrieve the Application ID and collect the client secret:
+#### Retrieve the Application ID and collect the client secret:
 
 ```shell
 export APPLICATION_ID=$(cat ../resources/json/ad.json | jq -r '.appId')
@@ -584,7 +584,7 @@ export APPLICATION_ID=$(cat ../resources/json/ad.json | jq -r '.appId')
 az ad app credential reset --id ${APPLICATION_ID} --append > ../resources/json/sso.json
 ```
 
-Assign a Service Principal to the Application Registration:
+#### Assign a Service Principal to the Application Registration:
 
 ```shell
 az ad sp create --id ${APPLICATION_ID}
@@ -602,7 +602,8 @@ Source this file:
 source ./setup-sso-variables-ad.sh
 ```
 
-Echo the following values:
+#### Echo the following values:
+
 ```shell
 echo ${CLIENT_ID}
 echo ${CLIENT_SECRET}
@@ -612,12 +613,12 @@ echo ${GATEWAY_URL}
 echo ${PORTAL_URL}
 ```
 
-Verify:
+#### Verify:
 
 The `ISSUER_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/v2.0`
 The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/discovery/v2.0/keys`
 
-Add the necessary web redirect URIs to the Azure AD Application Registration:
+#### Add the necessary web redirect URIs to the Azure AD Application Registration:
 
 ```shell
 az ad app update --id ${APPLICATION_ID} \
@@ -669,25 +670,25 @@ export ISSUER_URI="change-me"       # Your SSO Provider Issuer URI
 export JWK_SET_URI="change-me"      # Your SSO Provider Json Web Token URI
 ```
 
-The `issuer-uri` configuration should follow Spring Boot convention, as described in the official Spring Boot documentation:
+> The `issuer-uri` configuration should follow Spring Boot convention, as described in the official Spring Boot documentation:
 The provider needs to be configured with an issuer-uri which is the URI that the it asserts as its Issuer Identifier. For example, if the issuer-uri provided is "https://example.com", then an OpenID Provider Configuration Request will be made to "https://example.com/.well-known/openid-configuration". The result is expected to be an OpenID Provider Configuration Response.
 Note that only authorization servers supporting OpenID Connect Discovery protocol can be used
 
-The `JWK_SET_URI` typically takes the form `${ISSUER_URI}/$VERSION/keys`
+>The `JWK_SET_URI` typically takes the form `${ISSUER_URI}/$VERSION/keys`
 
-Set your copy as "executable".
+#### Set your copy as "executable".
 
 ```shell
 chmod +x setup-sso-variables.sh
 ```
 
-Set the environment:
+#### Set the environment:
 
 ```shell
 source setup-sso-variables.sh
 ```
 
-Add the following to your SSO provider's list of approved redirect URIs:
+#### Add the following to your SSO provider's list of approved redirect URIs:
 
 ```shell
 echo "https://${GATEWAY_URL}/login/oauth2/code/sso"
@@ -697,7 +698,7 @@ echo "https://${PORTAL_URL}/login/oauth2/code/sso"
 
 ### Configure Spring Cloud Gateway with SSO
 
-Configure Spring Cloud Gateway with SSO enabled:
+#### Configure Spring Cloud Gateway with SSO enabled:
 
 ```shell
 az spring gateway update \
@@ -710,25 +711,25 @@ az spring gateway update \
 
 ### Deploy the Identity Service Application
 
-Setup, Configure, and Deploy the identity service application
+#### Setup, Configure, and Deploy the identity service application
 
 ```shell
 az spring app create --name ${IDENTITY_SERVICE_APP} --instance-count 1 --memory 1Gi
 ```
 
-Bind the identity service to Application Configuration Service
+#### Bind the identity service to Application Configuration Service
 
 ```shell
 az spring application-configuration-service bind --app ${IDENTITY_SERVICE_APP}
 ```
 
-Bind the identity service to Service Registry.
+#### Bind the identity service to Service Registry.
 
 ```shell
 az spring service-registry bind --app ${IDENTITY_SERVICE_APP}
 ```
 
-Create routing rules for the identity service application
+#### Create routing rules for the identity service application
 
 ```shell
 az spring gateway route-config create \
@@ -737,7 +738,7 @@ az spring gateway route-config create \
     --routes-file ../resources/json/routes/identity-service.json
 ```
 
-Deploy the Identity Service:
+#### Deploy the Identity Service:
 
 ```shell
 az spring app deploy --name ${IDENTITY_SERVICE_APP} \
@@ -777,7 +778,7 @@ If using Azure Cloud Shell or Windows, open the output from the following comman
 echo "https://${GATEWAY_URL}"
 ```
 
-You should see the ACME Fitness Store Application, and be able to log in using your
+> You should see the ACME Fitness Store Application, and be able to log in using your
 SSO Credentials. Once logged in, the remaining functionality of the application will
 be available. This includes adding items to the cart and placing an order.
 
@@ -809,7 +810,7 @@ If using Azure Cloud Shell or Windows, open the output from the following comman
 echo "https://${PORTAL_URL}"
 ```
 
-To access the protected APIs, click Authorize and follow the steps that match your
+> To access the protected APIs, click Authorize and follow the steps that match your
 SSO provider. Learn more about API Authorization with API Portal [here](https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/1.0/api-portal/GUID-api-viewer.html#api-authorization)
 
 
@@ -840,7 +841,7 @@ Should show something like:
 ./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
 ```
 
-Create a bash script with environment variables by making a copy of the supplied template:
+#### Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
 cp ./setup-db-env-variables-template.sh ./setup-db-env-variables.sh
@@ -850,7 +851,8 @@ cp ./setup-db-env-variables-template.sh ./setup-db-env-variables.sh
 nano `./setup-db-env-variables.sh` 
 ```
 
-Then enter the following information:
+#### Then enter the following information:
+
 ```shell
 export AZURE_CACHE_NAME=change-me                   # Unique name for Azure Cache for Redis Instance
 export POSTGRES_SERVER=change-me                    # Unique name for Azure Database for PostgreSQL Flexible Server
@@ -861,13 +863,13 @@ export POSTGRES_SERVER_PASSWORD=change-name         # Postgres server password t
 > Note: AZURE_CACHE_NAME and POSTGRES_SERVER must be unique names to avoid DNS conflicts
 
 
-Make executable:
+#### Make executable:
 
 ```shell
 chmod +x ./setup-db-env-variables.sh
 ```
 
-Then, set the environment:
+#### Then, set the environment:
 
 ```shell
 source ./setup-db-env-variables.sh
@@ -877,7 +879,7 @@ source ./setup-db-env-variables.sh
 
 > Note: The redis cache will take around 15-20 minutes to deploy.
 
-Create an instance of Azure Cache for Redis using the Azure CLI.
+#### Create an instance of Azure Cache for Redis using the Azure CLI.
 
 ```shell
 az redis create \
@@ -909,7 +911,7 @@ az postgres flexible-server create --name ${POSTGRES_SERVER} \
 ```
 ### Allow connections from other Azure Services
 
-Set Firewall rules:
+#### Set Firewall rules:
 
 ```shell
 az postgres flexible-server firewall-rule create --rule-name allAzureIPs \
@@ -950,7 +952,7 @@ az postgres flexible-server db create \
 
 The Order Service and Catalog Service use Azure Database for Postgres create Service Connectors for those applications:
 
-Bind order service to Postgres
+#### Bind order service to Postgres
 
 ```shell
 az spring connection create postgres-flexible \
@@ -968,7 +970,7 @@ az spring connection create postgres-flexible \
 
 Catalog service uses Azure AD authentication to connect to Postgres, so it is not required to include the password
 
-Bind catalog service to Postgres
+#### Bind catalog service to Postgres
 
 ```shell
 az spring connection create postgres-flexible \
@@ -984,14 +986,14 @@ az spring connection create postgres-flexible \
     --system-identity
 ```
 
-Note: When the above command is run on iOS, it will require:
+>Note: When the above command is run on iOS, it will require:
 postgresql and a PostGres installed extension 'serviceconnector-passwordless' 
 to be present.  If you do not have these installed, they will be installed as a result
 of this command.
 
-After executing above command, the Azure Spring App application enables System assigned managed identity, Postgres database user will be created and assigned to the managed identity and permissions will be granted to the user.
+>After executing above command, the Azure Spring App application enables System assigned managed identity, Postgres database user will be created and assigned to the managed identity and permissions will be granted to the user.
 
-The Cart Service requires a connection to Azure Cache for Redis, create the Service Connector:
+#### The Cart Service requires a connection to Azure Cache for Redis, create the Service Connector:
 
 ```shell
 az spring connection create redis \
@@ -1013,7 +1015,7 @@ az spring connection create redis \
 
 Next, update the affected applications to use the newly created databases and redis cache.
 
-Restart the Catalog Service for the Service Connector to take effect:
+#### Restart the Catalog Service for the Service Connector to take effect:
 ```shell
 az spring app restart --name ${CATALOG_SERVICE_APP}
 ```
@@ -1060,17 +1062,17 @@ Verify cart data is now persisted in Redis by adding a few items to your cart. T
 az spring app restart --name ${CART_SERVICE_APP}
 ```
 
-Notice that after restarting the cart service, the items in your cart will now persist.
+>Notice that after restarting the cart service, the items in your cart will now persist.
 
-Verify order data is now persisted in a PostgreSQL Database by placing an order. View your placed orders with the following URL:
+#### Verify order data is now persisted in a PostgreSQL Database by placing an order. View your placed orders with the following URL:
 
 ```text
 https://${GATEWAY_URL}/order/${USER_ID}
 ```
 
-Your USER_ID is your username URL encoded.
+>Your USER_ID is your username URL encoded.
 
-Now restart the order service application:
+#### Now restart the order service application:
 
 ```shell
 az spring app restart --name ${ORDER_SERVICE_APP}
@@ -1095,18 +1097,20 @@ Choose a unique name for your Key Vault and set an environment variable:
 export KEY_VAULT=change-me      # customize this
 ```
 
-Create an Azure Key Vault and store connection secrets.
+#### Create an Azure Key Vault and store connection secrets.
 
 ```shell
 az keyvault create --name ${KEY_VAULT} -g ${RESOURCE_GROUP}
 export KEYVAULT_URI=$(az keyvault show --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
 ```
 
-Store database connection secrets in Key Vault.
+#### Store database connection secrets in Key Vault.
 
 ```shell
 export POSTGRES_SERVER_FULL_NAME="${POSTGRES_SERVER}.postgres.database.azure.com"
+```
 
+```shell
 az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-SERVER-NAME" --value ${POSTGRES_SERVER_FULL_NAME}
 
@@ -1123,20 +1127,21 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-LOGIN-PASSWORD" --value ${POSTGRES_SERVER_PASSWORD}
 ```
 
-Retrieve and store redis connection secrets in Key Vault.
+#### Retrieve and store redis connection secrets in Key Vault.
 
 ```shell
 az redis show -n ${AZURE_CACHE_NAME} > redis.json
 export REDIS_HOST=$(cat redis.json | jq -r '.hostName')
 export REDIS_PORT=$(cat redis.json | jq -r '.sslPort')
-
 export REDIS_PRIMARY_KEY=$(az redis list-keys -n ${AZURE_CACHE_NAME} | jq -r '.primaryKey')
+```
 
+```shell
 az keyvault secret set --vault-name ${KEY_VAULT} \
   --name "CART-REDIS-CONNECTION-STRING" --value "rediss://:${REDIS_PRIMARY_KEY}@${REDIS_HOST}:${REDIS_PORT}/0"
 ```
 
-Store SSO Secrets in Key Vault.
+#### Store SSO Secrets in Key Vault.
 
 ```shell
 az keyvault secret set --vault-name ${KEY_VAULT} \
@@ -1145,7 +1150,7 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
 
 > Note: Creating the SSO-PROVIDER-JWK-URI Secret can be skipped if not configuring Single Sign On
 
-Enable System Assigned Identities for applications and export identities to environment.
+#### Enable System Assigned Identities for applications and export identities to environment.
 
 ```shell
 az spring app identity assign --name ${CART_SERVICE_APP}
@@ -1161,7 +1166,7 @@ az spring app identity assign --name ${IDENTITY_SERVICE_APP}
 export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} | jq -r '.identity.principalId')
 ```
 
-Add an access policy to Azure Key Vault to allow Managed Identities to read secrets.
+#### Add an access policy to Azure Key Vault to allow Managed Identities to read secrets.
 
 ```shell
 az keyvault set-policy --name ${KEY_VAULT} \
@@ -1181,7 +1186,7 @@ az keyvault set-policy --name ${KEY_VAULT} \
 
 ### Activate applications to load secrets from Azure Key Vault
 
-Delete Service Connectors and activate applications to load secrets from Azure Key Vault.
+#### Delete Service Connectors and activate applications to load secrets from Azure Key Vault.
 
 ```shell
 az spring connection delete \
@@ -1191,7 +1196,9 @@ az spring connection delete \
     --app ${ORDER_SERVICE_APP} \
     --deployment default \
     --yes 
+```
 
+```shell
 az spring connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
@@ -1199,26 +1206,36 @@ az spring connection delete \
     --app ${CATALOG_SERVICE_APP} \
     --deployment default \
     --yes 
+```
 
+```shell
 az spring connection delete \
     --resource-group ${RESOURCE_GROUP} \
     --service ${SPRING_APPS_SERVICE} \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
-    --yes 
-    
+    --yes     
+```
+
+```shell    
 az spring app update --name ${ORDER_SERVICE_APP} \
     --env "ConnectionStrings__KeyVaultUri=${KEYVAULT_URI}" "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" "DatabaseProvider=Postgres"
+```
 
+```shell
 az spring app update --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog/default,catalog/key-vault \
     --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
-  
+```
+
+```shell  
 az spring app update --name ${IDENTITY_SERVICE_APP} \
     --config-file-pattern identity/default,identity/key-vault \
     --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
-    
+```
+
+```shell    
 az spring app update --name ${CART_SERVICE_APP} \
     --env "CART_PORT=8080" "KEYVAULT_URI=${KEYVAULT_URI}" "AUTH_URL=https://${GATEWAY_URL}"
 ```
@@ -1263,9 +1280,7 @@ az spring build-service builder buildpack-binding set \
 
 ### Reload Applications
 
-Restart applications to reload configuration. For the Java applications, this will allow the new
-sampling rate to take effect. For the non-java applications, this will allow them to access
-the Instrumentation Key from Key Vault. 
+Restart applications to reload configuration. For the Java applications, this will allow the new sampling rate to take effect. For the non-java applications, this will allow them to access the Instrumentation Key from Key Vault. 
 
 ```shell
 az spring app restart -n ${CART_SERVICE_APP}
@@ -1311,23 +1326,25 @@ Continue on to the next sections while the traffic generator runs.
 
 ### Start monitoring apps and dependencies - in Application Insights
 
-Open the Application Insights created by Azure Spring Apps and start monitoring Spring Boot applications. 
-You can find the Application Insights in the same Resource Group where you created an Azure Spring Apps service instance.
+Open the Application Insights created by Azure Spring Apps and start monitoring Spring Boot applications.  You can find the Application Insights in the same Resource Group where you created an Azure Spring Apps service instance.
 
-Navigate to the `Application Map` blade:
+#### Navigate to the `Application Map` blade:
 
 ![An image showing the Application Map of Azure Application Insights](media/fitness-store-application-map.jpg)
 
-Navigate to the `Peforamnce` blade:
+#### Navigate to the `Peformance` blade:
 
 ![An image showing the Performance Blade of Azure Application Insights](media/performance.jpg)
 
-Navigate to the `Performance/Dependenices` blade - you can see the performance number for dependencies,
-particularly SQL calls:
+#### Navigate to the `Performance/Dependenices` blade:
+
+You can see the performance number for dependencies, particularly SQL calls:
 
 ![An image showing the Dependencies section of the Performance Blade of Azure Application Insights](media/performance_dependencies.jpg)
 
-Navigate to the `Performance/Roles` blade - you can see the performance metrics for individual instances or roles:
+#### Navigate to the `Performance/Roles` blade:
+
+You can see the performance metrics for individual instances or roles:
 
 ![An image showing the Roles section of the Performance Blade of Azure Application Insights](media/fitness-store-roles-in-performance-blade.jpg)
 
@@ -1335,11 +1352,15 @@ Click on a SQL call to see the end-to-end transaction in context:
 
 ![An image showing the end-to-end transaction of a SQL call](media/fitness-store-end-to-end-transaction-details.jpg)
 
-Navigate to the `Failures` blade and the `Exceptions` panel - you can see a collection of exceptions:
+#### Navigate to the `Failures` and the `Exceptions` blade: 
+
+You can see a collection of exceptions:
 
 ![An image showing application failures graphed](media/fitness-store-exceptions.jpg)
 
-Navigate to the `Metrics` blade - you can see metrics contributed by Spring Boot apps,
+#### Navigate to the `Metrics` blade: 
+
+You can see metrics contributed by Spring Boot apps,
 Spring Cloud modules, and dependencies.
 The chart below shows `http_server_requests` and `Heap Memory Used`.
 
@@ -1347,6 +1368,7 @@ The chart below shows `http_server_requests` and `Heap Memory Used`.
 
 Spring Boot registers a lot number of core metrics: JVM, CPU, Tomcat, Logback...
 The Spring Boot auto-configuration enables the instrumentation of requests handled by Spring MVC.
+
 The REST controllers `ProductController`, and `PaymentController` have been instrumented by the `@Timed` Micrometer annotation at class level.
 
 * `acme-catalog` application has the following custom metrics enabled:
@@ -1354,11 +1376,13 @@ The REST controllers `ProductController`, and `PaymentController` have been inst
 * `acem-payment` application has the following custom metrics enabled:
   * @Timed: `store.payment`
 
-You can see these custom metrics in the `Metrics` blade:
+#### You can see these custom metrics in the `Metrics` blade:
 
 ![An image showing custom metrics instrumented by Micrometer](media/fitness-store-custom-metrics-with-payments-2.jpg)
 
-Navigate to the `Live Metrics` blade - you can see live metrics on screen with low latencies < 1 second:
+#### Navigate to the `Live Metrics` blade: 
+
+You can see live metrics on screen with low latencies < 1 second:
 
 ![An image showing the live metrics of all applications](media/live-metrics.jpg)
 
@@ -1370,7 +1394,7 @@ Resource Group where you created an Azure Spring Apps service instance.
 In the Log Analytics page, selects `Logs` blade and run any of the sample queries supplied below
 for Azure Spring Apps.
 
-Type and run the following Kusto query to see application logs:
+#### Type and run the following Kusto query to see application logs:
 
 ```sql
     AppPlatformLogsforSpring 
@@ -1382,7 +1406,7 @@ Type and run the following Kusto query to see application logs:
 
 ![Example output from all application logs query](media/all-app-logs-in-log-analytics.jpg)
 
-Type and run the following Kusto query to see `catalog-service` application logs:
+#### Type and run the following Kusto query to see `catalog-service` application logs:
 
 ```sql
     AppPlatformLogsforSpring 
@@ -1394,7 +1418,8 @@ Type and run the following Kusto query to see `catalog-service` application logs
 
 ![Example output from catalog service logs](media/catalog-app-logs-in-log-analytics.jpg)
 
-Type and run the following Kusto query to see errors and exceptions thrown by each app:
+#### Type and run the following Kusto query to see errors and exceptions thrown by each app:
+
 ```sql
     AppPlatformLogsforSpring 
     | where Log contains "error" or Log contains "exception"
@@ -1406,7 +1431,7 @@ Type and run the following Kusto query to see errors and exceptions thrown by ea
 
 ![An example output from the Ingress Logs](media/ingress-logs-in-log-analytics.jpg)
 
-Type and run the following Kusto query to see all in the inbound calls into Azure Spring Apps:
+#### Type and run the following Kusto query to see all in the inbound calls into Azure Spring Apps:
 
 ```sql
     AppPlatformIngressLogs
@@ -1414,7 +1439,7 @@ Type and run the following Kusto query to see all in the inbound calls into Azur
     | sort by TimeGenerated
 ```
 
-Type and run the following Kusto query to see all the logs from Spring Cloud Gateway managed by Azure Spring Apps:
+#### Type and run the following Kusto query to see all the logs from Spring Cloud Gateway managed by Azure Spring Apps:
 
 ```sql
     AppPlatformSystemLogs
@@ -1424,7 +1449,7 @@ Type and run the following Kusto query to see all the logs from Spring Cloud Gat
 
 ![An example out from the Spring Cloud Gateway Logs](media/spring-cloud-gateway-logs-in-log-analytics.jpg)
 
-Type and run the following Kusto query to see all the logs from Spring Cloud Service Registry managed by Azure Spring Apps:
+#### Type and run the following Kusto query to see all the logs from Spring Cloud Service Registry managed by Azure Spring Apps:
 
 ```sql
     AppPlatformSystemLogs
@@ -1453,7 +1478,7 @@ When defining a Route, you can add the RateLimit filter by including it in the l
 * (Optional) User partition key: it's also possible to apply rate limiting per user, that is, different users can have its own throughput allowed based on an identifier found in the request. Set whether the key is in a JWT claim or HTTP header with '' or '' syntax.
 * (Optional) It is possible to rate limit by IP addresses. Note, this cannot be combined with the rate limiting per user.
 
-The following example would limit all users to two requests every 5 seconds to the `/products` route:
+#### The following example would limit all users to two requests every 5 seconds to the `/products` route:
 
 ```json
 {
@@ -1550,14 +1575,14 @@ To get started with deploying this sample app from GitHub Actions, please:
 
 Now you will create a Storage Account for maintaining terraform state as part of GitHub Actions.
 
-Prepare your environment for creating a Storage Account:
+#### Prepare your environment for creating a Storage Account:
 
 ```shell
 export STORAGE_RESOURCE_GROUP=customize-this      # different resource group from previous steps
 export STORAGE_ACCOUNT_NAME=customize-this        # choose a name for your storage account
 ```
 
-Create a resource group to hold the Storage Account:
+#### Create a resource group to hold the Storage Account:
 
 ```shell
 az group create \
@@ -1565,7 +1590,7 @@ az group create \
   --location ${REGION}
 ```
 
-Create a Storage Account:
+#### Create a Storage Account:
 
 ```shell
 az storage account create \
@@ -1576,7 +1601,7 @@ az storage account create \
   --kind StorageV2
 ```
 
-Create a Storage Container within the Storage Account:
+#### Create a Storage Container within the Storage Account:
 
 ```shell
 az storage container create \
@@ -1585,15 +1610,13 @@ az storage container create \
     --auth-mode login
 ```
 
-### Create a Service Principal
-
-Create a service principal with enough scope/role to manage your Azure Spring Apps instance:
+#### Create a service principal with enough scope/role to manage your Azure Spring Apps instance:
 
 ```shell
     az ad sp create-for-rbac --role contributor --scopes /subscriptions/${SUBSCRIPTION} --sdk-auth
 ```
 
-With results:
+#### With results:
 
 ```json
     {
