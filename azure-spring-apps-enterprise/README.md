@@ -154,7 +154,6 @@ from this table, please make note of the SubscriptionId you would like to use
 
 ### Prepare your environment for deployments
 
-
 Make sure you are operating from the ./scripts folder.
 
 ```shell
@@ -171,8 +170,6 @@ Should show something like:
 ```
 ./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
 ```
-
-
 
 Create a bash script with environment variables by making a copy of the supplied template:
 
@@ -202,9 +199,23 @@ Then, set the environment:
 ```shell
 source ./setup-env-variables.sh
 ```
-and then set the subscription (the script above does this for you as well)
+
+Then set the subscription (the script above does this for you as well)
 ```shell
 az account set --subscription ${SUBSCRIPTION}
+```
+
+> Note: Though-out this exercise, there are multiple times where you will create a script from a template, fill in your values, then 'source' that script.  If you have to step way or your session disconnects/expires before you complete the workshop, you will need to re-run these scripts (ie 're-source') after you 'az login' again, so that you can set the environment variables again.   There is a 'cumulative' script that you can run that run the common setup scripts (4), as long as you follow our naming below:
+```
+./setup-env-variables.sh
+./setup-sso-variables-ad.sh
+./setup-sso-variables.sh
+./setup-db-env-variables.sh 
+```
+
+> This script can be found at:
+```
+./scripts/setup-env-variables-ALL.sh
 ```
 
 ### Create Azure Spring Apps service instance
