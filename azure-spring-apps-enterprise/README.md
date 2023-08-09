@@ -213,7 +213,7 @@ az account set --subscription ${SUBSCRIPTION}
 ./setup-db-env-variables.sh 
 ```
 
-> This script can be found at:
+> This cumulative script can be found at:
 ```
 ./scripts/setup-env-variables-ALL.sh
 ```
