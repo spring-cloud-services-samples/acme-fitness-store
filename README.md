@@ -11,7 +11,7 @@ description: "Deploy Microservice Apps to Azure"
 urlFragment: "acme-fitness-store"
 ---
 
-# Deploy Spring Boot Apps to Azure
+# Deploy Spring Boot Apps to Azure Spring Apps Enterprise
 
 Azure Spring Apps Enterprise enables you to easily run Spring Boot and polyglot applications on Azure.
 
