@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform
+        working-directory: azure-spring-apps-enterprise/terraform
     steps:
       - uses: actions/checkout@v3
       - name: Set up Credentials and Terraform Backend
