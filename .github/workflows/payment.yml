@@ -6,7 +6,7 @@ on:
     branches:
       - Azure
     paths:
-      - 'apps/acme-payment/**'
+      - 'azure-spring-apps-enterprise/apps/acme-payment/**'
 env:
   SPRING_APPS_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asa
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-grp
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/acme-payment
+        working-directory: azure-spring-apps-enterprise/apps/acme-payment
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -31,7 +31,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
-          build-root-directory: apps/acme-payment
+          build-root-directory: azure-spring-apps-enterprise/apps/acme-payment
       - name: Set up Azure
         uses: azure/login@v1
         with:

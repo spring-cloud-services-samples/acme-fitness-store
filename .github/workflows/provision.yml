@@ -6,9 +6,9 @@ on:
     branches:
       - Azure
     paths:
-      - 'terraform/**'
-      - 'azure/builder.json'
-      - 'azure/routes/**'
+      - 'azure-spring-apps-enterprise/terraform/**'
+      - 'azure-spring-apps-enterprise/resources/json/tbs/builder.json'
+      - 'azure-spring-apps-enterprise/resources/json/routes/**'
 env:
   SPRING_APPS_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asa
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-grp

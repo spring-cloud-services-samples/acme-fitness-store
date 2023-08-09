@@ -6,7 +6,7 @@ on:
     branches:
       - Azure
     paths:
-      - 'apps/acme-catalog/**'
+      - 'azure-spring-apps-enterprise/apps/acme-catalog/**'
 env:
   SPRING_APPS_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asa
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-grp
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/acme-catalog
+        working-directory: azure-spring-apps-enterprise/apps/acme-catalog
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -32,7 +32,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
-          build-root-directory: apps/acme-catalog
+          build-root-directory: azure-spring-apps-enterprise/apps/acme-catalog
       - name: Set up Azure
         uses: azure/login@v1
         with:

@@ -6,7 +6,7 @@ on:
     branches:
       - Azure
     paths:
-      - 'apps/acme-order/**'
+      - 'azure-spring-apps-enterprise/apps/acme-order/**'
 env:
   SPRING_APPS_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asa
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-grp
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/acme-order
+        working-directory: azure-spring-apps-enterprise/apps/acme-order
     steps:
       - uses: actions/checkout@v3
       - name: Set up .NET Core SDK

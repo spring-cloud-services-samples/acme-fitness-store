@@ -6,7 +6,7 @@ on:
     branches:
       - Azure
     paths:
-      - 'apps/acme-cart/**'
+      - 'azure-spring-apps-enterprise/apps/acme-cart/**'
 env:
   SPRING_APPS_SERVICE: ${{ secrets.TF_PROJECT_NAME }}-asa
   RESOURCE_GROUP: ${{ secrets.TF_PROJECT_NAME }}-grp
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/acme-cart
+        working-directory: azure-spring-apps-enterprise/apps/acme-cart
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
