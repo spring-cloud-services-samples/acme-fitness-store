@@ -4,7 +4,7 @@ on:
     inputs: { }
 
 jobs:
-  destory:
+  destroy:
     runs-on: ubuntu-latest
     defaults:
       run:
