@@ -51,4 +51,5 @@ jobs:
             --service "$SPRING_APPS_SERVICE" \
             --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${keyvault_uri}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault" \
             --config-file-pattern catalog/default,catalog/key-vault \
+            --build-env BP_JVM_VERSION=17 \
             --source-path ./
