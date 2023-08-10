@@ -1676,18 +1676,59 @@ az ad sp create-for-rbac --name "change-me" \
 
 ### Add Secrets to GitHub Actions
 
+> Detailed instructions for adding secrets to GitHub Actions can be found [here](https://docs.microsoft.com/azure/spring-cloud/how-to-github-actions?pivots=programming-language-java#set-up-github-repository-and-authenticate-1).
+
 Add the following secrets to GitHub Actions:
 
-* `AZURE_CREDENTIALS` - using the json result from creating the Service Principal in the previous step.
-* `TF_PROJECT_NAME` - with the value of your choosing. This will be the name of your Terraform Project
-* `AZURE_LOCATION` - this is the Azure Region your resources will be created in.
-* `OIDC_JWK_SET_URI` - use the `JWK_SET_URI` defined in [Unit 2](#unit-2---configure-single-sign-on)
-* `OIDC_CLIENT_ID` - use the `CLIENT_ID` defined in [Unit 2](#unit-2---configure-single-sign-on)
-* `OIDC_CLIENT_SECRET` - use the `CLIENT_SECRET` defined in [Unit 2](#unit-2---configure-single-sign-on)
-* `OIDC_ISSUER_URI` - use the `ISSUER_URI` defined in [Unit 2](#unit-2---configure-single-sign-on)
+#### Create the Service Principal Secret with JSON from previous step.
+```text
+AZURE_CREDENTIALS
+```
 
-Add the secret `TF_BACKEND_CONFIG` to GitHub Actions with the value (replacing `${STORAGE_ACCOUNT_NAME}` and `${STORAGE_RESOURCE_GROUP}`):
+#### Create your Terraform Project Name Secret, with the value of your choosing. 
+```text
+TF_PROJECT_NAME
+```
 
+#### Create your Azure Location Secret, with Region your resources will be created in.
+This is also available as an Environment Variable.
+```text
+AZURE_LOCATION
+```
+
+#### Create your OIDC_JWK_SET_URI Secret, with use the `JWK_SET_URI` 
+Defined in [Unit 2](#unit-2---configure-single-sign-on), also available as an Environment Variable.
+```text
+OIDC_JWK_SET_URI
+```
+
+#### Create your OIDC_CLIENT_ID Secret, with use the `CLIENT_ID` 
+Defined in [Unit 2](#unit-2---configure-single-sign-on), also available as an Environment Variable.
+```text
+OIDC_CLIENT_ID
+```
+
+#### Create your OIDC_CLIENT_SECRET Secret, with use the `CLIENT_SECRET` 
+Defined in [Unit 2](#unit-2---configure-single-sign-on), also available as an Environment Variable.
+```text
+OIDC_CLIENT_SECRET
+```
+
+#### Create your OIDC_ISSUER_URI Secret, with use the `ISSUER_URI`
+Defined in [Unit 2](#unit-2---configure-single-sign-on), also available as an Environment Variable.
+```text
+OIDC_ISSUER_URI
+```
+
+#### Create your TF_BACKEND_CONFIG Secret
+Using the key & value from the blocks below. Replacing the values STORAGE_ACCOUNT_NAME and STORAGE_RESOURCE_GROUP with your current values from the environment variables.
+
+Secret Key:
+```text
+TF_BACKEND_CONFIG
+```
+
+Secret Value:
 ```text
 resource_group_name  = "${STORAGE_RESOURCE_GROUP}"
 storage_account_name = "${STORAGE_ACCOUNT_NAME}"
