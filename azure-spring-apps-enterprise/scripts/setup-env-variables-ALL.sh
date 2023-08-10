@@ -4,7 +4,7 @@
 
   #set -x	
 
-	scriptz_array='[{"scriptName":"./setup-env-variables.sh"},{"scriptName":"./setup-sso-variables-ad.sh"},{"scriptName":"./setup-sso-variables.sh"},{"scriptName":"./setup-db-env-variables.sh"}]'
+	scriptz_array='[{"scriptName":"./setup-env-variables.sh"},{"scriptName":"./setup-sso-variables-ad.sh"},{"scriptName":"./setup-sso-variables.sh"},{"scriptName":"./setup-db-env-variables.sh"},{"scriptName":"./setup-storage-env-variables.sh"}]'
 
 	usage(){
    			echo " "
