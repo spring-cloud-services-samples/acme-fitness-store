@@ -69,7 +69,7 @@ jobs:
         run: az extension add --name spring
       - name: Configure Spring Cloud Gateway
         working-directory: azure-spring-apps-enterprise/resources/json/routes
-        run: ../../.github/scripts/gateway.sh
+        run: ../../../../.github/scripts/gateway.sh
         env:
           RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
           SPRING_APPS_SERVICE: ${{ env.SPRING_APPS_SERVICE }}
