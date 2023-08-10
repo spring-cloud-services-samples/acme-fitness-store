@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Credentials and Terraform Backend
-        run: ../.github/scripts/prepare-configs.sh
+        run: ../../.github/scripts/prepare-configs.sh
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
           BACKEND_CONFIG: ${{ secrets.TF_BACKEND_CONFIG }}
@@ -79,7 +79,7 @@ jobs:
           CATALOG_SERVICE_APP: ${{ env.CATALOG_SERVICE_APP }}
           FRONTEND_APP: ${{ env.FRONTEND_APP }}
       - name: Configure Identity Provider
-        run: ../.github/scripts/identity-provider.sh
+        run: ../../.github/scripts/identity-provider.sh
         env:
           RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
           SPRING_APPS_SERVICE: ${{ env.SPRING_APPS_SERVICE }}

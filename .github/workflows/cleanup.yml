@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Credentials and Terraform Backend
-        run: ../.github/scripts/prepare-configs.sh
+        run: ../../.github/scripts/prepare-configs.sh
         env:
           AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
           BACKEND_CONFIG: ${{ secrets.TF_BACKEND_CONFIG }}
