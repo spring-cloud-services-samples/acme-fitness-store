@@ -1678,7 +1678,7 @@ az ad sp create-for-rbac --name "change-me" \
 
 > Detailed instructions for adding secrets to GitHub Actions can be found [here](https://docs.microsoft.com/azure/spring-cloud/how-to-github-actions?pivots=programming-language-java#set-up-github-repository-and-authenticate-1).
 
-Add the following secrets to GitHub Actions:
+Add the following secrets (8x) to GitHub Actions:
 
 #### Create the Service Principal Secret with JSON from previous step.
 ```text
