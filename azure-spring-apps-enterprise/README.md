@@ -1577,9 +1577,39 @@ Now you will create a Storage Account for maintaining terraform state as part of
 
 #### Prepare your environment for creating a Storage Account:
 
+Make sure you are operating from the ./scripts folder.
+
 ```shell
-export STORAGE_RESOURCE_GROUP=customize-this      # different resource group from previous steps
-export STORAGE_ACCOUNT_NAME=customize-this        # choose a name for your storage account
+cd scripts
+```
+
+Then:
+
+```shell
+pwd
+```
+Should show something like:
+
+```
+./source-code/acme-fitness-store/azure-spring-apps-enterprise/scripts
+```
+
+#### Create a bash script with environment variables by making a copy of the supplied template:
+
+```shell
+cp ./setup-storage-env-variables-template.sh ./setup-storage-env-variables.sh
+```
+
+#### Using an editor of your choice, edit the file, (for the purposes of example we will use the nano editor), and add the following values.
+
+```shell
+nano `setup-storage-env-variables.sh` 
+```
+Enter the following information:
+
+```shell
+export STORAGE_RESOURCE_GROUP='change-me'      # different resource group from previous steps
+export STORAGE_ACCOUNT_NAME='change-me'        # choose a name for your storage account
 ```
 
 #### Create a resource group to hold the Storage Account:
