@@ -1736,7 +1736,9 @@ container_name       = "terraform-state-container"
 key                  = "dev.terraform.tfstate"
 ```
 
-> Detailed instructions for adding secrets to GitHub Actions can be found [here](https://docs.microsoft.com/azure/spring-cloud/how-to-github-actions?pivots=programming-language-java#set-up-github-repository-and-authenticate-1).
+#### GitHub Actions Secrets Completed
+When Completed, you should see something like (8 Secrets):
+![Output from GithubSecretsSetup](media/GitHubSecretsSetup.jpg)
 
 ### Run GitHub Actions
 
