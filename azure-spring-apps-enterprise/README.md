@@ -1612,27 +1612,31 @@ az storage container create \
 
 #### Create a service principal with enough scope/role to manage your Azure Spring Apps instance:
 
+Make the name of the service principle something you will recognize.
+
 ```shell
-    az ad sp create-for-rbac --role contributor --scopes /subscriptions/${SUBSCRIPTION} --sdk-auth
+az ad sp create-for-rbac --name "change-me" \
+   --role contributor \
+   --scopes /subscriptions/${SUBSCRIPTION} \
+   --sdk-auth
 ```
 
 #### With results:
-
 ```json
-    {
-        "clientId": "<GUID>",
-        "clientSecret": "<GUID>",
-        "subscriptionId": "<GUID>",
-        "tenantId": "<GUID>",
-        "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
-        "resourceManagerEndpointUrl": "https://management.azure.com/",
-        "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
-        "galleryEndpointUrl": "https://gallery.azure.com/",
-        "managementEndpointUrl": "https://management.core.windows.net/"
-    }
+{
+    "clientId": "<GUID>",
+    "clientSecret": "<GUID>",
+    "subscriptionId": "<GUID>",
+    "tenantId": "<GUID>",
+    "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
+    "resourceManagerEndpointUrl": "https://management.azure.com/",
+    "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
+    "galleryEndpointUrl": "https://gallery.azure.com/",
+    "managementEndpointUrl": "https://management.core.windows.net/"
+}
 ```
 
-This output will be needed as a secret value for the next step.
+>This output will be needed as a secret value for the next step.   Save this off to a file, in a secure location that you can reference later.
 
 ### Add Secrets to GitHub Actions
 
