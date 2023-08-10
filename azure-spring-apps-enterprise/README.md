@@ -1721,7 +1721,7 @@ OIDC_ISSUER_URI
 ```
 
 #### Create your TF_BACKEND_CONFIG Secret
-Using the key & value from the blocks below. Replacing the values STORAGE_ACCOUNT_NAME and STORAGE_RESOURCE_GROUP with your current values from the environment variables.
+Using the key & value from the blocks below, replace the values STORAGE_ACCOUNT_NAME and STORAGE_RESOURCE_GROUP with the current values from your environment variables.
 
 Secret Key:
 ```text
