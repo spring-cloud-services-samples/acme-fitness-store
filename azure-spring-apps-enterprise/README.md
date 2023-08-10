@@ -1690,7 +1690,7 @@ AZURE_CREDENTIALS
 TF_PROJECT_NAME
 ```
 
-#### Create your Azure Location Secret, with Region your resources will be created in.
+#### Create your Azure Location Secret, with Region your resources are currently created in.
 This is also available as an Environment Variable.
 ```text
 AZURE_LOCATION
