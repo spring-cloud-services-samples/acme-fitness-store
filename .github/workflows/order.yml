@@ -52,4 +52,5 @@ jobs:
             --service "$SPRING_APPS_SERVICE" \
             --builder ${CUSTOM_BUILDER} \
             --env "DatabaseProvider=Postgres" "AcmeServiceSettings__AuthUrl=https://${gateway_url}" "ConnectionStrings__KeyVaultUri=$keyvault_uri" \
+            --build-env BP_JVM_VERSION=17 \
             --source-path ./
