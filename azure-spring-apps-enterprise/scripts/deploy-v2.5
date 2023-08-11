@@ -1,56 +1,120 @@
 #!/bin/bash
 
-#set -euo pipefail
+set -euo pipefail
 
-set -xeuo pipefail
+#set -xeuo pipefail
 
-readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
-readonly APPS_ROOT="${PROJECT_ROOT}/apps"
+function usage() {
 
-SUFFIX='-pr'
-
-if [ -z "SUFFIX" ]; then SUFFIX=$(openssl rand -hex 3); else echo $SUFFIX; fi
-
-echo "The service suffix for this installation: $SUFFIX"
-
-readonly REDIS_NAME="fitness-cache${SUFFIX}"
-readonly ORDER_SERVICE_POSTGRES_CONNECTION="order_service_db"
-readonly CART_SERVICE_REDIS_CONNECTION="cart_service_cache"
-readonly CATALOG_SERVICE_DB_CONNECTION="catalog_service_db"
-readonly ACMEFIT_CATALOG_DB_NAME="acmefit_catalog"
-readonly ACMEFIT_ORDER_DB_NAME="acmefit_order"
-readonly ACMEFIT_POSTGRES_DB_PASSWORD="Acm3F!tness"
-readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
-readonly ACMEFIT_POSTGRES_SERVER="acmefitnessdb-demo${SUFFIX}"
-readonly ORDER_DB_NAME="orders"
-readonly CART_SERVICE="cart-service"
-readonly IDENTITY_SERVICE="identity-service"
-readonly ORDER_SERVICE="order-service"
-readonly PAYMENT_SERVICE="payment-service"
-readonly CATALOG_SERVICE="catalog-service"
-readonly FRONTEND_APP="frontend"
-readonly CUSTOM_BUILDER="no-bindings-builder"
-
-readonly CURRENT_USER=$(az account show --query user.name -o tsv)
-TEMP_USER_ID=$(az ad user show --id $CURRENT_USER --query id -o tsv)
-
-if [ -n $TEMP_USER_ID ]; then
-  readonly CURRENT_USER_OBJECTID=$TEMP_USER_ID
-else
-  readonly CURRENT_USER_OBJECTID=$(az ad user show --id $CURRENT_USER --query objectId -o tsv)
-fi
-
-if [ -z $CURRENT_USER_OBJECTID ]; then
-  echo "Unable to get current user object id"
+  echo ""
+  echo "Usage: $0 -s <SPRING_APPS_SERVICE> -r <region> -g <resource_group> " 
+  echo ""
+  echo ""
+  echo "Options: "
+  echo ""
+  echo "  -s <SPRING_APPS_SERVICE>  -Azure Spring Apps Instance to use"
+  echo "  -r <region>               -Region to use for the deployment" 
+  echo "  -g <resource_group>       -Resource group to use for the deployment"
+  echo ""
+  echo ""
   exit 1
-fi
+  
+}
 
-readonly CONFIG_REPO=https://github.com/Azure-Samples/acme-fitness-store-config
+function check_args() {
+  
+  if [[ -z $RESOURCE_GROUP ]]; then
+    echo "Provide a valid resource group with -g"
+    usage
+  fi
 
-RESOURCE_GROUP="rg-acme-fitness${SUFFIX}"
-SPRING_APPS_SERVICE="spring-acme-fitness${SUFFIX}"
-readonly AZURE_AD_APP_NAME="acme-fitness${SUFFIX}"
-REGION='eastus'
+  if [[ -z $SPRING_APPS_SERVICE ]]; then
+    echo "Provide a valid spring cloud instance name with -s"
+    usage
+  fi
+
+  if [[ -z $REGION ]]; then
+    echo "Provide a valid region with -r"
+    usage
+  fi
+  
+}
+
+function set_defaults() {
+
+	readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+	readonly APPS_ROOT="${PROJECT_ROOT}/apps"
+	
+	SUFFIX='-pr'
+	
+	if [ -z $SUFFIX ]; then 
+	  SUFFIX=$(openssl rand -hex 3) 
+  fi
+	
+	#echo "The service suffix for this installation: $SUFFIX"
+	
+	readonly REDIS_NAME="fitness-cache${SUFFIX}"
+	readonly ORDER_SERVICE_POSTGRES_CONNECTION="order_service_db"
+	readonly CART_SERVICE_REDIS_CONNECTION="cart_service_cache"
+	readonly CATALOG_SERVICE_DB_CONNECTION="catalog_service_db"
+	readonly ACMEFIT_CATALOG_DB_NAME="acmefit_catalog"
+	readonly ACMEFIT_ORDER_DB_NAME="acmefit_order"
+	readonly ACMEFIT_POSTGRES_DB_PASSWORD="Acm3F!tness"
+	readonly ACMEFIT_POSTGRES_DB_USER=dbadmin
+	readonly ACMEFIT_POSTGRES_SERVER="acmefitnessdb-demo${SUFFIX}"
+	readonly ORDER_DB_NAME="orders"
+	readonly CART_SERVICE="cart-service"
+	readonly IDENTITY_SERVICE="identity-service"
+	readonly ORDER_SERVICE="order-service"
+	readonly PAYMENT_SERVICE="payment-service"
+	readonly CATALOG_SERVICE="catalog-service"
+	readonly FRONTEND_APP="frontend"
+	readonly CUSTOM_BUILDER="no-bindings-builder"
+	
+	readonly CONFIG_REPO=https://github.com/Azure-Samples/acme-fitness-store-config
+	
+	RESOURCE_GROUP="${RESOURCE_GROUP}${SUFFIX}"
+	SPRING_APPS_SERVICE="${SPRING_APPS_SERVICE}${SUFFIX}"
+	
+	#REGION='eastus'
+	
+	readonly AZURE_AD_APP_NAME="acme-fitness-ad${SUFFIX}"
+
+}
+
+function get_user_info() {
+
+	readonly CURRENT_USER=$(az account show --query user.name -o tsv)
+	TEMP_USER_ID=$(az ad user show --id $CURRENT_USER --query id -o tsv)
+	
+	if [ -n $TEMP_USER_ID ]; then
+	  readonly CURRENT_USER_OBJECTID=$TEMP_USER_ID
+	else
+	  readonly CURRENT_USER_OBJECTID=$(az ad user show --id $CURRENT_USER --query objectId -o tsv)
+	fi
+	
+	if [ -z $CURRENT_USER_OBJECTID ]; then
+	  echo "Unable to get current user object id"
+	  exit 1
+	fi
+
+}
+
+function display_setup(){
+
+  echo ""
+  echo ""
+  
+  echo "Setup Will Be:" 
+  echo "" 
+  echo "    SuffixInUse: $SUFFIX" 
+  echo "    ServiceName: $SPRING_APPS_SERVICE"
+  echo "  ResourceGroup: $RESOURCE_GROUP" 
+  echo "         Region: $REGION" 
+  echo "" 
+  echo "" 
+
+}
 
 function create_spring_cloud() {
   az group create --name ${RESOURCE_GROUP} \
@@ -349,49 +413,20 @@ function main() {
 
 }
 
-function usage() {
 
-  echo 1>&2
-  echo "Usage: $0 -s <SPRING_APPS_SERVICE> -r <region> -g <resource_group> " 1>&2
-  echo 1>&2
-  echo 1>&2  
-  echo "Options:" 1>&2
-  echo 1>&2
-  echo "  -s <SPRING_APPS_SERVICE>  -Azure Spring Apps Instance to use" 1>&2  
-  echo "  -r <region>               -Region to use for the deployment" 1>&2
-  echo "  -g <resource_group>       -Resource group to use for the deployment" 1>&2  
-  echo 1>&2
-  echo 1>&2
-  exit 1
-  
-}
+if [ "$#" -lt 6 ]
+	then
+		usage
+		exit 22
+fi
 
-function check_args() {
-  
-  
-  if [[ -z $RESOURCE_GROUP ]]; then
-    echo "Provide a valid resource group with -g"
-    usage
-  fi
-
-  if [[ -z $SPRING_APPS_SERVICE ]]; then
-    echo "Provide a valid spring cloud instance name with -s"
-    usage
-  fi
-
-  if [[ -z $REGION ]]; then
-    echo "Provide a valid region with -r"
-    usage
-  fi
-}
-
-while getopts ":g:s:r:" options; do
+while getopts ":s:g:r:" options; do
   case "$options" in
-  g)
-    RESOURCE_GROUP="$OPTARG"
-    ;;
   s)
     SPRING_APPS_SERVICE="$OPTARG"
+    ;;
+  g)
+    RESOURCE_GROUP="$OPTARG"
     ;;
   r)
     REGION="$OPTARG"
@@ -411,4 +446,10 @@ while getopts ":g:s:r:" options; do
 done
 
 check_args
+set_defaults
+get_user_info
+display_setup
+
 main
+
+exit 0
