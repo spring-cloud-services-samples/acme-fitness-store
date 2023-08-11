@@ -112,7 +112,8 @@ function display_setup(){
   echo "  ResourceGroup: $RESOURCE_GROUP" 
   echo "         Region: $REGION" 
   echo "" 
-  echo "" 
+  echo "    ProjectRoot: $PROJECT_ROOT" 
+  echo ""   
 
 }
 
@@ -179,8 +180,8 @@ function create_dependencies() {
 }
 
 function create_builder() {
-  echo "Creating a custom builder with name $CUSTOM_BUILDER and configuration $PROJECT_ROOT/azure/builder.json"
-  az spring build-service builder create -n $CUSTOM_BUILDER --builder-file "$PROJECT_ROOT/azure/builder.json"
+  echo "Creating a custom builder with name $CUSTOM_BUILDER and configuration $PROJECT_ROOT/resources/json/tbs/builder.json"
+  az spring build-service builder create -n $CUSTOM_BUILDER --builder-file "$PROJECT_ROOT/resources/json/tbs/builder.json"
 }
 
 function configure_sso() {
@@ -191,14 +192,14 @@ function configure_sso() {
   az ad app credential reset --id ${APPLICATION_ID} --append >sso.json
   az ad sp create --id ${APPLICATION_ID}
 
-  source ./setup-sso-variables-ad.sh
+  source "$PROJECT_ROOT/scripts/setup-sso-variables-ad.sh"
 }
 
 function configure_gateway() {
   az spring gateway update --assign-endpoint true
   local gateway_url=$(az spring gateway show | jq -r '.properties.url')
 
-  source ./setup-sso-variables-ad.sh
+  source "$PROJECT_ROOT/scripts/setup-sso-variables-ad.sh"
   echo "Configuring Spring Cloud Gateway"
   az spring gateway update \
     --api-description "ACME Fitness API" \
@@ -213,7 +214,7 @@ function configure_gateway() {
 }
 
 function update_sso_portalurl() {
-  source ./setup-sso-variables-ad.sh
+	source "$PROJECT_ROOT/scripts/setup-sso-variables-ad.sh"
 
   APPLICATION_ID=$(cat ad.json | jq -r '.appId')
   local gateway_url=$(az spring gateway show | jq -r '.properties.url')
@@ -325,7 +326,7 @@ function deploy_cart_service() {
 }
 
 function deploy_identity_service() {
-  source ./setup-sso-variables-ad.sh
+  source "$PROJECT_ROOT/scripts/setup-sso-variables-ad.sh"
   echo "Deploying identity-service application"
   az spring app deploy --name $IDENTITY_SERVICE \
     --env "SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=${JWK_SET_URI}" \
