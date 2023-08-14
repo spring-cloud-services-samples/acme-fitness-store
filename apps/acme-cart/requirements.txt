@@ -20,7 +20,7 @@ six==1.12.0
 statsd==3.3.0
 threadloop==1.0.2
 thrift==0.11.0
-tornado==4.5.3
+tornado==6.3.3
 urllib3==1.25.7
 Werkzeug==0.16.0
 wrapt==1.11.1
