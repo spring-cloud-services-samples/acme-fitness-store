@@ -8,12 +8,12 @@ It's very important that your Azure subscription has been granted access to Azur
 1. Run the following command to create an Azure OpenAI resource in the the resource group.
 
    ```bash
-   source ./azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh
+   az upgrade -y
    export OPENAI_RESOURCE_NAME=<choose-a-resource-name>
    az cognitiveservices account create \
       -n ${OPENAI_RESOURCE_NAME} \
       -g ${RESOURCE_GROUP} \
-      -l eastus \
+      -l eastus2 \
       --kind OpenAI \
       --sku s0 \
       --custom-domain ${OPENAI_RESOURCE_NAME}   
@@ -33,16 +33,18 @@ It's very important that your Azure subscription has been granted access to Azur
       --model-name text-embedding-ada-002 \
       --model-version "2"  \
       --model-format OpenAI \
-      --scale-type "Standard" 
+      --sku Standard \
+      --capacity 120
 
-    az cognitiveservices account deployment create \
+   az cognitiveservices account deployment create \
       -g ${RESOURCE_GROUP} \
       -n ${OPENAI_RESOURCE_NAME} \
       --deployment-name gpt-35-turbo-16k \
       --model-name gpt-35-turbo-16k \
       --model-version "0613"  \
       --model-format OpenAI \
-      --scale-type "Standard"
+      --sku Standard \
+      --capacity 120
    ```
 
    > Note: The latest API version of `gpt-35-turbo-16k` deployment model might not be compatible with Azure CLI.
@@ -80,4 +82,9 @@ It's very important that your Azure subscription has been granted access to Azur
      --query 'key1' --output tsv 
    ```
 
+1. source `azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh`
+   ```bash
+   source `azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh`
+   ```
+   
 > Next: [03 - Play with Spring AI Workshop](../03-spring-ai-azure-workshop/README.md)
