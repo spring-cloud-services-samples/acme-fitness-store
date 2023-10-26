@@ -13,4 +13,5 @@ accelerator:
 
 engine:
   merge:
-    - include: [ "apps/**", "azure-spring-apps-enterprise/media/**", "*.md", "LICENSE", ".gitignore"]
+    - include: [ "apps/**", "azure-spring-apps-enterprise/**", "*.md", "LICENSE", ".gitignore" ]
+      exclude: [ "azure-spring-apps-enterprise/media/**" ]
