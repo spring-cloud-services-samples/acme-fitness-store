@@ -39,14 +39,20 @@ The **cart** service, either running inside a Docker container or as a stand-alo
 * **REDIS_PASSWORD**: The password to connect to Redis (defaults to `blank`)
 * **CART_PORT**: The port number the cart service will listen to requests (defaults to `5000`)
 
-The Docker image is based on the Bitnami Python container. Use this commands to run the latest stable version of the payment service with all available parameters:
+The Docker image of acme-cart can be build using the Dockerfile and following the command
+
+```bash
+# Build the acme-cart image
+docker build -t acme-cart .
+```
+
+The Docker image is based on the Bitnami Python container.
+
+To run the acme-cart and the redis dependency for local test, use the `docker-compose` file: 
 
 ```bash
 # Run the Redis container
-docker run -p 6379:6379 bitnami/redis:latest
-
-# Run the cart service
-docker run --rm -it -e REDIS_HOST=localhost -e REDIS_PORT=6379 -e REDIS_PASSWORD=myAwesomePassword -e CART_PORT=5000 -p 5000:5000 gcr.io/vmwarecloudadvocacy/acmeshop-cart:stable
+docker-compose up
 ```
 
 ## API
