@@ -39,14 +39,14 @@ The **cart** service, either running inside a Docker container or as a stand-alo
 * **REDIS_PASSWORD**: The password to connect to Redis (defaults to `blank`)
 * **CART_PORT**: The port number the cart service will listen to requests (defaults to `5000`)
 
-The Docker image of acme-cart can be build using the Dockerfile and following the command
+The docker image of acme-cart can be built using the provided Dockerfile and the following command:
 
 ```bash
 # Build the acme-cart image
 docker build -t acme-cart .
 ```
 
-The Docker image is based on the Bitnami Python container.
+The acme-cart image is based on the official Python image.
 
 To run the acme-cart and the redis dependency for local test, use the `docker-compose` file: 
 
