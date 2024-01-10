@@ -23,8 +23,9 @@ There are different dependencies based on whether you want to run a built contai
 
 ### Source
 
-A pyenv `.python-version` configuration file is provided. You can 
-configure a compatible environment using `pyenv` by running `pyenv install`.
+A pyenv `.python-version` configuration file is provided.
+
+You can configure a compatible environment using `pyenv` by running `pyenv install`.
 
 To build the app as a stand-alone executable, run `pip install -r requirements.txt` to install the Python libraries and run `python3 cart.py` after.
 

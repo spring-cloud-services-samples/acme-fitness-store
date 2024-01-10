@@ -21,7 +21,7 @@ class WhoAmIControllerTests {
 
 		webTestClient
 				.mutateWith(mockOidcLogin().idToken(token -> token.claim("name", "Mock User")
-																  .claim("sub", "test-user")))
+						.claim("sub", "test-user")))
 				.get()
 				.uri("/whoami")
 				.exchange()
