@@ -36,7 +36,9 @@ class WhoAmIControllerTests {
 				.get()
 				.uri("/whoami")
 				.exchange()
-				.expectBody().isEmpty();
+				.expectStatus().isOk()
+				.expectBody()
+				.json("{}");
 	}
 
 }
