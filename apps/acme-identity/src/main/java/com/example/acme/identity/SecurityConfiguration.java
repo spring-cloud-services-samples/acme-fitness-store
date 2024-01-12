@@ -1,5 +1,7 @@
 package com.example.acme.identity;
 
+import io.pivotal.cfenv.core.CfEnv;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -11,9 +13,19 @@ public class SecurityConfiguration {
 
 	@Bean
 	public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity) {
-		httpSecurity.oauth2ResourceServer()
+		CfEnv cfEnv = new CfEnv();
+		if (cfEnv.isInCf()) {
+			String authDomain = cfEnv.findCredentialsByLabel("p.gateway").getString("auth_domain");
+			if (authDomain != null) {
+				httpSecurity.oauth2ResourceServer(oAuth2ResourceServerSpec -> oAuth2ResourceServerSpec
+						.jwt(jwtConfigurer -> jwtConfigurer.jwkSetUri(authDomain + "/token_keys")));
+			}
+		}
+		else {
+			httpSecurity.oauth2ResourceServer()
 					.jwt()
-				.jwtAuthenticationConverter(new ReactiveJwtAuthenticationConverterAdapter(new UserNameJwtAuthenticationConverter()));
+					.jwtAuthenticationConverter(new ReactiveJwtAuthenticationConverterAdapter(new UserNameJwtAuthenticationConverter()));
+		}
 
 		return httpSecurity.build();
 	}

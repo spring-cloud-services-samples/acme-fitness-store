@@ -1,0 +1,50 @@
+# Tanzu Application Service manifest
+---
+applications:
+  - name: acme-cart
+    path: ./apps/acme-cart
+    routes:
+      - route: acme-cart.apps.internal
+    env:
+      CART_PORT: '8080'
+      AUTH_MODE: '0'
+      REDIS_TLS_ENABLED: 'false'
+    services:
+      - cart-redis
+  - name: acme-catalog
+    path: ./apps/acme-catalog/build/libs/acme-catalog-0.0.1-SNAPSHOT.jar
+    memory: 1G
+    routes:
+      - route: acme-catalog.apps.internal
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+}}'
+      SPRING_MVC_STATIC_PATH_PATTERN: '/static/images/**'
+      SPRING_WEB_RESOURCES_CACHE_CACHECONTROL_MAX_AGE: '3600'
+      SPRING_WEB_RESOURCES_CACHE_CACHECONTROL_CACHE_PUBLIC: 'true'
+  - name: acme-identity # TODO broken
+    path: ./apps/acme-identity/build/libs/acme-identity-0.0.1-SNAPSHOT.jar
+    memory: 1G
+    routes:
+      - route: acme-identity.apps.internal
+    env:
+      EUREKA_CLIENT_ENABLED: 'false'
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+}}'
+    services:
+      - acme-fitness-sso
+  - name: acme-order
+    path: ./apps/acme-order
+    routes:
+      - route: acme-order.apps.internal
+    env:
+      PAYMENT_SERVICE_SERVICE_HOST: acme-payment.apps.internal
+  - name: acme-payment
+    path: ./apps/acme-payment/build/libs/acme-payment-0.0.1-SNAPSHOT.jar
+    memory: 1G
+    routes:
+      - route: acme-payment.apps.internal
+    env:
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 17.+}}'
+  - name: acme-shopping
+    path: ./apps/acme-shopping
+    routes:
+      - route: acme-shopping.apps.internal
