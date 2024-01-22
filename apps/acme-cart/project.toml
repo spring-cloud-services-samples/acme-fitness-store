@@ -1,4 +1,4 @@
 [build]
   [[build.env]]
     name = "BP_CPYTHON_VERSION"
-    value = "3.7.*"
+    value = "3.11.*"
