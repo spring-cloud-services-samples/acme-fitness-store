@@ -7,7 +7,7 @@ Azure Spring Apps Enterprise enables you to easily run Spring Boot and polyglot 
 This quickstart shows you how to deploy existing applications written in Java, Python, and C# to Azure. When you're 
 finished, you can continue to manage the application via the Azure CLI or switch to using the Azure Portal.
 
-* [Deploy Applications to Azure Spring Apps](#deploy-spring-boot-apps-to-azure-spring-apps-enterprise)
+* [Deploy Applications to Azure Spring Apps](#deploy-spring-boot-apps-to-azure)
   * [What will you experience](#what-will-you-experience)
   * [What you will need](#what-you-will-need)
   * [Install the Azure CLI extension](#install-the-azure-cli-extension)
@@ -43,7 +43,7 @@ The following diagram shows the architecture of the ACME Fitness Store that will
 This application is composed of several services:
 
 * 4 Java Spring Boot applications:
-  * A catalog service for fetching available products. This application will use Microsoft Entra ID (formerly Azure Active Directory) authentication to connect to PostgreSQL
+  * A catalog service for fetching available products. This application will use Azure AD authentication to connect to PostgreSQL
   * A payment service for processing and approving payments for users' orders
   * An identity service for referencing the authenticated user
   * An assist service for infusing AI into fitness store
@@ -64,7 +64,7 @@ an Azure subscription. If you do not already have an Azure
 subscription, you can activate your
 [MSDN subscriber benefits](https://azure.microsoft.com/pricing/member-offers/msdn-benefits-details/)
 or sign up for a
-[free Azure account](https://azure.microsoft.com/free/).
+[free Azure account]((https://azure.microsoft.com/free/)).
 
 In addition, you will need the following:
 
@@ -176,7 +176,7 @@ Should show something like:
 Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./setup-env-variables-template.sh ./setup-env-variables.sh -i
+cp ./setup-env-variables-template.sh ./setup-env-variables.sh
 ```
 
 Using an editor of your choice, edit the file, (for the purposes of example we will use the nano editor), and add the following values.
@@ -290,15 +290,11 @@ Retrieve the resource ID for the recently create Azure Spring Apps Service and L
 ```shell
 export LOG_ANALYTICS_RESOURCE_ID=$(az monitor log-analytics workspace show \
     --resource-group ${RESOURCE_GROUP} \
-    --workspace-name ${LOG_ANALYTICS_WORKSPACE} \
-    --query id \
-    -o tsv)
+    --workspace-name ${LOG_ANALYTICS_WORKSPACE} | jq -r '.id')
 
 export SPRING_APPS_RESOURCE_ID=$(az spring show \
     --name ${SPRING_APPS_SERVICE} \
-    --resource-group ${RESOURCE_GROUP} \
-    --query id \
-    -o tsv)
+    --resource-group ${RESOURCE_GROUP} | jq -r '.id')
 ```
 
 Configure diagnostic settings for the Azure Spring Apps Service:
@@ -541,7 +537,7 @@ Assign an endpoint to API Portal and open it in a browser:
 
 ```shell
 az spring api-portal update --assign-endpoint true
-export PORTAL_URL=$(az spring api-portal show --query properties.url -o tsv)
+export PORTAL_URL=$(az spring api-portal show | jq -r '.properties.url')
 
 open "https://${PORTAL_URL}"
 ```
@@ -565,9 +561,9 @@ Prerequisites:
 > This Unit is optional. The application will continue to function without completing this unit. Certain features will remain unavailable including: log in, adding items to the cart, or completing an order.
 > Continue on to [Unit 3 - Integrate with Azure Database for PostgreSQL and Azure Cache For Redis](#unit-3---integrate-with-azure-database-for-postgresql-and-azure-cache-for-redis) to continue this guide without configuring SSO.
 
-### Register Application with Microsoft Entra ID
+### Register Application with Azure AD
 
-The following section steps through creating a Single Sign On Provider using Microsoft Entra ID.
+The following section steps through creating a Single Sign On Provider using Azure AD.
 To use an existing provider, skip ahead to [Using an Existing Identity Provider](#using-an-existing-sso-identity-provider)
 
 Choose a unique display name for your Application Registration.
@@ -576,7 +572,7 @@ Choose a unique display name for your Application Registration.
 export AD_DISPLAY_NAME=change-me    # unique application display name
 ```
 
-#### Create an Application registration with Microsoft Entra ID and save the output.
+#### Create an Application registration with Azure AD and save the output.
 
 ```shell
 az ad app create --display-name ${AD_DISPLAY_NAME} > ../resources/json/ad.json
@@ -624,7 +620,7 @@ echo ${PORTAL_URL}
 The `ISSUER_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/v2.0`
 The `JWK_SET_URI` should take the form `https://login.microsoftonline.com/${TENANT_ID}/discovery/v2.0/keys`
 
-#### Add the necessary web redirect URIs to App Registration in Microsoft Entra ID:
+#### Add the necessary web redirect URIs to the Azure AD Application Registration:
 
 ```shell
 az ad app update --id ${APPLICATION_ID} \
@@ -636,7 +632,7 @@ Detailed information about redirect URIs can be found [here](https://docs.micros
 ### Using an Existing SSO Identity Provider
 
 > Note: Continue on to [Configure Spring Cloud Gateway with SSO](#configure-spring-cloud-gateway-with-sso) if you 
-> just created an app registration in Microsoft Entra ID
+> just created an Azure AD Application Registration
 
 To use an existing SSO Identity Provider, copy the existing template
 
@@ -653,7 +649,7 @@ Should return something like:
 Next, make a copy of setup-sso-variables-template.sh for your custom values.
 
 ```shell
-cp ./setup-sso-variables-template.sh ./setup-sso-variables.sh -i
+cp ./setup-sso-variables-template.sh ./setup-sso-variables.sh
 ```
 
 Echo the following values:
@@ -766,7 +762,7 @@ az spring app update --name ${CART_SERVICE_APP} \
     --env "AUTH_URL=https://${GATEWAY_URL}" "CART_PORT=8080" 
     
 # Update the Order Service
-az spring app update --name ${ORDER_SERVICE_APP} \
+az spring app  update --name ${ORDER_SERVICE_APP} \
     --env "AcmeServiceSettings__AuthUrl=https://${GATEWAY_URL}" 
 ```
 
@@ -793,7 +789,7 @@ be available. This includes adding items to the cart and placing an order.
 Configure API Portal with SSO enabled:
 
 ```shell
-export PORTAL_URL=$(az spring api-portal show --query properties.url -o tsv)
+export PORTAL_URL=$(az spring api-portal show | jq -r '.properties.url')
 
 az spring api-portal update \
     --client-id ${CLIENT_ID} \
@@ -850,7 +846,7 @@ Should show something like:
 #### Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./setup-db-env-variables-template.sh ./setup-db-env-variables.sh -i
+cp ./setup-db-env-variables-template.sh ./setup-db-env-variables.sh
 ```
 
 ```shell
@@ -974,7 +970,7 @@ az spring connection create postgres-flexible \
     --client-type dotnet
 ```
 
-Catalog service uses Microsoft Entra authentication to connect to Postgres, so it is not required to include the password
+Catalog service uses Azure AD authentication to connect to Postgres, so it is not required to include the password
 
 #### Bind catalog service to Postgres
 
@@ -1035,9 +1031,7 @@ export POSTGRES_CONNECTION_STR=$(az spring connection show \
     --service ${SPRING_APPS_SERVICE} \
     --deployment default \
     --connection ${ORDER_SERVICE_DB_CONNECTION} \
-    --app ${ORDER_SERVICE_APP} \
-    --query configurations[0].value \
-    -o tsv)"Trust Server Certificate=true;"
+    --app ${ORDER_SERVICE_APP} | jq '.configurations[0].value' -r)
 ```
 
 ```shell
@@ -1054,9 +1048,7 @@ export REDIS_CONN_STR=$(az spring connection show \
     --service ${SPRING_APPS_SERVICE} \
     --deployment default \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
-    --app ${CART_SERVICE_APP} \
-    --query configurations[0].value \
-    -o tsv)
+    --app ${CART_SERVICE_APP} | jq -r '.configurations[0].value')
 ```
 
 ```shell
@@ -1112,9 +1104,7 @@ export KEY_VAULT=change-me      # customize this
 
 ```shell
 az keyvault create --name ${KEY_VAULT} -g ${RESOURCE_GROUP}
-export KEYVAULT_URI=$(az keyvault show --name ${KEY_VAULT} \
-    --query properties.vaultUri \
-    -o tsv)
+export KEYVAULT_URI=$(az keyvault show --name ${KEY_VAULT} | jq -r '.properties.vaultUri')
 ```
 
 #### Store database connection secrets in Key Vault.
@@ -1128,7 +1118,7 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "POSTGRES-SERVER-NAME" --value ${POSTGRES_SERVER_FULL_NAME}
 
 az keyvault secret set --vault-name ${KEY_VAULT} \
-    --name "ConnectionStrings--OrderContext" --value "${POSTGRES_CONNECTION_STR}"
+    --name "ConnectionStrings--OrderContext" --value "Server=${POSTGRES_SERVER_FULL_NAME};Database=${ORDER_SERVICE_DB};Port=5432;Ssl Mode=Require;User Id=${POSTGRES_SERVER_USER};Password=${POSTGRES_SERVER_PASSWORD};"
 
 az keyvault secret set --vault-name ${KEY_VAULT} \
     --name "CATALOG-DATABASE-NAME" --value ${CATALOG_SERVICE_DB}
@@ -1143,14 +1133,15 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
 #### Retrieve and store redis connection secrets in Key Vault.
 
 ```shell
-export REDIS_HOST=$(az redis show -n ${AZURE_CACHE_NAME} --query hostName -o tsv)
-export REDIS_PORT=$(az redis show -n ${AZURE_CACHE_NAME} --query sslPort -o tsv)
-export REDIS_PRIMARY_KEY=$(az redis list-keys -n ${AZURE_CACHE_NAME} --query primaryKey -o tsv)
+az redis show -n ${AZURE_CACHE_NAME} > redis.json
+export REDIS_HOST=$(cat redis.json | jq -r '.hostName')
+export REDIS_PORT=$(cat redis.json | jq -r '.sslPort')
+export REDIS_PRIMARY_KEY=$(az redis list-keys -n ${AZURE_CACHE_NAME} | jq -r '.primaryKey')
 ```
 
 ```shell
 az keyvault secret set --vault-name ${KEY_VAULT} \
-  --name "CART-REDIS-CONNECTION-STRING" --value "${REDIS_CONN_STR}"
+  --name "CART-REDIS-CONNECTION-STRING" --value "rediss://:${REDIS_PRIMARY_KEY}@${REDIS_HOST}:${REDIS_PORT}/0"
 ```
 
 #### Store SSO Secrets in Key Vault.
@@ -1165,17 +1156,17 @@ az keyvault secret set --vault-name ${KEY_VAULT} \
 #### Enable System Assigned Identities for applications and export identities to environment.
 
 ```shell
-az spring app identity assign --name ${CART_SERVICE_APP} --system-assigned
-export CART_SERVICE_APP_IDENTITY=$(az spring app show --name ${CART_SERVICE_APP} --query identity.principalId -o tsv)
+az spring app identity assign --name ${CART_SERVICE_APP}
+export CART_SERVICE_APP_IDENTITY=$(az spring app show --name ${CART_SERVICE_APP} | jq -r '.identity.principalId')
 
-az spring app identity assign --name ${ORDER_SERVICE_APP} --system-assigned
-export ORDER_SERVICE_APP_IDENTITY=$(az spring app show --name ${ORDER_SERVICE_APP} --query identity.principalId -o tsv)
+az spring app identity assign --name ${ORDER_SERVICE_APP}
+export ORDER_SERVICE_APP_IDENTITY=$(az spring app show --name ${ORDER_SERVICE_APP} | jq -r '.identity.principalId')
 
-az spring app identity assign --name ${CATALOG_SERVICE_APP} --system-assigned
-export CATALOG_SERVICE_APP_IDENTITY=$(az spring app show --name ${CATALOG_SERVICE_APP} --query identity.principalId -o tsv)
+az spring app identity assign --name ${CATALOG_SERVICE_APP}
+export CATALOG_SERVICE_APP_IDENTITY=$(az spring app show --name ${CATALOG_SERVICE_APP} | jq -r '.identity.principalId')
 
-az spring app identity assign --name ${IDENTITY_SERVICE_APP} --system-assigned
-export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} --query identity.principalId -o tsv)
+az spring app identity assign --name ${IDENTITY_SERVICE_APP}
+export IDENTITY_SERVICE_APP_IDENTITY=$(az spring app show --name ${IDENTITY_SERVICE_APP} | jq -r '.identity.principalId')
 ```
 
 #### Add an access policy to Azure Key Vault to allow Managed Identities to read secrets.
@@ -1227,7 +1218,7 @@ az spring connection delete \
     --connection ${CART_SERVICE_CACHE_CONNECTION} \
     --app ${CART_SERVICE_APP} \
     --deployment default \
-    --yes
+    --yes     
 ```
 
 ```shell    
@@ -1238,13 +1229,13 @@ az spring app update --name ${ORDER_SERVICE_APP} \
 ```shell
 az spring app update --name ${CATALOG_SERVICE_APP} \
     --config-file-pattern catalog/default,catalog/key-vault \
-    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME=${KEY_VAULT}" "SPRING_PROFILES_ACTIVE=default,key-vault"
+    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
 ```
 
 ```shell  
 az spring app update --name ${IDENTITY_SERVICE_APP} \
     --config-file-pattern identity/default,identity/key-vault \
-    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME=${KEY_VAULT}" "SPRING_PROFILES_ACTIVE=default,key-vault"
+    --env "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_ENDPOINT=${KEYVAULT_URI}" "SPRING_CLOUD_AZURE_KEYVAULT_SECRET_PROPERTY_SOURCES_0_NAME='acme-fitness-store-vault'" "SPRING_PROFILES_ACTIVE=default,key-vault"
 ```
 
 ```shell    
@@ -1580,7 +1571,7 @@ To navigate to the Threads page, select the Threads option from the Information 
 
 To get started with deploying this sample app from GitHub Actions, please:
 
-1. Complete an App registration in Microsoft Entra ID outlined [here](#register-application-with-microsoft-entra-id) or have SSO Credentials prepared as described [here](#using-an-existing-sso-identity-provider)
+1. Complete an Azure AD App registration outlined [here](#register-application-with-azure-ad) or have SSO Credentials prepared as described [here](#using-an-existing-sso-identity-provider)
 2. Fork this repository and turn on GitHub Actions in your fork
 
 ### Create a Storage Account
@@ -1609,7 +1600,7 @@ Should show something like:
 #### Create a bash script with environment variables by making a copy of the supplied template:
 
 ```shell
-cp ./setup-storage-env-variables-template.sh ./setup-storage-env-variables.sh -i
+cp ./setup-storage-env-variables-template.sh ./setup-storage-env-variables.sh
 ```
 
 #### Using an editor of your choice, edit the file, (for the purposes of example we will use the nano editor), and add the following values.
@@ -1784,7 +1775,7 @@ The `cleanup` workflow can be manually run to delete all resources created by th
 1. Copy the AI environment variables template file, e.g. 
 
    ```bash
-   cp azure-spring-apps-enterprise/scripts/setup-ai-env-variables-template.sh azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh -i
+   cp azure-spring-apps-enterprise/scripts/setup-ai-env-variables-template.sh azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh
    ```
 
 1. Update the values in `azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh` with your own values, as configured in Azure OpenAI instance:
@@ -1852,6 +1843,8 @@ The `cleanup` workflow can be manually run to delete all resources created by th
 1. Update the values in `azure-spring-apps-enterprise/scripts/setup-ai-env-variables.sh`, e.g.
     * for Endpoint and API KEY - check under Azure Portal OpenAI instances in `Keys and Endpoint` section
     ![A screenshot of the Azure Portal OpenAI instance.](./media/openai-azure-ai-services-api-key.png)    
+    * for `SPRING_AI_AZURE_OPENAI_MODEL` use previously defined model, e.g. `gpt-35-turbo-16k`
+    * for `SPRING_AI_AZURE_OPENAI_EMBEDDINGMODEL` use previously defined model, e.g. `text-embedding-ada-002`
     * for `AI_APP` use default name, e.g. `assist-service`
     
 > Note: You can get the endpoint by querying the `cognitiveservices` from Azure CLI, e.g.
@@ -1903,7 +1896,9 @@ cd apps/acme-assist
         --build-env BP_JVM_VERSION=17 \
         --env \
             SPRING_AI_AZURE_OPENAI_ENDPOINT=${SPRING_AI_AZURE_OPENAI_ENDPOINT} \
-            SPRING_AI_AZURE_OPENAI_API_KEY=${SPRING_AI_AZURE_OPENAI_API_KEY}
+            SPRING_AI_AZURE_OPENAI_APIKEY=${SPRING_AI_AZURE_OPENAI_APIKEY} \
+            SPRING_AI_AZURE_OPENAI_MODEL=${SPRING_AI_AZURE_OPENAI_MODEL} \
+            SPRING_AI_AZURE_OPENAI_EMBEDDINGMODEL=${SPRING_AI_AZURE_OPENAI_EMBEDDINGMODEL}
     ```
 
 1. Test the `acme-fitness` application in the browser again. Go to `ASK TO FITASSIST` and converse with the assistant, e.g.
@@ -1916,7 +1911,7 @@ cd apps/acme-assist
 
 1. Observe the output that was generated by the Assist application, e.g.
 
-   ![A screenshot of the ACME Fitness Store with FitAssist](./media/homepage-fitassist.png)
+   ![A screenshot of the ACME Fitness Store with FitAssist](./media/fitassist.png)
 
 
 ## Next Steps
@@ -1930,7 +1925,7 @@ Azure Spring Apps or VMware Tanzu components, go to:
 * [Deploy Spring Apps from scratch](https://github.com/microsoft/azure-spring-cloud-training)
 * [Deploy existing Spring Apps](https://github.com/Azure-Samples/azure-spring-cloud)
 * [Azure for Java Cloud Developers](https://docs.microsoft.com/en-us/azure/java/)
-* [Spring Cloud Azure](https://spring.io/projects/spring-cloud-azure)
+* [Spring Cloud Azure](https://cloud.spring.io/spring-cloud-azure/)
 * [Spring Cloud](https://spring.io/projects/spring-cloud)
 * [Spring Cloud Gateway](https://docs.vmware.com/en/VMware-Spring-Cloud-Gateway-for-Kubernetes/index.html)
 * [API Portal](https://docs.vmware.com/en/API-portal-for-VMware-Tanzu/index.html)
