@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: "acme-catalog"
+  mvc:
+    static-path-pattern: /static/images/**
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          cache-public: true
+  config:
+    activate:
+      on-profile: default
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+eureka:
+  client:
+    enabled: true
+---
+spring:
+  config:
+    activate:
+      on-profile: key-vault
+  datasource:
+    url: jdbc:postgresql://${POSTGRES-SERVER-NAME}:5432/${CATALOG-DATABASE-NAME}?sslmode=require
+    username: ${POSTGRES-LOGIN-NAME}
+    password: ${POSTGRES-LOGIN-PASSWORD}
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          enabled: true
+          property-source-enabled: true

@@ -1,0 +1,34 @@
+logging.level:
+  org.springframework.data: warn
+
+spring:
+  application:
+    name: 'acme-identity'
+  config:
+    activate:
+      on-profile: default
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+eureka:
+  client:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: key-vault
+  cloud:
+    azure:
+      keyvault:
+        secret:
+          enabled: true
+          property-source-enabled: true
+

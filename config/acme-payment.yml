@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: 'acme-payment'
+  config:
+    activate:
+      on-profile: default
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+eureka:
+  client:
+    enabled: true
