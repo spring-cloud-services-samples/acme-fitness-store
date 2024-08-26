@@ -35,17 +35,17 @@ class ProductRepositoryTests {
     @Test
     void findAll() {
         var products = this.productRepository.findAll();
-        assertThat(products).hasSize(8);
+        assertThat(products).hasSize(49);
     }
 
     @Test
     void findById() {
-        var product = this.productRepository.findById("533445d-530e-4a76-9398-5d16713b827b");
+        var product = this.productRepository.findById("cdc8abf3-51cc-4d73-8bee-8ce876a550e5");
         assertThat(product).hasValueSatisfying(p -> {
-            assertThat(p.getDescription()).isEqualTo("Magic Yoga Mat!");
-            assertThat(p.getImageUrl1()).isEqualTo("/static/images/yogamat_square.jpg");
-            assertThat(p.getImageUrl2()).isEqualTo("/static/images/yogamat_thumb2.jpg");
-            assertThat(p.getImageUrl3()).isEqualTo("/static/images/yogamat_thumb3.jpg");
+            assertThat(p.getName()).isEqualTo("E-Adrenaline 8.0 EX1");
+            assertThat(p.getImageUrl1()).isEqualTo("/static/images/new_bikes_1.jpg");
+            assertThat(p.getImageUrl2()).isEqualTo("/static/images/new_bikes_1.jpg");
+            assertThat(p.getImageUrl3()).isEqualTo("/static/images/new_bikes_1.jpg");
         });
     }
 

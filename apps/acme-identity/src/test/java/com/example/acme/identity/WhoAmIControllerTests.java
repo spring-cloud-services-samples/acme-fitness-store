@@ -27,7 +27,7 @@ class WhoAmIControllerTests {
 				.exchange()
 				.expectBody()
 				.jsonPath("$.userId").isEqualTo("test-user")
-				.jsonPath("$.userName").isEqualTo("Mock User");
+				.jsonPath("$.userName").isEqualTo("test-user");
 	}
 
 	@Test

@@ -76,17 +76,17 @@ class CatalogApplicationTests {
                 .get("/products")
                 .then()
                 .assertThat()
-                .body("data.size()", equalTo(8));
+                .body("data.size()", equalTo(49));
         checkMetric("getProducts");
     }
 
     @Test
     void findProductById() {
         given()
-                .get("/products/533445d-530e-4a76-9398-5d16713b827b")
+                .get("/products/cdc8abf3-51cc-4d73-8bee-8ce876a550e5")
                 .then()
                 .assertThat()
-                .body("data.description", equalTo("Magic Yoga Mat!"));
+                .body("data.name", equalTo("E-Adrenaline 8.0 EX1"));
         checkMetric("getProduct");
     }
 
