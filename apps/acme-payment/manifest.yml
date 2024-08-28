@@ -7,8 +7,6 @@ applications:
   services:
     - acme-config
     - acme-registry
-  routes:
-    - route: acme-payment.apps.internal
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud

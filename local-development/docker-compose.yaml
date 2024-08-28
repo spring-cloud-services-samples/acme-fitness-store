@@ -28,8 +28,6 @@ services:
       - ./spring-enterprise:/app
     working_dir: /app
     command: [ "bash", "./run.sh" ]
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   
   assist-postgres:
     container_name: assist-postgres-db

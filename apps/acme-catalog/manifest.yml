@@ -8,8 +8,6 @@ applications:
     - acme-config
     - acme-registry
     - acme-postgres
-  routes:
-    - route: acme-catalog.apps.internal
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud

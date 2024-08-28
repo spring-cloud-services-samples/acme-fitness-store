@@ -25,7 +25,7 @@ repositories {
     maven { url 'https://repo.spring.io/snapshot'}
 }
 ext {
-    set('springAiVersion', "1.0.0-SNAPSHOT")
+    set('springAiVersion', "1.0.0-M2")
     set('springCloudServicesVersion', "4.1.3")
     set('springCloudVersion', "2023.0.3")
     set('javaCfenvVersion', "3.2.0")
