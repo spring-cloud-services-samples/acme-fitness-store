@@ -29,3 +29,6 @@ spring:
     username: root
     password: rootpassword
     url: jdbc:postgresql://localhost:5433/acme-assist
+eureka:
+  instance:
+    preferIpAddress: true

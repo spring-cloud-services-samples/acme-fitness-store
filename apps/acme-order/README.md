@@ -15,22 +15,23 @@ VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=ms-dotn
 
 To run the acme order service, do the following:
 
-Start the mongodb container:
+Ensure the Local Development dependencies are running. (See main [README](../../local-development/README.md))
 
 ```bash
-    docker compose up -d
+cd ../../local-development
+docker compose up -d
 ```
 
 Start the application:
 
 ```bash
-    dotnet run --urls=http://localhost:8086/
+dotnet run --urls=http://localhost:8086/
 ```
 
 Verify the health of the application:
 
 ```bash
-    open localhost:8086/actuator/health
+open localhost:8086/actuator/health
 ```
 
 ## Deploying acme-order app

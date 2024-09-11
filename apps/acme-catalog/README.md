@@ -14,7 +14,12 @@ Catalog contains a database it talks to store the information it needs.
 
 ## Local running
 
-Ensure the local development dependencies are running. (See main [README](../../README.md))
+Ensure the Local Development dependencies are running. (See main [README](../../local-development/README.md))
+
+```bash
+cd ../../local-development
+docker compose up -d
+```
 
 Setup Docker database dependency
 
@@ -22,6 +27,7 @@ Setup Docker database dependency
 
 To run locally
 
-
-`./gradlew bootRun --args="--spring.profiles.active=local"`
+```bash
+./gradlew bootRun --args="--spring.profiles.active=local"
+```
 

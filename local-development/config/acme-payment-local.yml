@@ -13,3 +13,5 @@ spring:
 eureka:
   client:
     enabled: true
+  instance:
+    preferIpAddress: true

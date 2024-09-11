@@ -12,6 +12,7 @@
 
 To run locally
 
-
-`./gradlew bootRun --args="--spring.profiles.active=local"`
+```bash
+./gradlew bootRun --args="--spring.profiles.active=local"
+```
 
