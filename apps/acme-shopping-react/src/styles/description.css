@@ -1,0 +1,29 @@
+.markdown {
+    h1, h2, h3, h4, h5, h6 {
+        @apply text-grape py-4
+    }
+
+    p {
+        @apply py-3
+    }
+
+    table {
+        @apply w-1/2 bg-white my-2;
+    }
+
+    thead {
+        @apply border-b-2 border-blueberry;
+    }
+
+    th {
+        @apply px-6 py-3 text-center text-blueberry text-xl font-bold tracking-wider;
+    }
+
+    tbody {
+        @apply bg-white;
+    }
+
+    td {
+        @apply px-6 py-4 whitespace-nowrap text-sm text-center text-chocolate-600;
+    }
+}

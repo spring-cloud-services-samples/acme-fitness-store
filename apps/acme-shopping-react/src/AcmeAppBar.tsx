@@ -95,7 +95,6 @@ export default function AcmeAppBar({handleLogin, handleLogout}: AcmeAppBarProps)
                         </Stack>
                         <Stack direction='row' alignContent='right' spacing={{xs: 1, md: 4}} marginRight={{xs: 1, md: 2}}>
                             <IconButton
-                                data-cy="login-button"
                                 onClick={handleLoginClick}
                                 color='inherit'
                             >

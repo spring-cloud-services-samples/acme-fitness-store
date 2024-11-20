@@ -4,7 +4,7 @@
 
 After following instructions in [Spring Enterprise setup](spring-enterprise/README.md) to obtain the JAR.
 
-This will setup the following for you for local development
+This will set up the following for you for local development
 - Config Server
   - Config in TAS is created by a Repo backed tile. For local development, included [docker-compose.yml](docker-compose.yaml) will start up an instance of config-server on port 8888.
 
@@ -12,9 +12,10 @@ This will setup the following for you for local development
   - Spring boot apps (Identify, Catalog, Payment, Assist) communicate via TAS service registry. For local development, included [docker-compose.yml](docker-compose.yaml) starts up a local instance of Eureka discovery server on port 8761.
 - Local Tanzu Authorization Server
 - Commercial Spring Cloud Gateway
+
 ```bash
 cd local-development
-docker compose up -d
+docker compose -p acme-fitness up -d
 ```
 
 ### Boot up each of the local application following their README

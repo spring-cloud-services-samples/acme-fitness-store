@@ -63,3 +63,6 @@ hello-world/
 # Cypress
 **/cypress/downloads
 **/cypress/screenshots
+
+# tanzu
+build-output

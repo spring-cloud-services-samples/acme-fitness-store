@@ -1,0 +1,3 @@
+app:
+  catalog:
+    url: http://acme-fitness-catalog.vmtanzu.net

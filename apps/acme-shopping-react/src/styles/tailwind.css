@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+h1 {
+    @apply text-5xl md:text-7xl font-serif
+}
+
+h2 {
+    @apply text-3xl md:text-5xl font-serif
+}
+
+h3 {
+    @apply text-2xl md:text-3xl font-serif
+}
+
+h4 {
+    @apply md:text-2xl font-serif
+}
+
+h5 {
+    @apply md:text-lg
+}

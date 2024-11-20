@@ -1,102 +1,86 @@
+import { ReactNode, Suspense } from "react";
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
-import { lazy, ReactNode, Suspense } from "react";
-import AcmeAppBar from "./AcmeAppBar.tsx";
 import { Box } from "@mui/material";
-import AcmeFooter from "./AcmeFooter.tsx";
-import ProductDetails from "./ProductDetails.tsx";
-import Checkout from "./Checkout.tsx";
-import DeliveryMethod from "./DeliveryMethod.tsx";
-import PaymentMethod from "./PaymentMethod.tsx";
-import OrderReview from "./OrderReview.tsx";
-import OrderConfirmation from "./OrderConfirmation.tsx";
+import HomePageV2 from "./home/page";
+import Footer from "./shared/Footer";
+import NavigationBar from "./shared/NavigationBar";
+import ChatModal from "./shared/ChatModal";
+import BikesPage from "./bikes/page";
+import AccessoriesPage from "./accessories/page";
+import ProductPage from "./products/page";
+import FAQPage from "./resources/faq/page";
+import ShippingPage from "./resources/shipping/page";
+import ContactPage from "./resources/contact/page";
+import CartPage from "./cart/page";
+import CheckoutPage from "./checkout/page";
+import OrderConfirmationPage from "./checkout/confirmation/page.tsx";
 
-const Home = lazy(() => import('./Home.tsx'));
-const Catalog = lazy(() => import('./Catalog.tsx'));
-const Contact = lazy(() => import('./Contact.tsx'));
-const Cart = lazy(() => import('./Cart.tsx'));
-
-type AppLayoutProps = {
-  children: ReactNode
-}
-function AppLayout({ children }: AppLayoutProps) {
-  const handleLogin = () => {
-      window.location.href = '/acme-login';
-  };
-
-  const handleLogout = () => {
-    window.location.href = '/scg-logout?redirect=/';
-  };
-
+function AppLayout({ children }: { children: ReactNode }) {
   return (
     <Box>
-      <AcmeAppBar handleLogin={handleLogin} handleLogout={handleLogout} />
+      <NavigationBar />
       <Box>{children}</Box>
-      <AcmeFooter  handleLogin={handleLogin}/>
+      <ChatModal />
+      <Footer />
     </Box>
   );
 }
 
-const mainLayout = (
-  <AppLayout>
-    <Suspense>
-      <Outlet />
-    </Suspense>
-  </AppLayout>
-);
-
 export default function AppRoutes() {
-
   const router = createBrowserRouter([
     {
       path: "/",
-      element: mainLayout,
+      element: (
+        <AppLayout>
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </AppLayout>
+      ),
       children: [
         {
           path: "/",
-          element: <Home />
+          element: <HomePageV2 />,
         },
         {
-          path: "catalog",
-          element: <Catalog />
+          path: "bikes",
+          element: <BikesPage />,
+        },
+        {
+          path: "accessories",
+          element: <AccessoriesPage />,
+        },
+        {
+          path: "faq",
+          element: <FAQPage />,
+        },
+        {
+          path: "shipping",
+          element: <ShippingPage />,
         },
         {
           path: "contact",
-          element: <Contact />
+          element: <ContactPage />,
         },
         {
           path: "product/:productId",
-          element: <ProductDetails />
+          element: <ProductPage />,
         },
         {
           path: "cart",
-          element: <Cart />
+          element: <CartPage />,
         },
         {
           path: "checkout",
-          element: <Checkout />
-        },
-        {
-          path: "delivery",
-          element: <DeliveryMethod />
-        },
-        {
-          path: "payment",
-          element: <PaymentMethod />
-        },
-        {
-          path: "review",
-          element: <OrderReview />
+          element: <CheckoutPage />,
         },
         {
           path: "confirmation",
-          element: <OrderConfirmation />
+          element: <OrderConfirmationPage />,
         },
       ],
     },
   ]);
 
-  return (<RouterProvider router={router} fallbackElement={<div>Unknown Route</div>}>
-  </RouterProvider>
-  );
+  return <RouterProvider router={router} />;
 }
-

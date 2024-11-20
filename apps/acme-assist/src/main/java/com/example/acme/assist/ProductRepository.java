@@ -7,6 +7,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ import java.util.List;
 @Repository
 public class ProductRepository {
 
+    @Value("${app.catalog.url:default}")
+    private String catalogUrl;
+
     private static final Logger log = LoggerFactory.getLogger(ProductRepository.class);
     private static List<Product> products;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -28,7 +32,10 @@ public class ProductRepository {
     public ProductRepository(DiscoveryClient discoveryClient) {
         this.discoveryClient = discoveryClient;
     }
-    private String getCatalogService() {
+    private String getCatalogServiceUrl() {
+        if ( catalogUrl != null && !catalogUrl.equals("default")) {
+            return catalogUrl;
+        }
         List<ServiceInstance> services = discoveryClient.getInstances("acme-catalog");
         if (services.size() > 0) 
             return services.get(0).getUri().toString();
@@ -43,7 +50,7 @@ public class ProductRepository {
             return null;
         }
         try {
-            String catalogService = getCatalogService();
+            String catalogService = getCatalogServiceUrl();
             if (catalogService == null) 
                 return null;
             
@@ -57,7 +64,7 @@ public class ProductRepository {
     }
 
     public void refreshProductList() {
-        String catalogService = getCatalogService();
+        String catalogService = getCatalogServiceUrl();
         if (catalogService == null) 
             return;
         ResponseEntity<CatalogProductListResponse> response = this.restTemplate
@@ -68,7 +75,7 @@ public class ProductRepository {
     @PostConstruct
     public List<Product> getProductList() {
         if (products == null) {
-            String catalogService = getCatalogService();
+            String catalogService = getCatalogServiceUrl();
             if (catalogService == null) 
                 return new ArrayList<Product>();
 

@@ -1,0 +1,66 @@
+{
+  "routes": [
+    {
+      "title": "products-route",
+      "description": "/products endpoint",
+      "uri": "http://acme-fitness-catalog.vmtanzu.net",
+      "predicates": [
+        "Path=/products",
+        "Method=GET"
+      ],
+      "filters": [
+        "StripPrefix=0",
+        "RateLimit=5,5s"
+      ],
+      "tags": [
+        "catalog"
+      ]
+    },
+    {
+      "title": "products-id-route",
+      "description": "/products/id endpoint",
+      "uri": "http://acme-fitness-catalog.vmtanzu.net",
+      "predicates": [
+        "Path=/products/{id}",
+        "Method=GET"
+      ],
+      "filters": [
+        "StripPrefix=0"
+      ],
+      "tags": [
+        "catalog"
+      ]
+    },
+    {
+      "title": "catalogliveness-route",
+      "description": "/products/id endpoint",
+      "uri": "http://acme-fitness-catalog.vmtanzu.net",
+      "predicates": [
+        "Path=/catalogliveness",
+        "Method=GET"
+      ],
+      "filters": [
+        "StripPrefix=0",
+        "SetPath=/actuator/health/liveness"
+      ],
+      "tags": [
+        "catalog"
+      ]
+    },
+    {
+      "title": "catalogliveness-route",
+      "description": "/products/id endpoint",
+      "uri": "http://acme-fitness-catalog.vmtanzu.net",
+      "predicates": [
+        "Path=/static/images/{id}",
+        "Method=GET"
+      ],
+      "filters": [
+        "StripPrefix=0"
+      ],
+      "tags": [
+        "catalog"
+      ]
+    }
+  ]
+}

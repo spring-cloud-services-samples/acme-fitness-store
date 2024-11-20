@@ -1,0 +1,9 @@
+apiVersion: config.tanzu.vmware.com/v1
+configuration:
+  dev:
+    paths:
+    - apps/acme-catalog/.tanzu/config/
+  plain:
+    paths:
+      - apps/acme-catalog/.tanzu/config/
+kind: TanzuConfig

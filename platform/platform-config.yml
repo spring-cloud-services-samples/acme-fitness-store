@@ -1,0 +1,17 @@
+apiVersion: build.tanzu.vmware.com/v1
+kind: ContainerAppBuildPlan
+metadata:
+  name: platform-config
+spec:
+  registry: docker.io/satherw285/acme-fitness
+  buildpacks:
+    builder: "paketobuildpacks/builder-jammy-base"
+  postBuildSteps:
+    - name: apply-spring-boot-conventions
+      namedTask: tanzu-spring-boot
+  runtimes:
+    - name: kubernetes-carvel-package
+      description: create a carvel package for deploying on kubernetes
+      steps:
+        - namedtask: tanzu-kubernetes-deployment
+        - namedtask: tanzu-kubernetes-carvel-package

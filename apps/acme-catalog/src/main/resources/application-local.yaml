@@ -1,9 +1,8 @@
 spring:
-  application:
-    name: acme-catalog
   cloud:
     config:
       enabled: true
+
   config:
     import:
       - configserver:http://localhost:8888

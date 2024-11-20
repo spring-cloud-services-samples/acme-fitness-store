@@ -1,12 +1,16 @@
-import {StrictMode} from 'react'
-import {createRoot} from 'react-dom/client'
-import AppProvider from "./AppProvider.tsx";
-import AppRoutes from "./Routes.tsx";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import AppRoutes from "./Routes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-createRoot(document.getElementById('root')!).render(
+import "./styles/tailwind.css";
+
+const queryClient = new QueryClient();
+
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-      <AppProvider>
-        <AppRoutes/>
-      </AppProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppRoutes />
+    </QueryClientProvider>
   </StrictMode>
-)
+);

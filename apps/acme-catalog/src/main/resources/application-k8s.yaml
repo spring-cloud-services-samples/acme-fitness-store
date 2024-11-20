@@ -1,0 +1,29 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+  mvc:
+    static-path-pattern: /static/images/**
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          cache-public: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+eureka:
+  client:
+    enabled: false
+#    service-url:
+#      defaultZone: https://service-registry-6adcc289-b1db-473f-a3a1-ccc355144a45.apps.tas.vmtanzu.com
