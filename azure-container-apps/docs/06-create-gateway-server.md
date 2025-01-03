@@ -109,7 +109,7 @@ springCloudGatewayRoutes:
   order: "1000"
   filters:
     - "StripPrefix=0"
-- id: "oroder-service1"
+- id: "order-service1"
   uri: "https://${ORDER_SERVICE_URL}"
   predicates:
     - "Path=/order/add/{userId}"
