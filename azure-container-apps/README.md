@@ -13,3 +13,4 @@ This folder will help you deploy the Acme Fitness Store Application on Azure Con
   * [07-integrate-with-azure-database-for-postgresql-and-azure-cache-for-redis](./docs/07-integrate-with-azure-database-for-postgresql-and-azure-cache-for-redis.md)
   * [08-create-admin-server](./docs/08-create-admin-server.md)
   * [09-get-log-and-metrics](./docs/09-get-log-and-metrics.md)
+  * [10-migrate-from-azure-spring-apps](./docs/10-migrate-from-azure-spring-apps.md)
