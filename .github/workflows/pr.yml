@@ -1,0 +1,175 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+
+jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      assist: ${{ steps.filter.outputs.assist }}
+      cart: ${{ steps.filter.outputs.cart }}
+      catalog: ${{ steps.filter.outputs.catalog }}
+      identity: ${{ steps.filter.outputs.identity }}
+      order: ${{ steps.filter.outputs.order }}
+      payment: ${{ steps.filter.outputs.payment }}
+      shopping: ${{ steps.filter.outputs.shopping }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            assist: 'apps/acme-assist/**'
+            cart: 'apps/acme-cart/**'
+            catalog: 'apps/acme-catalog/**'
+            identity: 'apps/acme-identity/**'
+            order: 'apps/acme-order/**'
+            payment: 'apps/acme-payment/**'
+            shopping: 'apps/acme-shopping-react/**'
+
+  build-assist:
+    name: Build Assist
+    needs: changes
+    if: needs.changes.outputs.assist == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: apps/acme-assist
+
+  build-cart:
+    name: Build Cart
+    needs: changes
+    if: needs.changes.outputs.cart == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          cd apps/acme-cart
+          python -m pip install --upgrade pip
+          pip install flake8
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          cd apps/acme-cart
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  build-catalog:
+    name: Build Catalog
+    needs: changes
+    if: needs.changes.outputs.catalog == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: apps/acme-catalog
+
+  build-identity:
+    name: Build Identity
+    needs: changes
+    if: needs.changes.outputs.identity == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: apps/acme-identity
+
+  build-order:
+    name: Build Order
+    needs: changes
+    if: needs.changes.outputs.order == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build and Test
+        run: |
+          cd apps/acme-order
+          dotnet restore
+          dotnet build --configuration Release --no-restore
+          dotnet test --no-restore --verbosity normal
+
+  build-payment:
+    name: Build Payment
+    needs: changes
+    if: needs.changes.outputs.payment == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+          build-root-directory: apps/acme-payment
+
+  build-shopping:
+    name: Build Shopping
+    needs: changes
+    if: needs.changes.outputs.shopping == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/acme-shopping-react/package-lock.json
+      - name: Install and Build
+        run: |
+          cd apps/acme-shopping-react
+          npm ci
+          npm run build
+          npm run lint
+
