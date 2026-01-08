@@ -108,7 +108,7 @@ cf start acme-payment
 cd ../acme-catalog
 ./gradlew clean assemble
 cf push --no-start
-cf bind-service acme-catalog acme-gateway -c catalog-service_rate-limit.json
+cf bind-service acme-catalog acme-gateway -c catalog-routes.json
 cf start acme-catalog
 ```
 

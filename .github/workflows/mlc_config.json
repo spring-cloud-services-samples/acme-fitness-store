@@ -23,6 +23,9 @@
       },
       {
         "pattern": "^https://github.com/Azure-Samples/acme-fitness-store/invitations"
+      },
+      {
+        "pattern": "^https://cla.vmware.com/faq"
       }
     ],
     "aliveStatusCodes": [200]

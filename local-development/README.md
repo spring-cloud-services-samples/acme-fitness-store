@@ -6,10 +6,10 @@ After following instructions in [Spring Enterprise setup](spring-enterprise/READ
 
 This will set up the following for you for local development
 - Config Server
-  - Config in TAS is created by a Repo backed tile. For local development, included [docker-compose.yml](docker-compose.yaml) will start up an instance of config-server on port 8888.
+  - Config in TAS is created by a Repo backed tile. For local development, included [docker-compose.yaml](docker-compose.yaml) will start up an instance of config-server on port 8888.
 
 - Eureka Server
-  - Spring boot apps (Identify, Catalog, Payment, Assist) communicate via TAS service registry. For local development, included [docker-compose.yml](docker-compose.yaml) starts up a local instance of Eureka discovery server on port 8761.
+  - Spring boot apps (Identify, Catalog, Payment, Assist) communicate via TAS service registry. For local development, included [docker-compose.yaml](docker-compose.yaml) starts up a local instance of Eureka discovery server on port 8761.
 - Local Tanzu Authorization Server
 - Commercial Spring Cloud Gateway
 
@@ -36,7 +36,7 @@ docker compose -p acme-fitness up -d
 - [acme-order](../apps/acme-order/README.md)
     - local docker compose dependency
     - DotNet run or start via IDE
-- [acme-shopping](../apps/acme-shopping/README.md)
+- [acme-shopping](../apps/acme-shopping-react/README.md)
     - `npm install` and `npm run start`
 
 ### Run E2E Test
