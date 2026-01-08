@@ -48,7 +48,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.3'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation "org.testcontainers:junit-jupiter:${testContainersVersion}"
     testImplementation "org.testcontainers:postgresql:${testContainersVersion}"
