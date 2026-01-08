@@ -17,28 +17,15 @@ package com.example.acme.assist.config;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
 
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import com.example.acme.assist.ProductRepository;
 import com.example.acme.assist.utils.DocumentUtils;

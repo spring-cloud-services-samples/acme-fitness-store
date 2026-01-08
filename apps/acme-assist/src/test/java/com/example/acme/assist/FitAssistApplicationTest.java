@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -12,7 +11,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import static org.mockito.Mockito.when;
 
 @Testcontainers
 @SpringBootTest
