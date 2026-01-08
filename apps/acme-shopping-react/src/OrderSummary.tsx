@@ -8,7 +8,7 @@ interface OrderSummaryProps {
 
 export default function OrderSummary({ userInfo }: OrderSummaryProps) {
 
-    const { data: cartData, isLoading, error } = useGetCart(userInfo?.userId, userInfo);
+    const { data: cartData, isLoading, error } = useGetCart(userInfo);
 
     if (!userInfo) {
         return <div>Loading...</div>;

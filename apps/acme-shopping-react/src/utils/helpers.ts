@@ -57,6 +57,10 @@ export default function constructOrder(
   };
 }
 
+export const createMarkup = (html: string) => {
+  return { __html: html };
+};
+
 export const parseMessageContentAndBuildLinks = (message: string) => {
   const itemPattern = /{{([^|]+)\|([^}]+)}}/g;
 
@@ -98,3 +102,4 @@ export const summarizeCart = (cartItems) => {
 
   return `Current Items in Cart: \n${itemList}\n\nTotal items: ${cartItems.length}\nTotal price: $${totalPriceFormatted}`;
 };
+

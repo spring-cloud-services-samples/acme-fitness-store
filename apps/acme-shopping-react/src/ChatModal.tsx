@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import {Close, Refresh, Send} from '@mui/icons-material';
 import {useChatService} from './hooks/useChatService';
-import {createMarkup, summarizeCart} from "./utils/helpers.ts";
+import {createMarkup} from "./utils/helpers.ts";
 import {CartData} from "./types/Cart.ts";
 
 interface ChatModalProps {
@@ -42,7 +42,7 @@ export default function ChatModal({open, onClose, cartData}: ChatModalProps) {
 
     const handleSend = async (message: string) => {
         if (message.trim()) {
-            await sendMessage(message, summarizeCart(cartData.cart));
+            await sendMessage(message, cartData);
             setInputMessage('');
         }
     };

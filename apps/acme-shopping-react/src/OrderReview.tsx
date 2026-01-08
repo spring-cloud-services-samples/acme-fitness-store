@@ -33,7 +33,7 @@ export default function OrderReview() {
     }
 
     const handleSubmit = () =>{
-        const order = constructOrder(cartItems, total, addressData, deliveryMethod, paymentData, userInfo.userId)
+        const order = constructOrder({ cart: cartItems, userid: userInfo?.userId }, addressData, deliveryMethod, paymentData, userInfo?.userId || '')
         createOrder(order, {
             onSuccess: () => {
                 clearCart();

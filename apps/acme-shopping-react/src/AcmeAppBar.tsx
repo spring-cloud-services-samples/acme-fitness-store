@@ -5,7 +5,7 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import Logo from './assets/logo.png';
 import LogoSmall from './assets/logo-small.png';
-import {Link, useNavigate, useParams} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {Badge, Box, Menu, MenuItem, Modal, Stack, Typography} from "@mui/material";
 import AssistIcon from '@mui/icons-material/TipsAndUpdates';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -42,7 +42,7 @@ export default function AcmeAppBar({handleLogin, handleLogout}: AcmeAppBarProps)
 
     const {data: userInfo} = useGetUserInfo();
 
-    const {data: cartData} = useGetCart(userInfo?.userId || '', userInfo);
+    const {data: cartData} = useGetCart(userInfo);
 
     const itemsInCart = cartData?.cart?.reduce((total, item) => total + item.quantity, 0) || 0;
 
