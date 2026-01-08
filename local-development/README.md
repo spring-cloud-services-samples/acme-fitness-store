@@ -28,7 +28,7 @@ docker compose -p acme-fitness up -d
     - start locally via gradle wrapper or / IDE (with `local` active profile)
 - [acme-assist](../apps/acme-assist/README.md)
     - local docker compose dependency
-    - start locally via maven wrapper / IDE (with `local` active profile)
+    - start locally via gradle wrapper / IDE (with `local` active profile)
 - [acme-identity](../apps/acme-identity/README.md)
     - start locally via gradle wrapper or / IDE (with `local` active profile)
 - [acme-payment](../apps/acme-payment/README.md)
@@ -37,7 +37,7 @@ docker compose -p acme-fitness up -d
     - local docker compose dependency
     - DotNet run or start via IDE
 - [acme-shopping](../apps/acme-shopping-react/README.md)
-    - `npm install` and `npm run start`
+    - `npm install` and `npm run dev`
 
 ### Run E2E Test
 Run the Cypress test in the [e2e](../e2e/README.md) directory.
