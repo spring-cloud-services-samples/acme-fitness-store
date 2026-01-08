@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProductRepositoryTests {
 
     @Container
-    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.4-alpine3.16");
+    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.19-alpine");
 
     @Autowired
     private ProductRepository productRepository;

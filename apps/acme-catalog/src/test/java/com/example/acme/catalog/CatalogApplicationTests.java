@@ -35,7 +35,7 @@ class CatalogApplicationTests {
     private int serverPort;
 
     @Container
-    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.4-alpine3.16");
+    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.19-alpine");
 
     @Container
     static final GenericContainer<?> prometheus = new GenericContainer<>("prom/prometheus:v2.37.0")
