@@ -25,12 +25,8 @@ export default function ChatModal() {
     sendMessage,
     refreshChat,
     isLoading,
-    error,
-    currentForm,
     submitForm,
     isCompletingForm,
-    setIsFormCompleted,
-    isFormCompleted,
   } = useChatService();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

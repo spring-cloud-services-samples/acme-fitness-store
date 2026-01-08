@@ -1,10 +1,9 @@
 import { useGetProducts } from "../hooks/catalogHooks";
 import Loading from "../components/Loading";
 import ProductCard from "../components/ProductCard";
-import Error from "../components/Error";
 
 export default function AccessoriesPage() {
-  const { data, isLoading, error } = useGetProducts();
+  const { data, isLoading } = useGetProducts();
 
   if (isLoading) {
     return <Loading />;

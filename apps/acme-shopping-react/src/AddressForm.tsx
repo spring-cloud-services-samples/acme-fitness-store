@@ -4,7 +4,6 @@ import {
     Button,
     Box,
     FormControl,
-    InputLabel,
 } from '@mui/material';
 import {Link} from 'react-router-dom';
 import StateSelect from "./StateSelect";

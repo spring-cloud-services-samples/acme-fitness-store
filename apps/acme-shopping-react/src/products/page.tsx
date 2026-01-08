@@ -4,7 +4,6 @@ import { useGetProduct } from "../hooks/catalogHooks.ts";
 import { useAddToCart } from "../hooks/cartHooks.ts";
 import { CartItemData } from "../types/Cart.ts";
 import Loading from "../components/Loading.tsx";
-import Error from "../components/Error.tsx";
 import Markdown from "marked-react";
 import Button from "../components/Button.tsx";
 import formatDollar from "../utils/formatDollar.ts";
@@ -15,7 +14,7 @@ export default function ProductPage() {
   const { productId } = useParams<{ productId: string }>();
 
   const { data: userInfo, isLoading: isUserLoading } = useGetUserInfo();
-  const { data, error, isLoading: isProductLoading } = useGetProduct(productId);
+  const { data, isLoading: isProductLoading } = useGetProduct(productId);
 
   const addToCartMutation = useAddToCart(userInfo?.userId);
 

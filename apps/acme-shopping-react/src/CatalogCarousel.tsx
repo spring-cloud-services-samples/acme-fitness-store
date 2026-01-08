@@ -6,14 +6,6 @@ import { Link } from "react-router-dom";
 export default function CatalogCarousel() {
     const { data, isLoading, error } = useGetProducts();
 
-    const settings = {
-        dots: true,
-        infinite: false, 
-        speed: 500,
-        slidesToShow: 3,
-        slidesToScroll: 1,
-    };
-
     if (isLoading) {
         return <div>Loading...</div>;
     }

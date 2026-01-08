@@ -169,31 +169,26 @@ const defaultCatalog = {
     ]
 }
 
-export const useGetProducts = () => {
+export const useGetProducts = (): { data: { data: ProductData[] }, isLoading: boolean, error: Error | null } => {
     const {data, error, isLoading} = useQuery<{ data: ProductData[] }, Error>({
         queryKey: ['getProducts'],
         queryFn: getProducts,
-        onError: (err) => {
-            console.error('Error fetching product data:', err);
-        },
         retry: false,
     });
-    const products = (error || isLoading) ? defaultCatalog : data;
+    const products = (error || isLoading || !data) ? defaultCatalog : data;
 
     return {data: products, isLoading, error};
 };
 
-export const useGetProduct = (productId: string) => {
+export const useGetProduct = (productId: string): { data: { data: ProductData }, isLoading: boolean, error: Error | null } => {
     const {data, isLoading, error} = useQuery<{ data: ProductData }, Error>({
         queryKey: ['getProduct', productId],
         queryFn: () => getProduct(productId),
-        onError: (err) => {
-            console.error('Error fetching product data:', err);
-        },
         retry: false,
     });
 
-    const product = (error || isLoading) ? {data: defaultCatalog.data.find((product) => product.id == productId)} : data;
+    const fallbackProduct = { data: defaultCatalog.data.find((product) => product.id == productId) as ProductData };
+    const product = (error || isLoading || !data) ? fallbackProduct : data;
 
     return {data: product, isLoading, error}
 };
