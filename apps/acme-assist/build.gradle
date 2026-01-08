@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-pgvector-store-spring-boot-starter'
-    implementation 'com.knuddels:jtokkit:1.0.0'
+    implementation 'com.knuddels:jtokkit:1.1.0'
     runtimeOnly 'org.postgresql:postgresql'
     implementation "io.pivotal.cfenv:java-cfenv-all:${javaCfenvVersion}"
     implementation 'org.springframework.credhub:spring-credhub-starter:3.5.0'
