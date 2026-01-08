@@ -1,11 +1,7 @@
 describe('ACME Fitness E2E Test', () => {
 
     beforeEach(() => {
-        cy.visit('/')
-        cy.get('#login-button').click();
-        cy.get('#username').type("user");
-        cy.get('#password').type("password");
-        cy.get('.btn').click();
+        cy.login();
     });
 
     it('ask it standard FAQ questions', () => {
