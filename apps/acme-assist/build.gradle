@@ -25,7 +25,7 @@ repositories {
     maven { url 'https://repo.spring.io/snapshot'}
 }
 ext {
-    set('springAiVersion', "1.0.0-M2")
+    set('springAiVersion', "1.1.2")
     set('springCloudServicesVersion', "4.3.2")
     set('springCloudVersion', "2025.0.1")
     set('javaCfenvVersion', "3.5.0")
@@ -35,8 +35,8 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
-    implementation 'org.springframework.ai:spring-ai-pgvector-store-spring-boot-starter'
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
     implementation 'com.knuddels:jtokkit:1.1.0'
     runtimeOnly 'org.postgresql:postgresql'
     implementation "io.pivotal.cfenv:java-cfenv-all:${javaCfenvVersion}"
