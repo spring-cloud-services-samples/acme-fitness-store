@@ -27,7 +27,6 @@ repositories {
 ext {
     set('springAiVersion', "1.1.2")
     set('springCloudServicesVersion', "4.3.2")
-    set('springCloudVersion', "2025.0.1")
     set('javaCfenvVersion', "3.5.0")
     set('testContainersVersion', "1.21.4")
 }
@@ -58,7 +57,6 @@ dependencyManagement {
     imports {
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
         mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:${springCloudServicesVersion}"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
 

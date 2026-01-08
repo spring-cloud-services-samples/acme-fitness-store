@@ -58,7 +58,6 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:4.3.2"
     }
 }
