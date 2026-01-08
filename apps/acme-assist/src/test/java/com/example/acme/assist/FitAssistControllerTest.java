@@ -1,7 +1,6 @@
 package com.example.acme.assist;
 
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -20,10 +19,29 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import java.util.List;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
 class FitAssistControllerTest {
+
+    @MockitoBean
+    private EmbeddingModel embeddingModel;
+
+    @MockitoBean
+    private ChatClient chatClient;
 
     @Container
     @ServiceConnection
@@ -66,8 +84,18 @@ class FitAssistControllerTest {
     }
 
     @Test
-    @Disabled
     public void testQuestionDeliveryTime() throws Exception {
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec responseSpec = mock(ChatClient.CallResponseSpec.class);
+
+        AssistantMessage assistantMessage = new AssistantMessage("Delivery usually takes 3-5 business days.");
+        Generation generation = new Generation(assistantMessage);
+        ChatResponse chatResponse = new ChatResponse(List.of(generation));
+
+        when(chatClient.prompt(any(Prompt.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(responseSpec);
+        when(responseSpec.chatResponse()).thenReturn(chatResponse);
+
         final MvcResult mvcResult = mockMvc.perform(
                         post("/ai/question")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +114,16 @@ class FitAssistControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         final String content = mvcResult.getResponse().getContentAsString();
-        //todo Figure out whether to mock or talk to OpenAPI for this area.
+
+        JSONAssert.assertEquals("""
+                        {
+                          "messages": [
+                            "Delivery usually takes 3-5 business days."
+                          ]
+                        }
+                        """,
+                new JSONObject(content),
+                JSONCompareMode.LENIENT
+        );
     }
 }

@@ -1,0 +1,14 @@
+spring:
+  ai:
+    openai:
+      api-key: foobar-openai-key
+      base-url: http://localhost:8080
+    vectorstore:
+      pgvector:
+        dimensions: 1536
+    retry:
+      max-attempts: 1
+eureka:
+  client:
+    enabled: false
+

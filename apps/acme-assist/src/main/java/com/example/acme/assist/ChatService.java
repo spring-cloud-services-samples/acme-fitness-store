@@ -67,9 +67,9 @@ public class ChatService {
         String question = chatRequestMessages.get(chatRequestMessages.size() - 1).getContent();
 
         // step 1. Query for documents that are related to the question from the vector store
-        SearchRequest request = SearchRequest.query(question).
-                withTopK(5).
-                withSimilarityThreshold(0.4);
+        SearchRequest request = SearchRequest.builder().query(question)
+                .topK(5)
+                .similarityThreshold(0.4).build();
         List<Document> candidateDocuments = this.store.similaritySearch(request);
 
         // step 2. Create a SystemMessage that contains the product information in addition to related documents.
@@ -93,9 +93,9 @@ public class ChatService {
         String question = acmeChatRequestMessages.get(acmeChatRequestMessages.size() - 1).getContent();
 
         // step 1. Query for documents that are related to the question from the vector store
-        SearchRequest request = SearchRequest.query(question).
-                withTopK(5).
-                withSimilarityThreshold(0.4);
+        SearchRequest request = SearchRequest.builder().query(question)
+                .topK(5)
+                .similarityThreshold(0.4).build();
         List<Document> relatedDocuments = store.similaritySearch(request);
 
 
@@ -103,7 +103,7 @@ public class ChatService {
         List<Message> messages = new ArrayList<>();
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(this.chatWithoutProductIdResource);
         String relatedDocsAsString = relatedDocuments.stream()
-                .map(entry -> String.format("Product Name: %s\nText: %s\n", entry.getMetadata().get("name"), entry.getContent()))
+                .map(entry -> String.format("Product Name: %s\nText: %s\n", entry.getMetadata().get("name"), entry.getText()))
                 .collect(Collectors.joining("\n"));
         Message systemMessage = systemPromptTemplate.createMessage(Map.of("context", relatedDocsAsString));
         messages.add(systemMessage);
@@ -131,7 +131,7 @@ public class ChatService {
 
     public Message getProductDetailMessage(Product product, List<Document> documents) {
         String additionalContext = documents.stream()
-                .map(entry -> String.format("Product Name: %s\nText: %s\n", entry.getMetadata().get("name"), entry.getContent()))
+                .map(entry -> String.format("Product Name: %s\nText: %s\n", entry.getMetadata().get("name"), entry.getText()))
                 .collect(Collectors.joining("\n"));
         Map<String,Object> map = Map.of(
                 "name", product.getName(),
@@ -145,7 +145,7 @@ public class ChatService {
 
     private List<String> processResult(ChatResponse aiResponse) {
         List<String> response = aiResponse.getResults().stream()
-                .map(result -> result.getOutput().getContent())
+                .map(result -> result.getOutput().getText())
                 .filter(text -> !StringUtils.isEmpty(text))
                 .map(this::filterMessage)
                 .collect(Collectors.toList());

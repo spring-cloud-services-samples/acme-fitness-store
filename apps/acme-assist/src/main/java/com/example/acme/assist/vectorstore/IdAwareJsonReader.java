@@ -25,7 +25,7 @@ public class IdAwareJsonReader extends JsonReader {
         List<Document> result = new ArrayList<>();
         for (Document document : documents) {
             Object id = document.getMetadata().remove(DEFAULT_ID_KEY);
-            result.add(new Document(id.toString(), document.getContent(), document.getMetadata()));
+            result.add(new Document(id.toString(), document.getText(), document.getMetadata()));
         }
         return result;
     }
