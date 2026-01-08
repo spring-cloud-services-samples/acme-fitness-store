@@ -169,7 +169,7 @@ jobs:
       - name: Install and Build
         run: |
           cd apps/acme-shopping-react
-          npm ci
+          npm install
           npm run build
           npm run lint
 

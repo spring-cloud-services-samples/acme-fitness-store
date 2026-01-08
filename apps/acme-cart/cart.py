@@ -113,7 +113,6 @@ class FoundIssue(Exception):
 
 @auth.verify_token
 def verify_token(token):
-    global auth_mode
 
     headers = {'content-type': 'application/json'}
     verify_token_url = auth_url + "/verify-token"
