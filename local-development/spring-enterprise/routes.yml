@@ -8,7 +8,7 @@ spring:
         # ####################################################
         # acme-assist
         # ####################################################
-        - uri: http://host.docker.internal:8081
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8081"
           predicates:
             - Path=/ai/*
             - Method=POST
@@ -16,7 +16,7 @@ spring:
             - StripPrefix=0
           tags:
             - assist-service
-        - uri: http://host.docker.internal:8081
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8081"
           predicates:
             - Path=/ai/admin/*
             - Method=GET
@@ -28,7 +28,7 @@ spring:
         # ####################################################
         # acme-cart
         # ####################################################
-        - uri: http://host.docker.internal:8085
+        - uri: "http://cart:5000"
           predicates:
             - Path=/cart/item/add/{userId}
             - Method=POST
@@ -37,7 +37,7 @@ spring:
             - TokenRelay
           tags:
             - cart
-        - uri: http://host.docker.internal:8085
+        - uri: "http://cart:5000"
           predicates:
             - Path=/cart/item/modify/{userId}
             - Method=POST
@@ -46,7 +46,7 @@ spring:
             - TokenRelay
           tags:
             - cart
-        - uri: http://host.docker.internal:8085
+        - uri: "http://cart:5000"
           predicates:
             - Path=/cart/items/{userId}
             - Method=GET
@@ -55,7 +55,7 @@ spring:
             - TokenRelay
           tags:
             - cart
-        - uri: http://host.docker.internal:8085
+        - uri: "http://cart:5000"
           predicates:
             - Path=/cart/clear/{userId}
             - Method=GET
@@ -64,7 +64,7 @@ spring:
             - TokenRelay
           tags:
             - cart
-        - uri: http://host.docker.internal:8085
+        - uri: "http://cart:5000"
           predicates:
             - Path=/cart/total/{userId}
             - Method=GET
@@ -79,7 +79,7 @@ spring:
         # ####################################################
         - title: products-route
           description: /products endpoint
-          uri: http://host.docker.internal:8082
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8082"
           predicates:
            - Path=/products
            - Method=GET
@@ -90,7 +90,7 @@ spring:
            - catalog
         - title: products-id-route
           description: /products/id endpoint
-          uri: http://host.docker.internal:8082
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8082"
           predicates:
            - Path=/products/{id}
            - Method=GET
@@ -100,7 +100,7 @@ spring:
            - catalog
         - title: catalogliveness-route
           description: /products/id endpoint
-          uri: http://host.docker.internal:8082
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8082"
           predicates:
            - Path=/catalogliveness
            - Method=GET
@@ -111,7 +111,7 @@ spring:
            - catalog
         - title: catalogliveness-route
           description: /products/id endpoint
-          uri: http://host.docker.internal:8082
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8082"
           predicates:
            - Path=/static/images/{id}
            - Method=GET
@@ -125,7 +125,7 @@ spring:
         # ####################################################
         - order: 0
           ssoEnabled: true
-          uri: http://host.docker.internal:8083
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8083"
           predicates:
             - Path=/acme-login
             - Method=GET
@@ -134,7 +134,7 @@ spring:
             - RedirectTo=302, /
           tags:
             - sso
-        - uri: http://host.docker.internal:8083
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8083"
           predicates:
             - Path=/userinfo
             - Method=GET
@@ -150,7 +150,7 @@ spring:
             - Method=POST
           tags:
             - users
-        - uri: http://host.docker.internal:8083
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8083"
           predicates:
             - Path=/whoami
             - Method=GET
@@ -163,7 +163,7 @@ spring:
         # ####################################################
         # acme-order
         # ####################################################
-        - uri: http://host.docker.internal:8086
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8086"
           title: Create an order.
           description: Creates an order for the user.
           predicates:
@@ -174,7 +174,7 @@ spring:
             - TokenRelay
           tags:
             - order
-        - uri: http://host.docker.internal:8086
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8086"
           title: Retrieve User's Orders.
           description: Lookup all orders for the given user
           predicates:
@@ -189,7 +189,7 @@ spring:
         # ####################################################
         # acme-payment
         # ####################################################
-        - uri: http://host.docker.internal:8084
+        - uri: "http://${GATEWAY_HOST:host.docker.internal}:8084"
           description: /pay endpoint
           predicates:
             - Path=/pay
@@ -204,7 +204,7 @@ spring:
         # acme-shopping (frontend)
         # ####################################################
         - order: 999
-          uri: http://host.docker.internal:8080
+          uri: "http://${GATEWAY_HOST:host.docker.internal}:8080"
           predicates:
             - Path=/**
             - Method=GET

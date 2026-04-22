@@ -4,7 +4,7 @@
     "AcmeOrder": {
       "commandName": "Project",
       "launchUrl": "order",
-      "applicationUrl": "http://localhost:8086",
+      "applicationUrl": "http://*:8086",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

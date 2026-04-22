@@ -18,6 +18,21 @@ cd local-development
 docker compose -p acme-fitness up -d
 ```
 
+### Configure gateway routes to services running on host
+
+[`spring-enterprise/routes.yml`](spring-enterprise/routes.yml) builds upstream URIs with `${GATEWAY_HOST:host.docker.internal}` as the hostname. Compose passes `GATEWAY_HOST` into the gateway container (default `host.docker.internal`). For **Podman** (or when that hostname misbehaves), set `GATEWAY_HOST` to a value that will work on your machine before running `compose up`:
+
+```shell
+# Option 1: Copy [.env.example](.env.example) to **`local-development/.env`** and uncomment the line (Compose loads `.env` from this directory).
+# Option 2: Set the env var with your preferred shell
+# bash
+export GATEWAY_HOST="host.containers.internal"
+# CMD
+set GATEWAY_HOST="host.containers.internal"
+# PowerShell
+$env:GATEWAY_HOST="host.containers.internal"
+```
+
 ### Boot up each of the local application following their README
 
 - [acme-cart](../apps/acme-cart/README.md)

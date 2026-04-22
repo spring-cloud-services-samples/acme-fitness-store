@@ -18,13 +18,17 @@ export default function ProductPage() {
 
   const addToCartMutation = useAddToCart(userInfo?.userId);
 
-  if (isProductLoading || isUserLoading || userInfo == null) {
+  if (isProductLoading || isUserLoading) {
     return <Loading />;
   }
 
-// TODO: maybe we can refactor the Catalog Service to remove duplicate `data` tag
-  if (isProductLoading || data?.data == null) {
-    return null;
+  // TODO: maybe we can refactor the Catalog Service to remove duplicate `data` tag
+  if (data?.data == null) {
+    return (
+      <div className="p-8">
+        <p id="product-not-found">Product not found or catalog unavailable.</p>
+      </div>
+    );
   }
 
   const product = data.data;

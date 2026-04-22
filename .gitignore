@@ -66,3 +66,6 @@ hello-world/
 
 # tanzu
 build-output
+
+# Local Compose overrides (e.g. GATEWAY_HOST for Podman)
+local-development/.env
