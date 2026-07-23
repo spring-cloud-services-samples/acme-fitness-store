@@ -1,45 +1,50 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.245.2/containers/ubuntu
+// Based on the Aspire template: https://github.com/microsoft/aspire-devcontainer
 {
 	"name": "acme-fitness-store",
-	"build": {
-		"dockerfile": "Dockerfile",
-		// Update 'VARIANT' to pick an Ubuntu version: jammy / ubuntu-22.04, focal / ubuntu-20.04, bionic /ubuntu-18.04
-		// Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
-		"args": {
-			"VARIANT": "ubuntu-22.04"
-		}
-	},
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-	"onCreateCommand": "./.devcontainer/scripts/onCreateCommand.sh",
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:dev-10.0-noble",
 	"hostRequirements": {
-		"cpus": 2
+		"cpus": 4,
+		"memory": "16gb"
 	},
 	"containerEnv": {
-		"GRADLE_USER_HOME": "/home/vscode", // required because the java feature is not setting this correctly
-		"M2": "/home/vscode" // required because the java feature is not setting this correctly
+		// The java feature does not set GRADLE_USER_HOME; without it Gradle resolves
+		// the home directory incorrectly inside the container.
+		"GRADLE_USER_HOME": "/home/vscode/.gradle",
+		"SSL_CERT_DIR": "/home/vscode/.aspnet/dev-certs/trust:/usr/lib/ssl/certs"
+	},
+	"remoteEnv": {
+		"SSL_CERT_DIR": "/home/vscode/.aspnet/dev-certs/trust:/usr/lib/ssl/certs"
 	},
 	"features": {
-		"azure-cli": "latest",
-		"docker-from-docker": "latest",
-		"node": "lts",
-		"ghcr.io/devcontainers/features/python:1": {
-			"version": "latest",
-			"installJupyterlab": false
-		},
+		"ghcr.io/microsoft/aspire-devcontainer-feature/aspire:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/powershell:1": {},
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers-extra/features/uv:1": {},
 		"ghcr.io/devcontainers/features/java:1": {
-			"version": "17",
+			"version": "21",
 			"installGradle": true,
 			"installMaven": true
-		},
-		"ghcr.io/devcontainers/features/dotnet:1": {
-			"version": "6",
-			"runtimeOnly": false,
-			"installUsingApt": false
 		}
-	}
+	},
+	// Only reachable/meaningful when AppHost.cs detects it's running in a container (Platform.IsContainerized) --
+	// that's when gateway/acme-login get pinned to these exact ports instead of Aspire's normal random assignment,
+	// which is what makes static forwardPorts viable here at all.
+	"forwardPorts": [8090, 9000],
+	"portsAttributes": {
+		"8090": {
+			"label": "Gateway",
+			"onAutoForward": "notify"
+		},
+		"9000": {
+			"label": "Login / Authorization Server",
+			"onAutoForward": "silent"
+		}
+	},
+	// Cypress's npm package (bundled in node_modules) is cross-platform, but the actual Cypress binary lives
+	// outside the repo in ~/.cache/Cypress and needs Electron's system libs -- both are per-container, one-time
+	// setup, so they belong here rather than in postStartCommand.
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y libgtk-3-0t64 libgbm-dev libnotify-dev libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb && cd e2e && npx cypress install",
+	"postStartCommand": "aspire certs trust"
 }
