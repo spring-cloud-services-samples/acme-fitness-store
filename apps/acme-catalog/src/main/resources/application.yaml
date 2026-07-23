@@ -8,6 +8,13 @@ spring:
 
   flyway:
     encoding: UTF-8
+    # acme-catalog may share a Postgres service instance/database with acme-order (EF Core) and acme-assist
+    # (pgvector), so Flyway could see a non-empty "public" schema with no history table on first deploy.
+    # baseline-version must stay below 1.0 (below the first real migration's version) -- the default
+    # baseline-version of 1 is equal to V1_0's version under Flyway's version comparison, which would skip V1_0
+    # as "already covered by baseline" and leave the catalog table never created.
+    baseline-on-migrate: true
+    baseline-version: "0"
 
 eureka:
   client:

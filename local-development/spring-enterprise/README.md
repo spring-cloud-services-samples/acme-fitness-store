@@ -1,14 +1,17 @@
-### Tanzu Local Authentication Server
-Follow the instructions on ["Getting Started with Tanzu Local Authorization Server"](https://docs.vmware.com/en/Tanzu-Spring-Runtime/Commercial/Tanzu-Spring-Runtime/local-auth-server-about-local-auth-server.html) page to obtain the jar executable from Broadcom download portal.
+# Spring Enterprise Dependencies
 
-Place the jar named as `tanzu-local-authorization-server.jar` into the directory `local-development/spring-enterprise`.
+Resources listed in this document must be obtained from the Broadcom Support portal or (if available) from your company's mirror of the Broadcom artifactory.
 
-Given jar is placed correctly, included [docker-compose.yml](../docker-compose.yaml) starts up a local instance of Tanzu Local Authentication Server on port 9000.
+## Tanzu Local Authentication Server
 
+Follow the instructions on ["Getting Started with Tanzu Local Authorization Server"](https://techdocs.broadcom.com/us/en/vmware-tanzu/spring/tanzu-spring/commercial/spring-tanzu/local-auth-server-about-local-auth-server.html) to obtain the executable jar from the Broadcom Support portal.
+If you are already authenticated, [view the available versions of Tanzu Local Authorization Server](https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/tanzu-local-authorization-server/).
+Name the file `tanzu-local-authorization-server.jar` and place it into the directory `local-development/spring-enterprise`.
+From there, both Aspire and the included [docker-compose.yml](../docker-compose.yaml) can start an instance of Tanzu Local Authentication Server.
 
-### Spring Cloud Gateway Server
+## Spring Cloud Gateway Server
 
-Obtain from Broadcom download portal to get the Spring Commercial Gateway Jar for running local.
-Place the jar named as `gateway-2.2.4.jar` into the directory `local-development/spring-enterprise`
-
-Given jar is placed correctly, included [docker-compose.yml](../docker-compose.yaml) starts up a local instance of Spring Cloud Gateway Server on port 8090.
+Similar to the instructions above, you must obtain from the Spring Commercial Gateway jar from the Broadcom Support portal.
+If you are already authenticated, [view the available versions of Tanzu Spring Cloud Gateway Server](https://packages.broadcom.com/artifactory/spring-enterprise/com/vmware/tanzu/spring/tanzu-spring-cloud-gateway/).
+Name the file `tanzu-spring-cloud-gateway.jar` and place it into the directory `local-development/spring-enterprise`.
+From there, both Aspire and the included [docker-compose.yml](../docker-compose.yaml) can start an instance of Spring Cloud Gateway Server.

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AcmeOrder.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace AcmeOrder.Db;
 
@@ -18,6 +19,13 @@ public class SqliteOrderContext : OrderContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Capture options in a local so the expression trees in ValueComparer don't close over 'this'.
+        var opts = _jsonSerializerOptions;
+        var cartComparer = new ValueComparer<ICollection<Cart>>(
+            (c1, c2) => JsonSerializer.Serialize(c1, opts) == JsonSerializer.Serialize(c2, opts),
+            c => JsonSerializer.Serialize(c, opts).GetHashCode(),
+            c => JsonSerializer.Deserialize<ICollection<Cart>>(JsonSerializer.Serialize(c, opts), opts)!);
+
         modelBuilder.Entity<Order>(entity =>
         {
             entity.ToTable("order");
@@ -43,7 +51,8 @@ public class SqliteOrderContext : OrderContext
                 .HasColumnName("cart")
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, _jsonSerializerOptions),
-                    v => JsonSerializer.Deserialize<ICollection<Cart>>(v, _jsonSerializerOptions));
+                    v => JsonSerializer.Deserialize<ICollection<Cart>>(v, _jsonSerializerOptions))
+                .Metadata.SetValueComparer(cartComparer);
 
             entity.Property(e => e.Date)
                 .HasColumnName("date")

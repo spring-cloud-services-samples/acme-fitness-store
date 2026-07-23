@@ -1,17 +1,10 @@
 server:
   port: 8084
 
-logging.level:
-  org.springframework.data: warn
-
 spring:
-  application:
-    name: 'acme-payment'
   config:
     activate:
       on-profile: local
 eureka:
-  client:
-    enabled: true
   instance:
     preferIpAddress: true

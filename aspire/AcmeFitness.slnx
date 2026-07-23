@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/AspireAcmeExperiments/">
+    <Project Path="Aspire.Extensions.CloudFoundryPublish/Aspire.Extensions.CloudFoundryPublish.csproj" />
+    <Project Path="Aspire.Extensions.Spring/Aspire.Extensions.Spring.csproj" />
+  </Folder>
+  <Project Path="../apps/acme-order/acme-order.csproj" />
+  <Project Path="apphost/AcmeFitness.AppHost.csproj" />
+</Solution>

@@ -1,0 +1,6 @@
+# acme-payment settings served by this Config Server for all environments.
+# Supersedes the profile-gated values in acme-payment-local.yml for Aspire and CF deployments.
+
+logging:
+  level:
+    org.springframework.data: warn

@@ -7,20 +7,28 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <SteeltoeVersion>4.2.0</SteeltoeVersion>
+        <!-- Use a floating Steeltoe version to align with "Libraries" packages -->
+        <SteeltoeVersion>4.*-main-*</SteeltoeVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+        <!-- Package 'SQLitePCLRaw.lib.e_sqlite3' 2.1.11 has a known high severity vulnerability. -->
+        <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.4.*" />
+        <PackageReference Include="Libraries.BootstrapLogger.AppExtensions" Version="0.0.1-dev-001" />
+        <PackageReference Include="Libraries.Connectors.Npgsql.AppExtensions" Version="0.0.1-dev-001" />
+        <PackageReference Include="Libraries.ServiceDiscovery.Eureka.AppExtensions" Version="0.0.1-dev-001" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
-        <PackageReference Include="Steeltoe.Connectors.EntityFrameworkCore" Version="$(SteeltoeVersion)" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.*" />
         <PackageReference Include="Steeltoe.Discovery.Eureka" Version="$(SteeltoeVersion)" />
-        <PackageReference Include="Steeltoe.Discovery.HttpClients" Version="$(SteeltoeVersion)" />
+        <PackageReference Include="Steeltoe.Security.Authentication.JwtBearer" Version="$(SteeltoeVersion)" />
+        <PackageReference Include="Steeltoe.Common.Logging" Version="$(SteeltoeVersion)" />
         <PackageReference Include="Steeltoe.Management.Endpoint" Version="$(SteeltoeVersion)" />
     </ItemGroup>
 

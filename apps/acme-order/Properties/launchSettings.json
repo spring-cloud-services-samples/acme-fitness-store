@@ -1,10 +1,18 @@
 {
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "AcmeOrder": {
+    "http": {
       "commandName": "Project",
-      "launchUrl": "order",
-      "applicationUrl": "http://*:8086",
+      "launchUrl": "order/all",
+      "applicationUrl": "http://localhost:8086",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "https": {
+      "commandName": "Project",
+      "launchUrl": "order/all",
+      "applicationUrl": "https://localhost:0;http://localhost:8086",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

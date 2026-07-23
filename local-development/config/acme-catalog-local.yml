@@ -2,16 +2,6 @@ server:
   port: 8082
 
 spring:
-  application:
-    name: "acme-catalog"
-  mvc:
-    static-path-pattern: /static/images/**
-  web:
-    resources:
-      cache:
-        cachecontrol:
-          max-age: 3600
-          cache-public: true
   config:
     activate:
       on-profile: local
@@ -20,13 +10,5 @@ spring:
     password: rootpassword
     url: jdbc:postgresql://localhost:5434/acme-catalog
 eureka:
-  client:
-    enabled: true
   instance:
     preferIpAddress: true
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-

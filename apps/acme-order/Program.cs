@@ -2,24 +2,32 @@ using System;
 using System.Net.Http.Headers;
 using AcmeOrder.Db;
 using AcmeOrder.Services;
+using Libraries.BootstrapLogger.AppExtensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Libraries.Connectors.Npgsql.AppExtensions;
+using Libraries.ServiceDiscovery.Eureka.AppExtensions;
+using Microsoft.Extensions.Hosting;
+using Steeltoe.Common.Logging;
 using Steeltoe.Configuration.CloudFoundry;
 using Steeltoe.Configuration.CloudFoundry.ServiceBindings;
-using Steeltoe.Connectors.PostgreSql;
-using Steeltoe.Discovery.Eureka;
-using Steeltoe.Discovery.HttpClients;
 using Steeltoe.Management.Endpoint.Actuators.All;
+using Steeltoe.Security.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
+
+BootstrapLoggerFactory loggerFactory = builder.CreateBootstrapLoggerFactory();
+
 builder.AddCloudFoundryConfiguration();
 builder.Configuration.AddCloudFoundryServiceBindings();
 builder.Services.AddAllActuators();
-builder.Services.AddEurekaDiscoveryClient();
+builder.Services.AddServiceDiscovery();
+builder.AddEurekaServiceDiscovery(EurekaServiceDiscoveryModes.Register | EurekaServiceDiscoveryModes.Query, loggerFactory: loggerFactory);
+builder.ConfigureEurekaOnCloudFoundry(loggerFactory: loggerFactory);
 
 switch (builder.Configuration["DatabaseProvider"])
 {
@@ -28,17 +36,19 @@ switch (builder.Configuration["DatabaseProvider"])
         break;
 
     case "Postgres":
-        builder.AddPostgreSql();
-        builder.Services.AddDbContext<OrderContext, PostgresOrderContext>();
+        builder.AddNpgsqlDbContext<PostgresOrderContext>("orderDb",
+            settings => settings.ConnectionString = builder.UpdateNpgsqlConnectionStringOnCloudFoundry(settings.ConnectionString));
+        builder.Services.AddScoped<OrderContext>(sp => sp.GetRequiredService<PostgresOrderContext>());
         break;
 }
 
 builder.Services.AddHttpClient<OrderService>(c =>
     {
-        c.BaseAddress = new Uri("https://acme-payment");
+        c.BaseAddress = new Uri("https+http://acme-payment");
         c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     })
     .AddServiceDiscovery();
+
 builder.Services.AddControllers();
 
 builder.Services
@@ -59,7 +69,8 @@ builder.Services
                 }
             };
         }
-    });
+    })
+    .ConfigureJwtBearerForCloudFoundry();
 
 builder.Services.AddAuthorization();
 
