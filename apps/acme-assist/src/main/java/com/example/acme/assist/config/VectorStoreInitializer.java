@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.springframework.ai.document.Document;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -57,7 +58,20 @@ public class VectorStoreInitializer implements ApplicationListener<ApplicationRe
                 .forEach(doc -> {
                     documents.add(doc);
                 });
-        LOGGER.info("Found {} products to index", documents.size());
-        vectorStore.add(documents);
+
+        // The Tanzu AI Services embedding model (nomic-embed-text-v2-moe) caps input at 512 tokens,
+        // and a full product document can exceed that. Split each document into sub-512-token chunks
+        // before embedding. chunkSize is measured with jtokkit's cl100k tokenizer, which is not the
+        // model's own tokenizer, so 256 leaves margin to stay safely under the 512 limit. Chunk
+        // metadata (including "name") is inherited from the parent document, so RAG retrieval is
+        // unchanged. (The previous OpenAI embedding model allowed ~8191 tokens, so this never bit.)
+        TokenTextSplitter splitter = TokenTextSplitter.builder()
+                .withChunkSize(256)
+                .withKeepSeparator(true)
+                .build();
+        List<Document> chunks = splitter.apply(documents);
+
+        LOGGER.info("Found {} products to index ({} chunks after splitting)", documents.size(), chunks.size());
+        vectorStore.add(chunks);
      }
 }
