@@ -8,6 +8,9 @@ custom-filters
 *.iml
 *.jar
 
+# Local npm registry overrides (e.g. a corporate mirror) -- never commit one of these,
+.npmrc
+
 azure-spring-apps-enterprise/scripts/setup-env-variables.sh
 azure-spring-apps-enterprise/scripts/setup-db-env-variables.sh
 azure-spring-apps-enterprise/scripts/setup-sso-variables.sh
