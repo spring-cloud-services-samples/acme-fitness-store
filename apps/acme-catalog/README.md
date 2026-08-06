@@ -1,16 +1,14 @@
 # Catalog
 
-
 > A Catalog service, used to service the bikes and accessories sold by acme fitness
 
-The goal of this specific service is to keep track of bikes and accessories. 
+The goal of this specific service is to keep track of bikes and accessories.
 
 Catalog contains a database it talks to store the information it needs.
 
-### Run
+## Run
 
-* [Docker](https://www.docker.com/docker-community)
-
+* [Docker](https://www.docker.com/community/)
 
 ## Local running
 
@@ -30,4 +28,3 @@ To run locally
 ```bash
 ./gradlew bootRun --args="--spring.profiles.active=local"
 ```
-

@@ -1,0 +1,10 @@
+exclude_loopback = true
+
+exclude = [
+    "cla.vmware.com",
+    "packages.broadcom.com"
+]
+
+exclude_path = [
+    "node_modules"
+]

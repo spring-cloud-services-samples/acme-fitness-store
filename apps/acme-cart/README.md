@@ -1,6 +1,5 @@
 # Cart
 
-
 > A cart service, because what is a shop without a cart to put stuff in?
 
 The goal of this specific service is to keep track of carts and items in the different carts.
@@ -13,10 +12,11 @@ There are different dependencies based on whether you want to run a built contai
 
 * [Python 3.7.2 or higher](https://www.python.org/downloads/)
 * [Pip](https://pip.pypa.io/en/stable/installing/)
-* pyenv 
+* pyenv
+
 ### Run
 
-* [Docker](https://www.docker.com/docker-community)
+* [Docker](https://www.docker.com/community/)
 * [Redis](https://hub.docker.com/r/bitnami/redis)
 
 ## Installation
