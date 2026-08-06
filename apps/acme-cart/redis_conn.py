@@ -8,13 +8,17 @@ from distutils.util import strtobool
 
 def redis_connection(logger):
     if environ.get('VCAP_SERVICES') not in (None, ''):
-        redis_creds = credhub_secret('p.redis')
+        redis_creds = credhub_secret(('p-redis', 'p.redis'))
         redis_host = redis_creds['host']
-        redis_port = redis_creds['tls_port']
         redis_password = redis_creds['password']
+        # Not every p-redis plan exposes a TLS port (e.g. shared-vm plans are plaintext-only);
+        # use it when present, otherwise fall back to the plain port without TLS.
+        redis_tls_port = redis_creds.get('tls_port')
+        redis_port = redis_tls_port if redis_tls_port is not None else redis_creds['port']
+        redis_tls = redis_tls_port is not None
 
         logger.info('initiating redis connection with password')
-        redis_conn = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, db=0, ssl=True) 
+        redis_conn = redis.StrictRedis(host=redis_host, port=redis_port, password=redis_password, db=0, ssl=redis_tls)
     else:
         redis_conn_str = None
         redis_host = environ['REDIS_HOST'] if environ.get('REDIS_HOST') not in (None, '') else None
