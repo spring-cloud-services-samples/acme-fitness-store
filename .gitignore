@@ -1,4 +1,5 @@
 __pycache__
+.venv/
 .DS_Store
 .env*.secret
 .idea
@@ -69,3 +70,9 @@ build-output
 
 # Local Compose overrides (e.g. GATEWAY_HOST for Podman)
 local-development/.env
+
+# Visual Studio and .NET
+.vs/
+bin/
+obj/
+*.user

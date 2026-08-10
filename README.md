@@ -24,7 +24,7 @@ This application is composed of several services:
 * 1 Node.js and static HTML Application
     - A frontend shopping application
 
-The sample can be deployed to Azure Spring Apps Enterprise or Tanzu Platform.
+The sample can be deployed to Tanzu Platform.
 
 ## Repo Organization
 
@@ -158,37 +158,3 @@ cf start acme-shopping
 https://docs.cloudfoundry.org/devguide/deploy-apps/ssh-services.html
 
 `cf ssh -L 65432:{host-of-database-on-TAS}:5432 {application-name}`
-
-## Deploy on Tanzu Platform for Kubernetes (tPk8s)
-
-Assume Tanzu Platform has been configured with a project, space, and clusters.
-
-> [!NOTE]  
-> These steps are only relevant for deploying `acme-catalog`
-
-1. Install Tanzu CLI ([documentation](https://docs.vmware.com/en/VMware-Tanzu-CLI/1.4/tanzu-cli/index.html))
-    ```bash
-    brew update
-    brew install vmware-tanzu/tanzu/tanzu-cli
-    ```
-
-2. Install the Tanzu Platform plugin
-   group ([documentation](https://docs.vmware.com/en/VMware-Tanzu-CLI/1.4/tanzu-cli/tanzu-plugin.html#tanzu-plugin-install-8))
-    ```bash
-    tanzu plugin install --group vmware-tanzu/app-developer
-    ```
-
-3. Login to Tanzu Platform and set project / space scope
-    ```bash
-    tanzu login
-    tanzu project use
-    tanzu space use
-    ```
-
-   > [!TIP]
-   > This can be verified using `tanzu context current`
-   
-4. Build the application using buildpacks and deploy.
-    ```bash
-    tanzu deploy
-    ```
