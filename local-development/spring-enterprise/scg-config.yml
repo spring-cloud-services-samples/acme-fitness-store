@@ -19,7 +19,7 @@
 # Activating the wavefront or zipkin profiles will turn on tracing features
 # ####################################################
 server:
-  port: 8090
+  port: ${SERVER_PORT:8090}
 management:
   wavefront:
     metrics:
@@ -34,7 +34,6 @@ spring:
   application:
     name: spring-cloud-gateway-for-kubernetes # application name
 
-
 ---
 # SSO configuration
 spring:
@@ -46,7 +45,7 @@ spring:
       client:
         provider:
           sso:
-            issuer-uri: http://localhost:9000
+            issuer-uri: ${AUTH_SERVER_URL:http://localhost:9000}
         registration:
           sso:
             client-id: default-client-id

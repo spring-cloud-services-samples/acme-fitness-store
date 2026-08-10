@@ -1,7 +1,7 @@
-  spring:
-    cloud:
-      config:
-        enabled: true
+spring:
+  cloud:
     config:
-      import:
-        - configserver:http://localhost:8888
+      enabled: true
+  config:
+    import:
+      - configserver:http://localhost:8888

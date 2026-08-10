@@ -1,0 +1,18 @@
+# Shared settings served to all Spring Boot apps by this Config Server.
+# Applied regardless of active Spring profile, in both Aspire and Cloud Foundry environments.
+
+spring:
+  main:
+    lazy-initialization: true
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 3600
+          cache-public: true
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true

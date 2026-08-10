@@ -7,7 +7,7 @@ applications:
   services:
     - acme-config
     - acme-registry
-    - acme-postgres
+    - acme-catalog-postgres
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud

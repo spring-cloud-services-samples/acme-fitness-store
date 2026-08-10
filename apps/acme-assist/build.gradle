@@ -38,7 +38,7 @@ dependencies {
     implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
     implementation 'com.knuddels:jtokkit:1.1.0'
     runtimeOnly 'org.postgresql:postgresql'
-    implementation "io.pivotal.cfenv:java-cfenv-all:${javaCfenvVersion}"
+    implementation "io.pivotal.cfenv:java-cfenv-boot:${javaCfenvVersion}"
     implementation 'org.springframework.credhub:spring-credhub-starter:3.5.0'
     implementation 'io.pivotal.spring.cloud:spring-cloud-services-starter-service-registry'
     implementation 'io.pivotal.spring.cloud:spring-cloud-services-starter-config-client'

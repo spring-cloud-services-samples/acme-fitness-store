@@ -1,28 +1,12 @@
 server:
   port: 8083
-
-logging.level:
-  org.springframework.data: warn
-
+  
 spring:
-  application:
-    name: 'acme-identity'
+  config:
+    activate:
+      on-profile: local
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: "http://localhost:9000"
-  mvc:
-    static-path-pattern: /static/images/**
-  web:
-    resources:
-      cache:
-        cachecontrol:
-          max-age: 3600
-          cache-public: true
-  config:
-    activate:
-      on-profile: local
-eureka:
-  client:
-    enabled: true

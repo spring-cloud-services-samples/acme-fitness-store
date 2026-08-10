@@ -1,0 +1,13 @@
+spring:
+  ai:
+    openai:
+      base-url: ${vcap.services.acme-genai-chat.credentials.endpoint.openai_api_base}
+      api-key: ${vcap.services.acme-genai-chat.credentials.endpoint.api_key}
+      chat:
+        options:
+          model: openai/gpt-oss-120b
+      embedding:
+        base-url: ${vcap.services.acme-genai-embed.credentials.endpoint.openai_api_base}
+        api-key: ${vcap.services.acme-genai-embed.credentials.endpoint.api_key}
+        options:
+          model: nomic-ai/nomic-embed-text-v2-moe

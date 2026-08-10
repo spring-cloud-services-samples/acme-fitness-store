@@ -1,0 +1,8 @@
+# acme-catalog settings served by this Config Server for all environments.
+# Supersedes the profile-gated values in acme-catalog-local.yml for Aspire and CF deployments.
+
+spring:
+  mvc:
+    static-path-pattern: /static/images/**
+  jpa:
+    open-in-view: false

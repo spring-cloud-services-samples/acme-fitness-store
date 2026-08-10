@@ -11,7 +11,7 @@ spring:
     openai:
       chat:
         options:
-          model: gpt-3.5-turbo
+          model: gpt-4o-mini
       api-key: ${OPENAI_API_KEY}
     vectorstore:
       pgvector: 

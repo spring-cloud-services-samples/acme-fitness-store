@@ -5,6 +5,7 @@ import json
 import opentracing
 import requests
 import sentry_sdk
+import ssl
 import time
 
 from logging.config import dictConfig
@@ -38,11 +39,15 @@ dictConfig({
 
 # set variables with env variables
 
-cart_port = environ['CART_PORT'] if environ.get('CART_PORT') not in (None, '') else 5000
+cart_port = environ['PORT'] if environ.get('PORT') not in (None, '') else 5000
 
 auth_url = environ['AUTH_URL'] if environ.get('AUTH_URL') not in (None, '') else ''
 
 auth_mode = int(environ['AUTH_MODE']) if environ.get('AUTH_MODE') not in (None, '') else 1
+
+# Verified by default; some foundations (self-signed or internal-CA gateway certs) need this turned off explicitly
+# rather than cart silently failing every request with SSLCertVerificationError.
+auth_url_verify_ssl = environ.get('AUTH_URL_VERIFY_SSL', 'true').lower() not in ('false', '0', 'no')
 
 instrumentation_key = None
 if instrumentation_key is None and environ.get('INSTRUMENTATION_KEY') not in (None, ''):
@@ -124,11 +129,11 @@ def verify_token(token):
 
         data1 = json.dumps({"username": "eric", "password": "vmware1!"})
 
-        r = requests.post(login_url, headers=headers, data=data1)
+        r = requests.post(login_url, headers=headers, data=data1, verify=auth_url_verify_ssl)
 
         if r.status_code == 200:
             verify_token_payload = json.dumps({"access_token": json.loads(r.content)["access_token"]})
-            r = requests.post(verify_token_url, headers=headers, data=verify_token_payload)
+            r = requests.post(verify_token_url, headers=headers, data=verify_token_payload, verify=auth_url_verify_ssl)
             if r.status_code == 200:
                 app.logger.info('Authorized %s', json.loads(r.content)["message"])
                 return True
@@ -145,7 +150,7 @@ def verify_token(token):
             return False
         else:
             verify_token_payload = json.dumps({"access_token": token})
-            r = requests.post(verify_token_url, headers=headers, data=verify_token_payload)
+            r = requests.post(verify_token_url, headers=headers, data=verify_token_payload, verify=auth_url_verify_ssl)
             if r.status_code == 200:
                 app.logger.info('Authorized %s', str(r.content))
                 return True
@@ -556,7 +561,13 @@ def get_env():
 
 if __name__ == '__main__':
     insert_data()  # initialize the database with some baseline
-    app.run(host='0.0.0.0', port=cart_port)
+    ssl_ctx = None
+    cert_file = environ.get('SSL_CERTFILE')
+    key_file = environ.get('SSL_KEYFILE')
+    if cert_file and key_file:
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_ctx.load_cert_chain(certfile=cert_file, keyfile=key_file)
+    app.run(host='0.0.0.0', port=cart_port, ssl_context=ssl_ctx)
     time.sleep(2)
     cart_tracer.close()
 #    redis_tracer.close()
