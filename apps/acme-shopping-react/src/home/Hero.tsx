@@ -10,7 +10,7 @@ export default function Hero() {
         className="absolute inset-0 object-cover w-full h-full"
       />
 
-      <div className="relative flex items-end justify-start h-full bg-black bg-opacity-50 text-white">
+      <div className="relative flex items-end justify-start h-full bg-black/50 text-white">
         <div className="flex-col m-8 mb-32">
           <p className="mt-4 text-2xl font-bold mb-6">New Arrival</p>
           <h1 className="text-8xl mb-16">Velo Racing Bikes</h1>

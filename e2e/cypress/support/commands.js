@@ -10,7 +10,7 @@
 //
 //
 // -- This is a parent command --
-Cypress.Commands.add('login', (username = 'user', password = 'password') => {
+Cypress.Commands.add('login', (username = Cypress.env('username') ?? 'user', password = Cypress.env('password') ?? 'password') => {
     cy.visit('/')
     cy.get('#login-button').click();
     const authUrl = Cypress.env('authUrl');

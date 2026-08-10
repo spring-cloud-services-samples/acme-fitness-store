@@ -1,6 +1,6 @@
 import { CartItem, Order } from "../types/Order.ts";
 import { AddressData } from "../types/Address.ts";
-import { CartData } from "../types/Cart.ts";
+import { CartData, CartItemData } from "../types/Cart.ts";
 
 export default function constructOrder(
   cartData: CartData,
@@ -85,7 +85,7 @@ export function getCurrentProductInView() {
   }
 }
 
-export const summarizeCart = (cartItems) => {
+export const summarizeCart = (cartItems: CartItemData[] | undefined) => {
   if (!cartItems) {
     return "Nothing. The cart is empty.";
   }

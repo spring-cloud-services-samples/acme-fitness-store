@@ -8,20 +8,20 @@ import {
 import { CartData, CartItemData } from "../types/Cart.ts";
 import { UserInfo } from "../types/User.ts";
 
-export const useGetCart = (userInfo: UserInfo) => {
+export const useGetCart = (userInfo: UserInfo | null | undefined) => {
   return useQuery<CartData, Error>({
     queryKey: ["getCart", userInfo?.userId],
-    queryFn: () => getCart(userInfo?.userId),
-    enabled: !!userInfo,
+    queryFn: () => getCart(userInfo!.userId),
+    enabled: !!userInfo?.userId,
   });
 };
 
-export const useAddToCart = (userId: string) => {
+export const useAddToCart = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (item: CartItemData) => {
-      await addItemToCart(userId, item);
+      await addItemToCart(userId!, item);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getCart", userId] });
@@ -32,15 +32,15 @@ export const useAddToCart = (userId: string) => {
   });
 };
 
-export const useDeleteCartItem = (userInfo: UserInfo) => {
+export const useDeleteCartItem = (userInfo: UserInfo | null | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (item: CartItemData) => {
-      await modifyCartItem(userInfo.userId, item);
+      await modifyCartItem(userInfo!.userId, item);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["getCart", userInfo.userId] });
+      queryClient.invalidateQueries({ queryKey: ["getCart", userInfo?.userId] });
     },
     onError: (error: Error) => {
       console.error("Error deleting or modifying cart item:", error.message);
@@ -48,12 +48,12 @@ export const useDeleteCartItem = (userInfo: UserInfo) => {
   });
 };
 
-export const useClearCart = (userId: string) => {
+export const useClearCart = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error>({
     mutationFn: async () => {
-      await clearCart(userId);
+      await clearCart(userId!);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["getCart", userId] });

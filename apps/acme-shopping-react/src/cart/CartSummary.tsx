@@ -13,7 +13,7 @@ export default function CartSummary({
   userInfo,
 }: {
   cartData: CartData;
-  userInfo: UserInfo;
+  userInfo: UserInfo | null | undefined;
 }) {
   const { data: productsData } = useGetProducts();
 

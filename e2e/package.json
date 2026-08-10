@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "cypress": "^15.19.0"
+  },
+  "allowScripts": {
+    "cypress@15.19.0": true
+  }
+}

@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Local Cypress env overrides (credentials/URLs for a specific deployed foundation) -- see README.md
+cypress.env.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

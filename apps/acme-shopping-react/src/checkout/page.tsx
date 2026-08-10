@@ -43,6 +43,11 @@ export default function CheckoutPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
+    // Cart operations require a signed-in user and a populated cart.
+    if (!cartData || !userInfo?.userId) {
+      return;
+    }
+
     // Handle form submission logic here
     console.log("Form submitted:", formData);
 
@@ -318,7 +323,7 @@ export default function CheckoutPage() {
           </form>
         </div>
 
-        <OrderSummary cart={cartData} hideCheckoutButton />
+        {cartData && <OrderSummary cart={cartData} hideCheckoutButton />}
       </div>
     </div>
   );

@@ -32,7 +32,10 @@ export const modifyCartItem = async (
       throw new Error("Failed to modify cart item");
     }
   } catch (error) {
-    console.error("Error modifying cart:", error.message);
+    console.error(
+      "Error modifying cart:",
+      error instanceof Error ? error.message : String(error)
+    );
     throw error;
   }
 };
@@ -47,7 +50,10 @@ export const clearCart = async (userId: string): Promise<void> => {
       console.log("Status:", response.status);
     }
   } catch (error) {
-    console.error("Error from cart service:", error.message);
+    console.error(
+      "Error from cart service:",
+      error instanceof Error ? error.message : String(error)
+    );
     throw error;
   }
 };

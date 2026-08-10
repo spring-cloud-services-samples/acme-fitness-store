@@ -5,17 +5,20 @@ describe('ACME Fitness E2E Test', () => {
     });
 
     it('ask it standard FAQ questions', () => {
+        // /ai/question
+        cy.intercept('POST', '/ai/question').as('askQuestion');
         cy.get('.fixed > .px-4').click();
         cy.get('.bg-primary > :nth-child(2) > :nth-child(2)').click();
         cy.get('form.p-4 > .flex > .w-full').type("How long will it take to get the bike delivered to me?");
         cy.get('form.p-4 > .flex > .text-sm').click();
-        cy.wait(5000);
+        cy.wait('@askQuestion').its('response.statusCode').should('eq', 200);
         cy.get('.justify-start > .rounded-lg').should('exist').and('contain.text', 'We offer two shipping options')
         cy.get('.justify-start > .rounded-lg').contains('Free standard shipping', {matchCase: false})
         cy.get('.justify-start > .rounded-lg').contains('Premium shipping', {matchCase: false})
     })
 
     it('Browses catalog adds bike to cart and completes checkout', () => {
+        cy.intercept('POST', '/ai/question').as('askQuestion');
         cy.get('.ml-10 > [href="/bikes"]').click()
         cy.get('[href="/product/117d82ca-d3d2-4742-9fc7-9879a7bd81fb"] > .rounded-lg').click({force: true})
         cy.get('[data-cy="add-button"]').click();
@@ -25,13 +28,13 @@ describe('ACME Fitness E2E Test', () => {
         cy.get('.fixed > .px-4').click();
         cy.get('form.p-4 > .flex > .w-full').type("Tell me more about this Product.");
         cy.get('form.p-4 > .flex > .text-sm').click();
-        cy.wait(10000);
+        cy.wait('@askQuestion').its('response.statusCode').should('eq', 200);
         cy.get(':nth-child(3) > .rounded-lg > .chat').should('exist').and('contain.text', 'E-Adrenaline 8.0 EX1')
         cy.get(':nth-child(3) > .rounded-lg > .chat > :nth-child(1)').and('have.attr', 'href', '/product/cdc8abf3-51cc-4d73-8bee-8ce876a550e5')
         cy.get('form.p-4 > .flex > .w-full').type("Whats my cart total?");
         cy.get('form.p-4 > .flex > .text-sm').click();
-        cy.wait(10000)
-        cy.get(':nth-child(5) > .rounded-lg > .chat').should('exist').and('contain.text', 'Your current cart total is $')
+        cy.wait('@askQuestion').its('response.statusCode').should('eq', 200);
+        cy.get(':nth-child(5) > .rounded-lg > .chat').should('exist').and('contain.text', 'Your cart total is $')
         cy.get('.bg-primary > :nth-child(2) > :nth-child(3)').click();
         cy.get('.gap-2 > a > .text-sm').filter(':visible').click();
         cy.get('[data-cy=checkout-button]').click();

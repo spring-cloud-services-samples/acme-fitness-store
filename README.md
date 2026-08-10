@@ -21,8 +21,8 @@ This application is composed of several services:
 * 1 ASP.NET Core applications:
     - An order service for placing orders to buy products that are in the users' carts
 
-* 1 Node.js and static HTML Application
-    - A frontend shopping application
+* 1 React single-page application (Vite + TypeScript, Tailwind CSS, TanStack Query):
+  * A frontend shopping application
 
 The sample can be deployed to Tanzu Platform.
 

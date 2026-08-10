@@ -11,5 +11,3 @@ npx cypress open
 ```
 
 Be sure to run cypress in Chrome to ensure all functionality works correctly.
-
-

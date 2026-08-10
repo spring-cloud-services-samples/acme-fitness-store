@@ -12,7 +12,7 @@ export default function Button({
   ...rest
 }: ButtonProps) {
   const baseStyles =
-    "px-4 py-2 rounded text-sm font-medium focus:outline-none transition";
+    "px-4 py-2 rounded text-sm font-medium focus:outline-none transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     filled: "bg-grape text-white hover:bg-blue-700",

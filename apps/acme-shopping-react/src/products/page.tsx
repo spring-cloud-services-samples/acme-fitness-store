@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useGetUserInfo } from "../hooks/userHooks.ts";
 import { useGetProduct } from "../hooks/catalogHooks.ts";
@@ -17,6 +18,7 @@ export default function ProductPage() {
   const { data, isLoading: isProductLoading } = useGetProduct(productId);
 
   const addToCartMutation = useAddToCart(userInfo?.userId);
+  const [loginRequired, setLoginRequired] = useState(false);
 
   if (isProductLoading || isUserLoading) {
     return <Loading />;
@@ -34,6 +36,13 @@ export default function ProductPage() {
   const product = data.data;
 
   const handleAddToCart = () => {
+    // Cart operations require an authenticated user; there is no guest cart.
+    // Prompt the logged-out user to sign in instead of firing a broken request.
+    if (!userInfo?.userId) {
+      setLoginRequired(true);
+      return;
+    }
+    setLoginRequired(false);
     const cartItem: CartItemData = {
       itemid: product.id,
       name: product.name,
@@ -69,10 +78,38 @@ export default function ProductPage() {
               data-cy="add-button"
               variant="filled"
               onClick={handleAddToCart}
+              disabled={addToCartMutation.isPending}
               className="p-4 w-36 my-2"
             >
-              Add to Cart
+              {addToCartMutation.isPending ? "Adding…" : "Add to Cart"}
             </Button>
+
+            <div aria-live="polite" className="min-h-6 my-1">
+              {loginRequired ? (
+                <p
+                  data-cy="add-login-required"
+                  className="text-sm text-chocolate"
+                >
+                  Please{" "}
+                  <button
+                    type="button"
+                    className="underline font-medium cursor-pointer"
+                    onClick={() => (window.location.href = "/acme-login")}
+                  >
+                    sign in
+                  </button>{" "}
+                  to add items to your cart.
+                </p>
+              ) : addToCartMutation.isError ? (
+                <p data-cy="add-error" className="text-sm text-raspberry">
+                  Couldn&apos;t add to cart. Please try again.
+                </p>
+              ) : addToCartMutation.isSuccess ? (
+                <p data-cy="add-success" className="text-sm text-green">
+                  Added to your cart.
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

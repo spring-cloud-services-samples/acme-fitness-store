@@ -180,10 +180,10 @@ export const useGetProducts = (): { data: { data: ProductData[] }, isLoading: bo
     return {data: products, isLoading, error};
 };
 
-export const useGetProduct = (productId: string): { data: { data: ProductData }, isLoading: boolean, error: Error | null } => {
+export const useGetProduct = (productId: string | undefined): { data: { data: ProductData }, isLoading: boolean, error: Error | null } => {
     const {data, isLoading, error} = useQuery<{ data: ProductData }, Error>({
         queryKey: ['getProduct', productId],
-        queryFn: () => getProduct(productId),
+        queryFn: () => getProduct(productId!),
         retry: false,
     });
 

@@ -141,7 +141,9 @@ export const useChatService = () => {
             content: getCurrentProductInView(),
             role: "USER",
           });
-          payload["messages"].push(latestMsg);
+          if (latestMsg) {
+            payload["messages"].push(latestMsg);
+          }
 
           const response = await axios.post<AcmeChatResponse>(
             "/ai/question",

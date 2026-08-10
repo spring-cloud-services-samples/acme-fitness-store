@@ -1,5 +1,7 @@
+@reference "./tailwind.css";
+
 .chat {
-    a {
+    & a {
         @apply underline text-grape
     }
 }
