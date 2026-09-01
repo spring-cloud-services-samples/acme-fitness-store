@@ -7,11 +7,8 @@ management:
 spring:
   application:
     name: acme-identity
-  config:
-    activate:
-      on-profile: default
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${JWK_URI}
+          jwk-set-uri: ${JWK_URI:${ssoServiceUrl}/token_keys}

@@ -2,6 +2,10 @@ spring:
   application:
     name: acme-catalog
 
+  threads:
+    virtual:
+      enabled: true
+
   jpa:
     hibernate:
       ddl-auto: validate

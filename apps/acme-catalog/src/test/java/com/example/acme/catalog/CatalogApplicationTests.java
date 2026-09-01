@@ -1,13 +1,16 @@
 package com.example.acme.catalog;
 
-import io.restassured.RestAssured;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -16,29 +19,36 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "management.endpoints.web.exposure.include=*",
-                "management.prometheus.metrics.export.step=2s"})
-@AutoConfigureObservability
+                "management.prometheus.metrics.export.step=2s",
+                "eureka.client.enabled=false",
+                "spring.cloud.config.enabled=false"})
 @Testcontainers
 class CatalogApplicationTests {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CatalogApplicationTests.class);
 
     @LocalServerPort
     private int serverPort;
 
-    @Container
-    private static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.19-alpine");
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Container
-    static final GenericContainer<?> prometheus = new GenericContainer<>("prom/prometheus:v2.37.0")
+    public static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:14.19-alpine");
+
+    @Container
+    public static final GenericContainer<?> prometheus = new GenericContainer<>("prom/prometheus:v2.37.0")
             .withExposedPorts(9090)
             .waitingFor(Wait.forLogMessage("(?s).*Server is ready to receive web requests.*$", 1))
             .withAccessToHost(true);
@@ -50,12 +60,9 @@ class CatalogApplicationTests {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
-
-
     @BeforeEach
     void before() {
         org.testcontainers.Testcontainers.exposeHostPorts(this.serverPort);
-        RestAssured.port = this.serverPort;
 
         var config = String.format("""
                 scrape_configs:
@@ -67,49 +74,47 @@ class CatalogApplicationTests {
         prometheus.copyFileToContainer(Transferable.of(config), "/etc/prometheus/prometheus.yml");
 
         // Reload config
-        prometheus.getDockerClient().killContainerCmd(prometheus.getContainerId())
-                .withSignal("SIGHUP")
-                .exec();
+        try {
+            prometheus.execInContainer("kill", "-HUP", "1");
+        } catch (Exception e) {
+            LOGGER.warn("Failed to reload Prometheus config", e);
+        }
     }
 
     @Test
     void listAllProducts() {
-        given()
-                .get("/products")
-                .then()
-                .assertThat()
-                .body("data.size()", equalTo(49));
+        String url = "http://localhost:" + serverPort + "/products";
+        ResponseEntity<Map> response = restTemplate.getForEntity(URI.create(url), Map.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        List<?> data = (List<?>) response.getBody().get("data");
+        assertThat(data).hasSize(49);
         checkMetric("getProducts");
     }
 
     @Test
     void findProductById() {
-
-
-        given()
-                .get("/products/cdc8abf3-51cc-4d73-8bee-8ce876a550e5")
-                .then()
-                .assertThat()
-                .body("data.name", equalTo("E-Adrenaline 8.0 EX1"));
+        String url = "http://localhost:" + serverPort + "/products/cdc8abf3-51cc-4d73-8bee-8ce876a550e5";
+        ResponseEntity<Map> response = restTemplate.getForEntity(URI.create(url), Map.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        Map<?, ?> data = (Map<?, ?>) response.getBody().get("data");
+        assertThat(data.get("name")).isEqualTo("E-Adrenaline 8.0 EX1");
         checkMetric("getProduct");
     }
 
-
-
     private void checkMetric(String method) {
-        var query = String.format("store_products_seconds_count{method=\"%s\"}", method);
+        var rawQuery = String.format("store_products_seconds_count{method=\"%s\"}", method);
+        String encodedQuery = URLEncoder.encode(rawQuery, StandardCharsets.UTF_8);
+        URI prometheusUri = URI.create(String.format("http://%s:%d/api/v1/query?query=%s", prometheus.getHost(), prometheus.getMappedPort(9090), encodedQuery));
         Awaitility.given().pollInterval(Duration.ofSeconds(2))
                 .atMost(Duration.ofSeconds(15))
                 .ignoreExceptions()
-                .untilAsserted(() -> given().baseUri("http://" + prometheus.getHost())
-                                        .port(prometheus.getMappedPort(9090))
-                                        .queryParams(Map.of("query", query))
-                                        .get("/api/v1/query")
-                                        .prettyPeek()
-                                        .then()
-                                        .assertThat()
-                                        .statusCode(200)
-                                        .body("data.result[0].value", hasItem("1")));
+                .untilAsserted(() -> {
+                    ResponseEntity<Map> res = restTemplate.getForEntity(prometheusUri, Map.class);
+                    assertThat(res.getStatusCode().value()).isEqualTo(200);
+                    Map<?, ?> data = (Map<?, ?>) res.getBody().get("data");
+                    List<?> result = (List<?>) data.get("result");
+                    assertThat(result).isNotEmpty();
+                });
     }
 
 }

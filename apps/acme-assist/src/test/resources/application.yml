@@ -1,8 +1,11 @@
 spring:
   ai:
+    model:
+      chat: openai
+      embedding: openai
     openai:
       api-key: foobar-openai-key
-      base-url: foobar-openai-baseurl
+      base-url: http://localhost:8080
 eureka:
   client:
     enabled: false

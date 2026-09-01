@@ -50,14 +50,28 @@ public class VectorStoreInitializer implements ApplicationListener<ApplicationRe
      @SuppressWarnings("unchecked")
      public void onApplicationEvent(ApplicationReadyEvent event) {
 
-        List<Document> documents = new ArrayList<>();
+        List<Document> chunks = new ArrayList<>();
+        int productCount = 0;
         productRepository.refreshProductList();
-        productRepository.getProductList().stream()
-                .map(DocumentUtils::createDocument)
-                .forEach(doc -> {
-                    documents.add(doc);
-                });
-        LOGGER.info("Found {} products to index", documents.size());
-        vectorStore.add(documents);
+        for (var product : productRepository.getProductList()) {
+            chunks.addAll(DocumentUtils.createDocuments(product));
+            productCount++;
+        }
+        LOGGER.info("Found {} products to index ({} chunks)", productCount, chunks.size());
+
+        int indexed = 0;
+        for (Document chunk : chunks) {
+            try {
+                vectorStore.add(List.of(chunk));
+                indexed++;
+            } catch (Exception e) {
+                LOGGER.error("Skipping chunk for product '{}': failed to index in vector store", chunk.getMetadata().get("name"), e);
+            }
+        }
+        if (indexed < chunks.size()) {
+            LOGGER.error("Indexed only {} of {} chunks from {} products in vector store; see preceding errors for the failures", indexed, chunks.size(), productCount);
+        } else {
+            LOGGER.info("Successfully indexed {} chunks from {} products in vector store", indexed, productCount);
+        }
      }
 }
