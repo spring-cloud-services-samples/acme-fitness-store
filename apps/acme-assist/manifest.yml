@@ -8,11 +8,10 @@ applications:
     - acme-assist-postgres
     - acme-config
     - acme-registry
-    - acme-genai-chat
-    - acme-genai-embed
+    - acme-genai
   routes:
     - route: acme-assist.apps.internal
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud,k8s
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 25.+ } }'

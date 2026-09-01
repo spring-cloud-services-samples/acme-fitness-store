@@ -1,4 +1,3 @@
-
 management:
   endpoints:
     web:
@@ -6,12 +5,23 @@ management:
         include: info,health
 spring:
   ai:
+    model:
+      chat: none
+      embedding: none
+      audio:
+        speech: none
+        transcription: none
+      image: none
+      moderation: none
     vectorstore:
-      pgvector: 
+      pgvector:
         initialize-schema: true
         remove-existing-vector-store-table: true
   application:
     name: acme-assist
+  threads:
+    virtual:
+      enabled: true
   cloud:
     config:
       enabled: false

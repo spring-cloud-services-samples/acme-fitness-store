@@ -22,4 +22,4 @@ applications:
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 25.+ } }'

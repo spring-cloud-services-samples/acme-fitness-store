@@ -4,10 +4,11 @@ applications:
   memory: 1G
   path: build/libs/acme-payment-0.0.1-SNAPSHOT.jar
   buildpack: java_buildpack_offline
+  random-route: true
   services:
     - acme-config
     - acme-registry
   env:
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: false}'
     SPRING_PROFILES_ACTIVE: http2,cloud
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 25.+ } }'

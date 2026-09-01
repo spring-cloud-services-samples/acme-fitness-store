@@ -7,16 +7,22 @@ plugins {
 
 group = 'com.vmware'
 version = '0.0.1-SNAPSHOT'
+
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 repositories {
     mavenCentral()
-    maven { url 'https://artifactory-oss.prod.netflix.net/artifactory/maven-oss-candidates' }
-    maven { url 'https://repo.spring.io/milestone' }
+}
+
+ext {
+    set('javaCfenvVersion', "4.0.1")
+    set('springCloudServicesVersion', "4.4.0")
+    set('springCloudVersion', "2025.1.3")
+    set('springCredhubVersion', "4.0.1")
 }
 
 springBoot {
@@ -31,7 +37,9 @@ springBoot {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework:spring-aspects'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.flywaydb:flyway-database-postgresql'
@@ -40,9 +48,9 @@ dependencies {
 
     implementation 'io.pivotal.spring.cloud:spring-cloud-services-starter-service-registry'
     implementation 'io.pivotal.spring.cloud:spring-cloud-services-starter-config-client'
-    implementation group: 'io.pivotal.cfenv', name: 'java-cfenv-boot', version: '3.5.0'
-    implementation group: 'io.pivotal.cfenv', name: 'java-cfenv-boot-pivotal-sso', version: '3.5.0'
-    implementation 'org.springframework.credhub:spring-credhub-starter:3.5.0'
+    implementation "io.pivotal.cfenv:java-cfenv-boot:${javaCfenvVersion}"
+    implementation "io.pivotal.cfenv:java-cfenv-boot-pivotal-sso:${javaCfenvVersion}"
+    implementation "org.springframework.credhub:spring-credhub-starter:${springCredhubVersion}"
     implementation 'org.springframework.cloud:spring-cloud-bindings:2.0.4'
 
     runtimeOnly 'org.postgresql:postgresql'
@@ -50,15 +58,17 @@ dependencies {
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'io.rest-assured:rest-assured'
 }
 
 dependencyManagement {
     imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-        mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:4.3.2"
+        mavenBom "io.pivotal.spring.cloud:spring-cloud-services-dependencies:${springCloudServicesVersion}"
     }
 }
 

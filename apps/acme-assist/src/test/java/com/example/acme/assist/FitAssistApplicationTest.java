@@ -13,7 +13,9 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(properties = {
+        "eureka.client.enabled=false",
+        "spring.cloud.config.enabled=false"})
 class FitAssistApplicationTest {
 
     @MockitoBean
