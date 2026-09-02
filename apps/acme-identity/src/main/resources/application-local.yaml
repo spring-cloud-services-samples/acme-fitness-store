@@ -4,12 +4,6 @@ spring:
   cloud:
     config:
       enabled: true
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: "Needed value for Bean Initializer this comes from Config Server"
-
   config:
     import:
       - configserver:http://localhost:8888
