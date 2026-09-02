@@ -56,9 +56,9 @@ cf create-service p-identity uaa acme-sso
 cf create-service p.service-registry standard acme-registry  
 cf create-service p.gateway standard acme-gateway -c '{"sso": { "plan": "uaa", "scopes": ["openid", "profile", "email"] }, "host": "acme-fitness" ,"cors": { "allowed-origins": [ "*" ] }}'
 
-# This assumes you have a Chat and Embedding model plan configured with GenAI for Tanzu Platform v0.6+
-cf create-service genai <CHAT MODEL PLAN> acme-genai-chat
-cf create-service genai <EMBED MODEL PLAN> acme-genai-embed
+# This assumes you have a plan configured with Tanzu AI Services v10.3.5 or later that provides both a
+# Chat and an Embedding model - GenaiLocator resolves both from this single service instance.
+cf create-service ai-models <CHAT+EMBED MODEL PLAN> acme-genai
 ```
 
 #### Identity Service
