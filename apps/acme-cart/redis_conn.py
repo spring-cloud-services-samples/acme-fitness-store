@@ -1,10 +1,19 @@
 #!/usr/bin/python
 import os
 import redis
-from redislite import Redis
 from os import environ
 from credhub import credhub_secret
-from distutils.util import strtobool
+
+# redislite is not available on Windows (native C extension requires a Unix Redis build).
+# It is only used as a last-resort fallback when no external Redis server is configured.
+try:
+    from redislite import Redis as _RedisLite
+    _has_redislite = True
+except (ImportError, OSError):
+    _has_redislite = False
+
+def strtobool(val):
+    return val.lower() in ('y', 'yes', 't', 'true', 'on', '1')
 
 def redis_connection(logger):
     if environ.get('VCAP_SERVICES') not in (None, ''):
@@ -36,9 +45,11 @@ def redis_connection(logger):
         elif redis_host not in (None, ''):
              logger.info('initiating redis connection with no password')
              redis_conn = redis.StrictRedis(host=redis_host, port=redis_port, password=None, db=0)
-        else:
+        elif _has_redislite:
              logger.info('initiating redis connection with no host or password (using redislite)')
-             redis_conn = Redis('redis.db')
+             redis_conn = _RedisLite('redis.db')
+        else:
+             raise RuntimeError('REDIS_HOST is not set and redislite is not available on this platform; set REDIS_HOST or run on Linux/macOS')
     try:
         logger.info('initiated redis connection %s', redis_conn)
         redis_conn.ping()
