@@ -2,10 +2,8 @@
 
 # general imports
 import json
-import opentracing
 import requests
 import sentry_sdk
-import time
 
 from logging.config import dictConfig
 from os import environ
@@ -14,7 +12,6 @@ from flask import request
 from flask_httpauth import HTTPTokenAuth
 from sentry_sdk.integrations.flask import FlaskIntegration
 from flask import Flask
-from lib.tracing import init_tracer
 from redis_conn import redis_connection
 
 # sentry_sdk.init("https://c0f58a327f2c4cd8b29e8cd0a606f0e9@sentry.io/1722363")
@@ -82,17 +79,12 @@ sentry_sdk.init(
     integrations=[FlaskIntegration()]
 )
 
-cart_tracer = init_tracer('cart')
-# flask_tracer = FlaskTracing(opentracing_tracer, True, app)
-
 
 # initializing redis connections on localhost and port 6379
 # If error terminates process- entire cart is shut down
 
 rConn = redis_connection(app.logger)
 
-
-# redis_opentracing.init_tracing(cart_tracer)
 
 # errorhandler for specific responses
 class FoundIssue(Exception):
@@ -199,21 +191,15 @@ def insert_data():
 
 
 # Gets all items from a specific userid
-def get_items(userid, span_c):
-    #    redis_opentracing.init_tracing(cart_tracer, trace_all_classes=False)
+def get_items(userid):
+    app.logger.info('/cart/getItems')
 
-    function_name = '/cart/getItems/function'
-
-    with cart_tracer.start_span(function_name, child_of=span_c) as span:
-        app.logger.info('/cart/getItems')
-
-        with cart_tracer.start_span('/redis/extract/get', child_of=span) as redis_span:
-            if rConn.exists(userid):
-                unpacked_data = json.loads(rConn.get(userid).decode('utf-8'))
-                app.logger.info('got data')
-            else:
-                app.logger.info('empty - no data for key %s', userid)
-                unpacked_data = 0
+    if rConn.exists(userid):
+        unpacked_data = json.loads(rConn.get(userid).decode('utf-8'))
+        app.logger.info('got data')
+    else:
+        app.logger.info('empty - no data for key %s', userid)
+        unpacked_data = 0
 
     return unpacked_data
 
@@ -234,26 +220,15 @@ def is_number(s):
 @app.route('/cart/items/<userid>', methods=['GET'])
 @auth.login_required
 def get_cart_items(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, carrier=request.headers)
-    app.logger.info('the request headers are %s', str(request.headers))
-    function_name = '/cart/items'
     return_value = '200'
-    if span_ctx is None:
-        app.logger.info('there is no context being passed for tracing or tracing if off')
+    app.logger.info('getting all items on cart for user %s', userid)
+    pp_table = get_items(userid)
+    if pp_table:
+        packed_data = jsonify({"userid": userid, "cart": pp_table})
     else:
-        app.logger.info('there is context being passed %s', str(span_ctx))
-
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-
-        span.set_tag("user", userid)
-        app.logger.info('getting all items on cart for user %s', userid)
-        pp_table = get_items(userid, span)
-        if pp_table:
-            packed_data = jsonify({"userid": userid, "cart": pp_table})
-        else:
-            app.logger.info('no items in cart found for %s', userid)
-            packed_data = jsonify({"userid": userid, "cart": pp_table})
-            return_value = '204'
+        app.logger.info('no items in cart found for %s', userid)
+        packed_data = jsonify({"userid": userid, "cart": pp_table})
+        return_value = '204'
 
     return packed_data, return_value
 
@@ -262,32 +237,26 @@ def get_cart_items(userid):
 @app.route('/cart/items/total/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def cart_items_total(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    app.logger.info('getting total for %s cart', userid)
+    jsonobj = get_items(userid)
 
-    function_name = '/cart/items/total'
+    key_list = []
+    for item in jsonobj:
+        key_list.append(list(item.keys())[0])
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        span.set_tag("user", userid)
-        app.logger.info('getting total for %s cart', userid)
-        jsonobj = get_items(userid, span)
+    key_index = 0
+    total = 0
 
-        key_list = []
-        for item in jsonobj:
-            key_list.append(list(item.keys())[0])
+    while key_index < len(jsonobj):
+        quantity = jsonobj[key_index]['quantity']
+        if is_number(quantity):
+            total = total + float(quantity)
+        else:
+            total = total + 0
+        key_index += 1
 
-        key_index = 0
-        total = 0
-
-        while key_index < len(jsonobj):
-            quantity = jsonobj[key_index]['quantity']
-            if is_number(quantity):
-                total = total + float(quantity)
-            else:
-                total = total + 0
-            key_index += 1
-
-        app.logger.info("The total number of items is %s", str(total))
-        total_json = {"userid": userid, "cartitemtotal": total}
+    app.logger.info("The total number of items is %s", str(total))
+    total_json = {"userid": userid, "cartitemtotal": total}
 
     return jsonify(total_json)
 
@@ -297,22 +266,17 @@ def cart_items_total(userid):
 @app.route('/cart/all', methods=['GET'])
 @auth.login_required
 def get_all_carts():
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    app.logger.info('getting carts')
 
-    function_name = 'cart/all'
+    carts = []
+    cart = {}
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        app.logger.info('getting carts')
-
-        carts = []
+    for x in rConn.keys():
+        clean_key = x.decode('utf-8')
+        cart['id'] = clean_key
+        cart['cart'] = json.loads(rConn.get(clean_key).decode('utf-8'))
+        carts.append(cart)
         cart = {}
-
-        for x in rConn.keys():
-            clean_key = x.decode('utf-8')
-            cart['id'] = clean_key
-            cart['cart'] = json.loads(rConn.get(clean_key).decode('utf-8'))
-            carts.append(cart)
-            cart = {}
 
     return jsonify({'all carts': carts})
 
@@ -324,52 +288,44 @@ def get_all_carts():
 @app.route('/cart/item/add/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def add_item(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    content = request.json
 
-    function_name = '/cart/items/add'
+    app.logger.info('the content to add is %s', content)
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
+    jsonobj = get_items(userid)
 
-        span.set_tag("userid", userid)
+    if jsonobj:
 
-        content = request.json
-
-        app.logger.info('the content to add is %s', content)
-
-        jsonobj = get_items(userid, span)
-
-        if jsonobj:
-
-            key_index = 0
-            while key_index < len(jsonobj):
-                if jsonobj[key_index]['itemid'] == content['itemid']:
-                    jsonobj[key_index]['quantity'] = int(jsonobj[key_index]['quantity']) + int(content['quantity'])
-                    key_index = len(jsonobj) + 1
-                    payload = json.dumps(jsonobj)
-                    try:
-                        app.logger.info('inserting cart for %s with following contents %s', userid, json.dumps(content))
-                        rConn.set(userid, payload)
-                    except Exception as e:
-                        app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
-                else:
-                    key_index += 1
-
-            if key_index <= len(jsonobj):
-                jsonobj.append(content)
+        key_index = 0
+        while key_index < len(jsonobj):
+            if jsonobj[key_index]['itemid'] == content['itemid']:
+                jsonobj[key_index]['quantity'] = int(jsonobj[key_index]['quantity']) + int(content['quantity'])
+                key_index = len(jsonobj) + 1
                 payload = json.dumps(jsonobj)
                 try:
                     app.logger.info('inserting cart for %s with following contents %s', userid, json.dumps(content))
                     rConn.set(userid, payload)
                 except Exception as e:
                     app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
+            else:
+                key_index += 1
 
-        else:
-            payload = [content]
-            app.logger.info("added to payload for new insert %s", json.dumps(payload))
+        if key_index <= len(jsonobj):
+            jsonobj.append(content)
+            payload = json.dumps(jsonobj)
             try:
-                rConn.set(userid, json.dumps(payload))
+                app.logger.info('inserting cart for %s with following contents %s', userid, json.dumps(content))
+                rConn.set(userid, payload)
             except Exception as e:
                 app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
+
+    else:
+        payload = [content]
+        app.logger.info("added to payload for new insert %s", json.dumps(payload))
+        try:
+            rConn.set(userid, json.dumps(payload))
+        except Exception as e:
+            app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
 
     return jsonify({"userid": userid})
 
@@ -400,28 +356,21 @@ def add_item(userid):
 @app.route('/cart/modify/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def replace_cart(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    content = request.json
 
-    function_name = '/cart/modify'
+    app.logger.info('the content to modify is %s', content)
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        span.set_tag("userid", userid)
+    jsonobj = get_items(userid)
 
-        content = request.json
+    payload = []
+    for item in content['cart']:
+        payload.append(item)
 
-        app.logger.info('the content to modify is %s', content)
-
-        jsonobj = get_items(userid, span)
-
-        payload = []
-        for item in content['cart']:
-            payload.append(item)
-
-        app.logger.info("added to payload for new insert %s", json.dumps(payload))
-        try:
-            rConn.set(userid, json.dumps(payload))
-        except Exception as e:
-            app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
+    app.logger.info("added to payload for new insert %s", json.dumps(payload))
+    try:
+        rConn.set(userid, json.dumps(payload))
+    except Exception as e:
+        app.logger.error('Could not insert data %s into redis, error is %s', json.dumps(content), e)
 
     return jsonify({"userid": userid})
 
@@ -431,46 +380,39 @@ def replace_cart(userid):
 @app.route('/cart/item/modify/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def delete_item(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    content = request.json
 
-    function_name = '/cart/items/modify'
+    app.logger.info('the item to delete is %s', content)
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        span.set_tag("userid", userid)
-
-        content = request.json
-
-        app.logger.info('the item to delete is %s', content)
-
-        jsonobj = get_items(userid, span)
-        if jsonobj:
-            key_index = 0
-            while key_index < len(jsonobj):
-                if (jsonobj[key_index]['itemid'] == content['itemid']) and (content['quantity'] == 0):
-                    del jsonobj[key_index]
-                    payload = json.dumps(jsonobj)
-                    try:
-                        app.logger.info('removing item for %s with following contents %s', userid, json.dumps(content))
-                        rConn.set(userid, payload)
-                    except Exception as e:
-                        app.logger.error('Could not remove data %s into redis, error is %s', json.dumps(content), e)
-                    key_index = len(jsonobj)
-                elif jsonobj[key_index]['itemid'] == content['itemid']:
-                    jsonobj[key_index]['quantity'] = content['quantity']
-                    payload = json.dumps(jsonobj)
-                    try:
-                        app.logger.info('modifying cart for %s with following contents %s', userid, json.dumps(content))
-                        rConn.set(userid, payload)
-                        app.logger.info('finished setting %s with following contents %s', userid, json.dumps(content))
-                    except Exception as e:
-                        app.logger.error('Could not modify cart %s into redis, error is %s', json.dumps(content), e)
-                    key_index = len(jsonobj)
-                else:
-                    key_index += 1
-        else:
-            app.logger.info('no items in cart found for %s', userid)
-            output_message = "no cart found for " + userid
-            raise FoundIssue(str(output_message), status_code=204)
+    jsonobj = get_items(userid)
+    if jsonobj:
+        key_index = 0
+        while key_index < len(jsonobj):
+            if (jsonobj[key_index]['itemid'] == content['itemid']) and (content['quantity'] == 0):
+                del jsonobj[key_index]
+                payload = json.dumps(jsonobj)
+                try:
+                    app.logger.info('removing item for %s with following contents %s', userid, json.dumps(content))
+                    rConn.set(userid, payload)
+                except Exception as e:
+                    app.logger.error('Could not remove data %s into redis, error is %s', json.dumps(content), e)
+                key_index = len(jsonobj)
+            elif jsonobj[key_index]['itemid'] == content['itemid']:
+                jsonobj[key_index]['quantity'] = content['quantity']
+                payload = json.dumps(jsonobj)
+                try:
+                    app.logger.info('modifying cart for %s with following contents %s', userid, json.dumps(content))
+                    rConn.set(userid, payload)
+                    app.logger.info('finished setting %s with following contents %s', userid, json.dumps(content))
+                except Exception as e:
+                    app.logger.error('Could not modify cart %s into redis, error is %s', json.dumps(content), e)
+                key_index = len(jsonobj)
+            else:
+                key_index += 1
+    else:
+        app.logger.info('no items in cart found for %s', userid)
+        output_message = "no cart found for " + userid
+        raise FoundIssue(str(output_message), status_code=204)
 
     return jsonify({"userid": userid})
 
@@ -479,19 +421,12 @@ def delete_item(userid):
 @app.route('/cart/clear/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def clear_cart(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
-
-    function_name = '/cart/clear'
-
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        span.set_tag("userid", userid)
-
-        try:
-            app.logger.info("clearing cart for %s", userid)
-            rConn.delete(userid)
-        except Exception as e:
-            app.logger.error('Could not delete %s cart due to %s', userid, e)
-            raise FoundIssue(str(e), status_code=500)
+    try:
+        app.logger.info("clearing cart for %s", userid)
+        rConn.delete(userid)
+    except Exception as e:
+        app.logger.error('Could not delete %s cart due to %s', userid, e)
+        raise FoundIssue(str(e), status_code=500)
     #        return('',500)
 
     return '', 200
@@ -507,38 +442,31 @@ def order(userid):
 @app.route('/cart/total/<userid>', methods=['GET', 'POST'])
 @auth.login_required
 def cart_total(userid):
-    span_ctx = cart_tracer.extract(opentracing.Format.HTTP_HEADERS, request.headers)
+    app.logger.info('getting total for %s cart', userid)
 
-    function_name = 'carttotal'
+    jsonobj = get_items(userid)
 
-    with cart_tracer.start_span(function_name, child_of=span_ctx) as span:
-        span.set_tag("userid", userid)
+    key_list = []
+    for item in jsonobj:
+        key_list.append(list(item.keys())[0])
 
-        app.logger.info('getting total for %s cart', userid)
+    key_index = 0
+    total = 0
 
-        jsonobj = get_items(userid, span)
+    while key_index < len(jsonobj):
+        quantity = jsonobj[key_index]['quantity']
+        price = jsonobj[key_index]['price']
+        #        quantity=jsonobj[key_index][key_list[key_index]]['quantity']
+        #        price=jsonobj[key_index][key_list[key_index]]['price']
+        if is_number(quantity) and is_number(price):
+            total = total + (float(quantity) * float(price))
+        else:
+            total = total + 0
+        key_index += 1
 
-        key_list = []
-        for item in jsonobj:
-            key_list.append(list(item.keys())[0])
+    app.logger.info("The total calculated is %s", str(total))
 
-        key_index = 0
-        total = 0
-
-        while key_index < len(jsonobj):
-            quantity = jsonobj[key_index]['quantity']
-            price = jsonobj[key_index]['price']
-            #        quantity=jsonobj[key_index][key_list[key_index]]['quantity']
-            #        price=jsonobj[key_index][key_list[key_index]]['price']
-            if is_number(quantity) and is_number(price):
-                total = total + (float(quantity) * float(price))
-            else:
-                total = total + 0
-            key_index += 1
-
-        app.logger.info("The total calculated is %s", str(total))
-
-        total_json = {"userid": userid, "carttotal": total}
+    total_json = {"userid": userid, "carttotal": total}
 
     return jsonify(total_json)
 
@@ -557,6 +485,3 @@ def get_env():
 if __name__ == '__main__':
     insert_data()  # initialize the database with some baseline
     app.run(host='0.0.0.0', port=cart_port)
-    time.sleep(2)
-    cart_tracer.close()
-#    redis_tracer.close()
