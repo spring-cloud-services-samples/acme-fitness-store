@@ -13,5 +13,5 @@ redislite==6.2.912183; sys_platform != "win32"
 requests==2.33.0
 sentry-sdk==2.66.1
 statsd==3.3.0
-urllib3==2.7.0
+urllib3==2.8.0
 Werkzeug==3.1.8
